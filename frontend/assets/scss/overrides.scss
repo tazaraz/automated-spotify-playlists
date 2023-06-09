@@ -1,0 +1,23 @@
+// 1. Include functions first (so you can manipulate colors, SVGs, calc, etc)
+@import "@/node_modules/bootstrap/scss/functions";
+
+// 2. Include any default variable overrides here
+$blue:                    #009dff;
+$primary:                   $blue;
+
+// 3. Include remainder of required Bootstrap stylesheets (including any separate color mode stylesheets)
+@import "@/node_modules/bootstrap/scss/variables";
+@import "@/node_modules/bootstrap/scss/variables-dark";
+
+// 4. Include any default map overrides here
+$primary-text:                  $blue-600;
+$primary-bg-subtle:             $blue-100;
+$primary-border-subtle:         $blue-200;
+$primary-text-dark:             $blue-300;
+$primary-bg-subtle-dark:        $blue-900;
+$primary-border-subtle-dark:    $blue-700;
+$link-color-dark:               $blue-300;
+$link-hover-color-dark:         $blue-200;
+
+// 5. Include remainder of required parts
+@import "@/node_modules/bootstrap/scss/bootstrap";
