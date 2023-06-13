@@ -6,7 +6,8 @@
     "moduleResolution": "Node",
     "esModuleInterop": true,
     "strict": false,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "typeRoots": [ "./types" ]
   },
   "exclude": [
     "node_modules"

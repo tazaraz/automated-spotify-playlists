@@ -1,5 +1,5 @@
-.PHONY:
+all:
 	cd frontend && npm install
-	cd api && npm install
-	cd pipeline && npm install
-	cd common && npm install
+	cd backend/api && npm install
+	cd backend/common && npm install
+	cd backend/processing && npm install

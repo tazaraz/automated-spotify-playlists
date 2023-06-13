@@ -1,73 +1,55 @@
 version: "3.9"
 services:
-  nginx:
+  sp-nginx:
     image: nginx:alpine
-    container_name: nginx
+    container_name: sp-nginx
     restart: always
     ports:
       - 80:80
       - 443:443
       - 24672:24672
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/nginx.conf:/etc/nginx/site.conf
       - ./nginx/logs:/var/log/nginx
     depends_on:
-      - frontend
-      - api
+      - sp-frontend
+      - sp-backend
 
-  frontend:
+  sp-frontend:
     image: node:alpine
-    container_name: frontend
+    container_name: sp-frontend
     command: npm run dev
     restart: always
     working_dir: /frontend
+    volumes:
+      - ./frontend:/frontend
     environment:
       PORT: 80
-      HOST: 0.0.0.0
+      HOST: 'localhost'
       NODE_ENV: "development"
 
-  api:
+  sp-backend:
     image: node:alpine
-    container_name: api
+    container_name: sp-backend
     command: npm run dev
-    working_dir: /api
-    depends_on:
-      - database
-      - cache
+    working_dir: /backend
+    volumes:
+      - ./backend:/backend
     environment:
-      REDIS_HOST: cache
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      HOST: 'localhost'
+      NODE_ENV: development
+      PGHOST: sp-database
+      PGUSER: postgres
       PGPASSWORD: ${DATABASE_PASSWORD}
-
-  pipeline:
-    image: node:alpine
-    container_name: pipeline
-    command: npm run dev
-    working_dir: /pipeline
     depends_on:
-      - database
-      - cache
-    environment:
-      REDIS_HOST: cache
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-      PGPASSWORD: ${DATABASE_PASSWORD}
+      - sp-database
 
-  database:
+  sp-database:
     image: postgres:15.3-alpine
-    container_name: database
+    container_name: sp-database
     restart: always
     environment:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     volumes:
-      - ./data/database:/var/lib/postgresql/data
-
-  cache:
-    image: redis:alpine
-    container_name: cache
-    restart: always
-    environment:
-      REDIS_PASSWORD: ${REDIS_PASSWORD}
-    volumes:
-      - ./data/cache:/data
+      - ./database:/var/lib/postgresql/data
+      - ./database.sql:/docker-entrypoint-initdb.d/database_init.sql
