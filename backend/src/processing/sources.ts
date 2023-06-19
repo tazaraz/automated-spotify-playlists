@@ -1,11 +1,11 @@
-import { AvailableSources } from "../available";
 import FilterLog from "../stores/filterlog";
 import Metadata from "../stores/metadata";
+import { Sources } from "../types/filters";
 import { PlaylistSource } from "../types/playlist";
 import { FilterItem, SUser } from "../types/server";
 
 export class MusicSources {
-    public static readonly origin = AvailableSources;
+    public static readonly origin = Sources;
 
     public static async get(
         sources: PlaylistSource[],
@@ -20,7 +20,7 @@ export class MusicSources {
             const source = sources[index];
             // Execute the dry_run if necessary
             if (dry_run) {
-                if (Object.keys(AvailableSources).indexOf(source.origin) === -1)
+                if (Object.keys(Sources).indexOf(source.origin) === -1)
                     throw Error("Unsupported source")
                 else continue;
             }

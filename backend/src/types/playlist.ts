@@ -24,7 +24,7 @@ export interface PlaylistStatement {
 
 export interface PlaylistCondition {
     // Category (e.g. "Artist")
-    category:   keyof typeof AvailableFilters;
+    category:   keyof typeof Filters;
     // Filter (e.g. "Name")
     filter:     string;
     // Operation (e.g. "Contains")
@@ -37,7 +37,7 @@ export interface PlaylistCondition {
 
 export interface PlaylistSource {
     // Source of the data
-    origin: keyof typeof AvailableSources;
+    origin: keyof typeof Sources;
     // Contains any extra data needed for the source
     value: string | object;
 }

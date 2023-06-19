@@ -1,7 +1,6 @@
-import { AvailableFilters } from "../../available";
 import FilterLog from "../../stores/filterlog";
-import Metadata from "../../stores/metadata";
 import Fetch from "../../tools/fetch";
+import { Filters } from "../../types/filters";
 import { PlaylistCondition, PlaylistStatement } from "../../types/playlist";
 import { FilterItem, STrack, SUser } from "../../types/server";
 import { Track } from "../filters";
@@ -188,7 +187,7 @@ export class FilterCombination {
 
             return loved_tracks
         } else {
-            return (await (AvailableFilters as any)[condition.category][condition.filter]
+            return (await (Filters as any)[condition.category][condition.filter]
                     .filter(input, condition.operation, condition.value, dryrun)) as FilterItem[];
         }
     }
