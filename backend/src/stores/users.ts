@@ -61,20 +61,20 @@ export default class Users {
         const token = authHeader && authHeader.split(' ')[1]
 
         // If there is no token, send a 401
-        if (token == null) return res.sendStatus(401)
+        if (token == null) return res.status(401)
 
         // Verify the token
         jwt.verify(token, process.env.SERVERTOKEN as string, async (error: any, user: any) => {
             if (error) {
-                return res.sendStatus(406)
+                return res.status(406).json({error: "Invalid token"})
             }
 
             // If it is valid, go to the next part of expressjs handling
             req.user = user;
 
-            /* If the user is not in the Auth class cache, try to renew it. if still undefined, error */
+            /* If the user is not in the User cache, try to renew it. if still undefined, error */
             if (await Users.get(user.id) === undefined)
-                return res.sendStatus(406)
+                return res.status(406)
 
             next();
         })
@@ -88,15 +88,8 @@ export default class Users {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': `Basic ${Buffer.from(process.env.client_id + ':' + process.env.client_secret).toString('base64')}`,
             },
-            body: JSON.stringify({
-                grant_type: 'refresh_token',
-                refresh_token: refresh_token,
-            })
+            body: `grant_type=refresh_token&refresh_token=${refresh_token}`,
         })
-
-        // If the request failed, retry. Might be a connection error
-        // if (res.status !== 200 && retry > 0) {
-
 
         return await res.json();
     }
