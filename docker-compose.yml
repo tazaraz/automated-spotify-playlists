@@ -6,10 +6,10 @@ services:
     restart: always
     ports:
       - 80:80
-      - 443:443
       - 24672:24672
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/site.conf
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/site.conf:/etc/nginx/sites-enabled/site.conf
       - ./nginx/logs:/var/log/nginx
     depends_on:
       - sp-frontend
@@ -23,6 +23,7 @@ services:
     working_dir: /frontend
     volumes:
       - ./frontend:/frontend
+      - ./backend:/backend
     environment:
       PORT: 8080
       DOMAIN: 'http://localhost'
