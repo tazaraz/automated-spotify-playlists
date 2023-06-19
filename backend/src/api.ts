@@ -9,6 +9,7 @@ import { FilterCombination } from './processing/matching';
 import { MusicSources } from './processing/sources';
 import FilterLog from './stores/filterlog';
 import { CUser } from './types/client';
+import { LOG } from './main';
 
 const api = express.Router();
 
