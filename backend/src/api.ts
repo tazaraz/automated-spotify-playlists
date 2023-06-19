@@ -114,7 +114,7 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
         track_sources: req.body.track_sources,
         matched_tracks: [],
         excluded_tracks: [],
-        included_tracks: req.body.included_tracks ?? [],
+        included_tracks: [],
         log: { filters: [], sources: [] },
     };
 
