@@ -50,7 +50,7 @@ export default class Users {
     static generate_token(data: object) {
         return jwt.sign(
             data,
-            (process.env.SERVERTOKEN as string),
+            (process.env.SERVER_TOKEN as string),
             { expiresIn: '1d' }
         );
     }
@@ -64,7 +64,7 @@ export default class Users {
         if (token == null) return res.status(401)
 
         // Verify the token
-        jwt.verify(token, process.env.SERVERTOKEN as string, async (error: any, user: any) => {
+        jwt.verify(token, process.env.SERVER_TOKEN as string, async (error: any, user: any) => {
             if (error) {
                 return res.status(406).json({error: "Invalid token"})
             }
@@ -86,7 +86,7 @@ export default class Users {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': `Basic ${Buffer.from(process.env.client_id + ':' + process.env.client_secret).toString('base64')}`,
+                'Authorization': `Basic ${Buffer.from(process.env.SP_CLIENT_ID + ':' + process.env.SP_CLIENT_SECRET).toString('base64')}`,
             },
             body: `grant_type=refresh_token&refresh_token=${refresh_token}`,
         })
