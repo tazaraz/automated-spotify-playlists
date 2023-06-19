@@ -45,7 +45,7 @@ export default class Fetch {
         return Fetch.build<T>(url, { method: "DELETE", ...options });
     }
 
-    private static async build<T>(url: string, options?: FetchOptions) {
+    protected static async build<T>(url: string, options: FetchOptions = {}) {
         const limit      = options?.limit ?? 50;
         const ids        = options?.ids ?? undefined;
         const pagination = options?.pagination ?? false;
@@ -53,10 +53,10 @@ export default class Fetch {
         options.headers  = options.headers ?? {}
 
         // Set the base domain
-        url = url.includes('http') ? url : `https://api.spotify.com/v1/${url}`;
+        url = url.includes('http') ? url : `https://api.spotify.com/v1${url}`;
 
         // Fetch allows the use of an init object
-        const init: FetchOptions = { method: options.method, headers: {} };
+        const parameters: FetchOptions = { method: options.method, headers: {} };
 
         // If a user is provided, make sure the access token is valid
         if (options?.user) {
@@ -74,8 +74,12 @@ export default class Fetch {
 
             for (let i = 0, l = queries.length; i < l; i++) {
                 // Make sure the params are sorted
-                let params = options.query[queries[i]]
-                    params = typeof params === "string" ? params : params.sort().toString()
+                let params = options.query[queries[i]];
+                // Skip if the params are empty
+                if (typeof params !== "string" && params.length == 0) continue;
+                if (typeof params === "string" && params === "") continue;
+
+                params = typeof params === "string" ? params : params.sort().toString()
                 query += `${queries[i]}=${params}` + (i < l - 1 ? "&" : "");
             }
 
@@ -85,24 +89,29 @@ export default class Fetch {
 
         // Add the headers to the init
         for (const key in options.headers)
-            init.headers[key] = options.headers[key];
-
+            parameters.headers[key] = options.headers[key];
 
         // Storage
-        const result = [];
+        let result: any = [];
         let response: any;
 
         if (pagination) {
-            response = { next: `${url}&limit=${limit}&offset=0` };
+            let total  = 0;
+            let requests = [];
 
-            // While there is a next url available
-            do {
-                response = (await Fetch.parseRequest(response.next, init, options)).data;
+            response = (await Fetch.parseRequest(`${url}${options.query ? '&' : '?'}limit=${limit}&offset=0`, parameters, options)).data;
+            total = response.total;
+            requests.push({data: response});
 
-                // Save the data
-                result.push(...Fetch.format(response));
+            for (let i = limit; i < total; i += limit) {
+                requests.push(Fetch.parseRequest(
+                    `${url}${options.query ? '&' : '?'}limit=${limit}&offset=${i}`,
+                    parameters, options
+                ));
+            }
 
-            } while (response.next);
+            const responses = await Promise.all(requests);
+            responses.map(response => result.push(...Fetch.format(response.data)));
 
             return {data: result} as FetchResponse<T>;
         }
@@ -115,7 +124,7 @@ export default class Fetch {
                         // Take only ${limit} values, exceeding max items behaves like max items
                         ids.slice(i, i + limit).toString()
                     }`,
-                    init, options
+                    parameters, options
                 )).data;
 
                 // Store data accordingly
@@ -126,17 +135,25 @@ export default class Fetch {
         }
 
         else {
-            init['body'] = JSON.stringify(data);
-            return await Fetch.parseRequest<T>(url, init, options)
+            if (parameters.headers['Content-Type'] === 'application/x-www-form-urlencoded') {
+                parameters['body'] = (new URLSearchParams(data as any)).toString();
+            } else {
+                parameters['body'] = JSON.stringify(data);
+                parameters.headers['Content-Type'] = 'application/json';
+            }
+
+            return await Fetch.parseRequest<T>(url, parameters, options)
         }
     }
 
-    private static async parseRequest<T>(url: string, parameters: any, options: FetchOptions): Promise<FetchResponse<T>> {
+    protected static async parseRequest<T>(url: string, parameters: any, options: FetchOptions): Promise<FetchResponse<T>> {
         // Fetch the data
         const response = await fetch(url, parameters);
 
         switch (response.status) {
             /* Use a retry limit for these codes */
+            case 401:
+            case 403:
             case 404:
             case 503:
                 if (options.retries > 0) {
@@ -166,14 +183,11 @@ export default class Fetch {
                 });
         }
 
-
-        return {
-            ...response,
-            data: await response.json() as T
-        } as FetchResponse<T>;
+        (response as any).data = await response.json();
+        return response as FetchResponse<T>;
     }
 
-    private static format(data: any) {
+    protected static format(data: any) {
         /* Converting containers to a simple form */
         if (data.tracks) data = data.tracks;
         if (data.albums) data = data.albums;
