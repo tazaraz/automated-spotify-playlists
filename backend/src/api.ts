@@ -17,27 +17,36 @@ const api = express.Router();
  * @param {string} code The code to exchange for a refresh token from spotify
  */
 api.post('/user/authorize', async (req, res) => {
-    const code = req.body?.code || "";
-    let spotify_response: any = {},
-        user: any = {};
-
     // If the data is invalid
-    if (req.body?.response_type !== 'code' || req.body?.client_id !== process.env.SPOTIFYID)
+    if (req.body?.response_type !== 'code' || req.body?.client_id !== process.env.SP_CLIENT_ID)
         return res.status(400).json({ error: "Invalid request" });
 
-    try {
-        // Convert the CodeGrantResponse to an object
-        const data = (await Fetch.post('/api/token', {
-            query: {
-                grant_type: 'authorization_code',
-                redirect_uri: `${process.env.HOST}/login`,
-                code,
-            }
-        })).data;
+    // Convert the CodeGrantResponse to an object
+    let response = await Fetch.post('https://accounts.spotify.com/api/token', {
+        data: {
+            grant_type: 'authorization_code',
+            redirect_uri: `${process.env.DOMAIN}`,
+            code: req.body.code,
+        },
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Authorization': 'Basic ' + Buffer.from(`${process.env.SP_CLIENT_ID}:${process.env.SP_CLIENT_SECRET}`).toString('base64')
+        }
+    });
 
     // We failed to get a code grant, code is invalid
     if (response.status !== 200)
         return res.status(401).json({ error: "Invalid code" })
+
+    const spotify_response = {
+        access_token: response.data.access_token,
+        expires_in: response.data.expires_in,
+        refresh_token: response.data.refresh_token,
+    };
+
+    response = (await Fetch.get("/me", { headers: {
+        'Authorization': `Bearer ${spotify_response.access_token}`
+    }}));
 
     if (response.status !== 200)
         return res.status(401).json({ status: "Spotify Error", error: response.statusText });
@@ -57,9 +66,9 @@ api.post('/user/authorize', async (req, res) => {
 
     // Generate a token for the user
     const server_token = Users.generate_token({
-        name: user.display_name,
-        id: user.id,
-        country: user.country,
+        name: response.data.display_name,
+        id: response.data.id,
+        country: response.data.country,
     });
 
     // Send the user the data
