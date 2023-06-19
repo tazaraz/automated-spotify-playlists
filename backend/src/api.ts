@@ -87,7 +87,8 @@ api.post('/user/authorize', async (req, res) => {
  * Refreshes a user's access token
  */
 api.post('/user/refresh', Users.verify_token, async (req, res) => {
-    res.json({spotify_token: (await Users.get(req.user.id)).access_token})
+    const user = await Users.get(req.user.id);
+    res.json({spotify_token: user.access_token, spotify_token_expiry: user.access_token_expiry.getTime()})
 });
 
 /**
