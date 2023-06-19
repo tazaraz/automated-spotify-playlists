@@ -23,7 +23,7 @@ api.post('/user/authorize', async (req, res) => {
 
     // If the data is invalid
     if (req.body?.response_type !== 'code' || req.body?.client_id !== process.env.SPOTIFYID)
-        return res.sendStatus(406);
+        return res.status(400).json({ error: "Invalid request" });
 
     try {
         // Convert the CodeGrantResponse to an object
@@ -35,17 +35,12 @@ api.post('/user/authorize', async (req, res) => {
             }
         })).data;
 
-        spotify_response = {
-            access_token: data.access_token,
-            expires_in: data.expires_in,
-            refresh_token: data.refresh_token,
-        };
-    } catch (e) {
-        // We failed to get a code grant, code is invalid
-        return res.sendStatus(401);
-    }
+    // We failed to get a code grant, code is invalid
+    if (response.status !== 200)
+        return res.status(401).json({ error: "Invalid code" })
 
-    user = (await Fetch.get("/me", { user })).data;
+    if (response.status !== 200)
+        return res.status(401).json({ status: "Spotify Error", error: response.statusText });
 
     // Store the user in the cache
     Users.set({
@@ -115,7 +110,7 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
 
     /* make sure that it is not creating a normal playlist */
     if (playlist.filters === undefined)
-        return res.sendStatus(400);
+        return res.status(400).json({ error: "Playlist is not a smart playlist" });
 
     /* We now verify the validity of the filters and sources */
     const user = await Users.get(req.user.id)
@@ -165,7 +160,7 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
     await Database.setPlaylist(req.user.id, playlist);
 
     // Send the response
-    res.json(playlist.id);
+    res.status(200).json(playlist.id);
 });
 
 /**
@@ -180,12 +175,12 @@ api.delete('/playlist', Users.verify_token, async (req, res) => {
     }).then(result => {
         // If the request failed, return the error
         if (result.status !== 200)
-            return res.sendStatus(result.status).json({status: "Spotify Error", error: result.statusText})
+            return res.status(result.status).json({status: "Spotify Error", error: result.statusText})
 
         // Delete the playlist from the database
         Database.deletePlaylist(req.body.id, req.user.id)
         .then(() => {
-            res.sendStatus(200)
+            res.status(200)
         })
     })
 });
@@ -206,10 +201,10 @@ api.put(`/playlist/:playlistid/basic`, Users.verify_token, async (req, res) => {
         data: data
     }).then(response => {
         if (response.status !== 200)
-            res.sendStatus(response.status).json({status: "Spotify Error", error: response.statusText})
+            res.status(response.status).json({status: "Spotify Error", error: response.statusText})
 
         Database.setSmartPlaylistBasic(req.params.playlistid, req.user.id, data.name, data.description);
-        res.sendStatus(200);
+        res.status(200);
     })
 })
 
@@ -219,7 +214,7 @@ api.put(`/playlist/:playlistid/basic`, Users.verify_token, async (req, res) => {
  */
 api.delete(`/playlist/:playlistid/matched-tracks`, Users.verify_token, async (req, res) => {
     if (!req.body.deleted || req.body.deleted instanceof Array === false)
-        return res.sendStatus(400).json({status: "Invalid Request"});
+        return res.status(400).json({status: "Invalid Request"});
 
     // Remove from the playlist
     for (let i = 0; req.body.deleted && i < req.body.deleted.length; i += 100) {
@@ -230,7 +225,7 @@ api.delete(`/playlist/:playlistid/matched-tracks`, Users.verify_token, async (re
             )}
         }).then(response => {
             if (response.status !== 200 && response.status !== 201) {
-                res.sendStatus(response.status).json({status: "Spotify Error", error: response.statusText})
+                res.status(response.status).json({status: "Spotify Error", error: response.statusText})
                 throw new Error(response.statusText);
             } else {
                 Snapshots.set(req.params.playlistid, req.user.id, response.data.snapshot_id)
@@ -242,7 +237,7 @@ api.delete(`/playlist/:playlistid/matched-tracks`, Users.verify_token, async (re
     for (let trackid of req.body.deleted)
         Database.addToExcludedTracks(req.params.playlistid, req.user.id, trackid);
 
-    res.sendStatus(200);
+    res.status(200);
 })
 
 /**
@@ -251,7 +246,7 @@ api.delete(`/playlist/:playlistid/matched-tracks`, Users.verify_token, async (re
  */
 api.delete(`/playlist/:playlistid/excluded-tracks`, Users.verify_token, async (req, res) => {
     if (!req.body.deleted || req.body.deleted instanceof Array === false)
-        return res.sendStatus(400).json({status: "Invalid Request"});
+        return res.status(400).json({status: "Invalid Request"});
 
     // Add to the playlist
     for (let i = 0; req.body.deleted && i < req.body.deleted.length; i += 100) {
@@ -262,7 +257,7 @@ api.delete(`/playlist/:playlistid/excluded-tracks`, Users.verify_token, async (r
             }
         }).then(response => {
             if (response.status !== 200 && response.status !== 201) {
-                res.sendStatus(response.status).json({status: "Spotify Error", error: response.statusText})
+                res.status(response.status).json({status: "Spotify Error", error: response.statusText})
                 throw new Error(response.statusText);
             } else {
                 Snapshots.set(req.params.playlistid, req.user.id, response.data.snapshot_id)
@@ -274,7 +269,7 @@ api.delete(`/playlist/:playlistid/excluded-tracks`, Users.verify_token, async (r
     for (let trackid of req.body.deleted)
         Database.addToMatchedTracks(req.params.playlistid, req.user.id, trackid);
 
-    res.sendStatus(200);
+    res.status(200);
 })
 
 /**
@@ -283,7 +278,7 @@ api.delete(`/playlist/:playlistid/excluded-tracks`, Users.verify_token, async (r
  */
 api.delete(`/playlist/:playlistid/included-tracks`, Users.verify_token, async (req, res) => {
     if (!req.body.deleted || req.body.deleted instanceof Array === false)
-        return res.sendStatus(400).json({status: "Invalid Request"});
+        return res.status(400).json({status: "Invalid Request"});
 
     // Update the playlist
     for (let i = 0; i < req.body.deleted.length; i += 100) {
@@ -294,7 +289,7 @@ api.delete(`/playlist/:playlistid/included-tracks`, Users.verify_token, async (r
             )}
         }).then(response => {
             if (response.status !== 200 && response.status !== 201) {
-                res.sendStatus(response.status).json({status: "Spotify Error", error: response.statusText})
+                res.status(response.status).json({status: "Spotify Error", error: response.statusText})
                 throw new Error(response.statusText);
             } else {
                 Snapshots.set(req.params.playlistid, req.user.id, response.data.snapshot_id)
@@ -306,7 +301,7 @@ api.delete(`/playlist/:playlistid/included-tracks`, Users.verify_token, async (r
     for (let trackid of req.body.deleted)
         Database.removeFromIncludedTracks(req.params.playlistid, req.user.id, trackid);
 
-    res.sendStatus(200);
+    res.status(200);
 })
 
 api.patch(`/playlist/:playlistid`, async (req, res) => {
@@ -314,11 +309,11 @@ api.patch(`/playlist/:playlistid`, async (req, res) => {
 
     // If false, something went wrong
     if (result === false) {
-        return res.sendStatus(404);
+        return res.status(404);
     }
     // True means the playlist is already running
     else if (result === true) {
-        return res.sendStatus(200).json({
+        return res.status(304).json({
             status: "Playlist is already running",
             log: await FilterLog.get(req.params.playlistid).changed()
         });
