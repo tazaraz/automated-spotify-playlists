@@ -33,7 +33,10 @@ const users     = new Users();
 const snapshots = new Snapshots();
 
 app.use(express.json());
+app.use(express.urlencoded({extended: true}));
 app.use(cors({ origin: '*' }));
+app.disable('x-powered-by'); // Remove "X-Powered-By: Express" header
+// Use the API router
 app.use('/', api);
 
 (async () => {
