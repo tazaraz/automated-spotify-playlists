@@ -24,9 +24,10 @@ services:
     volumes:
       - ./frontend:/frontend
     environment:
-      PORT: 80
-      HOST: 'localhost'
+      PORT: 8080
+      DOMAIN: 'http://localhost'
       NODE_ENV: "development"
+      SP_CLIENT_ID: ${SP_CLIENT_ID}
 
   sp-backend:
     image: node:alpine
@@ -36,10 +37,13 @@ services:
     volumes:
       - ./backend:/backend
     environment:
-      HOST: 'localhost'
+      DOMAIN: 'http://localhost'
       NODE_ENV: development
       PGHOST: sp-database
       PGUSER: postgres
+      SP_CLIENT_ID: ${SP_CLIENT_ID}
+      SP_CLIENT_SECRET: ${SP_CLIENT_SECRET}
+      SERVER_TOKEN: ${SERVER_TOKEN}
       PGPASSWORD: ${DATABASE_PASSWORD}
     depends_on:
       - sp-database
