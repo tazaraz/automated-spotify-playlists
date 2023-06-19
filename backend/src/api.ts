@@ -220,23 +220,23 @@ api.put(`/playlist/:playlistid/basic`, Users.verify_token, async (req, res) => {
 
 /**
  * Removes tracks form the matched tracks list by moving them to the excluded tracks list
- * @param deleted list of tracks to move to the excluded tracks list
+ * @param removed list of tracks to move to the excluded tracks list
  */
 api.delete(`/playlist/:playlistid/matched-tracks`, Users.verify_token, async (req, res) => {
-    if (!req.body.deleted || req.body.deleted instanceof Array === false)
+    if (!req.body.removed || req.body.removed instanceof Array === false)
         return res.status(400).json({status: "Invalid Request"});
 
     // Remove from the playlist
-    for (let i = 0; req.body.deleted && i < req.body.deleted.length; i += 100) {
+    for (let i = 0; req.body.removed && i < req.body.removed.length; i += 100) {
         Fetch.delete(`/playlists/${req.params.playlistid}/tracks`, {
             user: await Users.get(req.user.id),
-            data: {tracks: req.body.deleted.slice(i, i + 100).map((track: string) => {
+            data: {tracks: req.body.removed.slice(i, i + 100).map((track: string) => {
                 return {uri: `spotify:track:${track}`}}
             )}
         }).then(response => {
             if (response.status !== 200 && response.status !== 201) {
                 res.status(response.status).json({status: "Spotify Error", error: response.statusText})
-                throw new Error(response.statusText);
+                return LOG({task: "Move matched tracks", status: "Spotify Error", error: response.statusText});
             } else {
                 Snapshots.set(req.params.playlistid, req.user.id, response.data.snapshot_id)
             }
@@ -244,7 +244,7 @@ api.delete(`/playlist/:playlistid/matched-tracks`, Users.verify_token, async (re
     }
 
     // Move the tracks
-    for (let trackid of req.body.deleted)
+    for (let trackid of req.body.removed)
         Database.addToExcludedTracks(req.params.playlistid, req.user.id, trackid);
 
     res.status(200);
@@ -252,23 +252,23 @@ api.delete(`/playlist/:playlistid/matched-tracks`, Users.verify_token, async (re
 
 /**
  * Removes tracks form the excluded tracks list by moving them to the matched tracks list
- * @param deleted list of tracks to move to the matched tracks list
+ * @param removed list of tracks to move to the matched tracks list
  */
 api.delete(`/playlist/:playlistid/excluded-tracks`, Users.verify_token, async (req, res) => {
-    if (!req.body.deleted || req.body.deleted instanceof Array === false)
+    if (!req.body.removed || req.body.removed instanceof Array === false)
         return res.status(400).json({status: "Invalid Request"});
 
     // Add to the playlist
-    for (let i = 0; req.body.deleted && i < req.body.deleted.length; i += 100) {
+    for (let i = 0; req.body.removed && i < req.body.removed.length; i += 100) {
         Fetch.post(`/playlists/${req.params.playlistid}/tracks`, {
             user: await Users.get(req.user.id),
             query: {
-                uris: req.body.deleted.slice(i, i + 100).map((track: string) => `spotify:track:${track}`)
+                uris: req.body.removed.slice(i, i + 100).map((track: string) => `spotify:track:${track}`)
             }
         }).then(response => {
             if (response.status !== 200 && response.status !== 201) {
                 res.status(response.status).json({status: "Spotify Error", error: response.statusText})
-                throw new Error(response.statusText);
+                return LOG({task: "Move excluded tracks", status: "Spotify Error", error: response.statusText});
             } else {
                 Snapshots.set(req.params.playlistid, req.user.id, response.data.snapshot_id)
             }
@@ -276,7 +276,7 @@ api.delete(`/playlist/:playlistid/excluded-tracks`, Users.verify_token, async (r
     }
 
     // Move the tracks
-    for (let trackid of req.body.deleted)
+    for (let trackid of req.body.removed)
         Database.addToMatchedTracks(req.params.playlistid, req.user.id, trackid);
 
     res.status(200);
@@ -284,23 +284,23 @@ api.delete(`/playlist/:playlistid/excluded-tracks`, Users.verify_token, async (r
 
 /**
  * Removes tracks from the manually included list
- * @param deleted list of tracks to remove from the included tracks list
+ * @param removed list of tracks to remove from the included tracks list
  */
 api.delete(`/playlist/:playlistid/included-tracks`, Users.verify_token, async (req, res) => {
-    if (!req.body.deleted || req.body.deleted instanceof Array === false)
+    if (!req.body.removed || req.body.removed instanceof Array === false)
         return res.status(400).json({status: "Invalid Request"});
 
     // Update the playlist
-    for (let i = 0; i < req.body.deleted.length; i += 100) {
+    for (let i = 0; i < req.body.removed.length; i += 100) {
         Fetch.delete(`/playlists/${req.params.playlistid}/tracks`, {
             user: await Users.get(req.user.id),
-            data: {tracks: req.body.deleted.slice(i, i + 100).map((track: string) => {
+            data: {tracks: req.body.removed.slice(i, i + 100).map((track: string) => {
                 return {uri: `spotify:track:${track}`}}
             )}
         }).then(response => {
             if (response.status !== 200 && response.status !== 201) {
                 res.status(response.status).json({status: "Spotify Error", error: response.statusText})
-                throw new Error(response.statusText);
+                return LOG({task: "Delete included tracks", status: "Spotify Error", error: response.statusText});
             } else {
                 Snapshots.set(req.params.playlistid, req.user.id, response.data.snapshot_id)
             }
@@ -308,7 +308,7 @@ api.delete(`/playlist/:playlistid/included-tracks`, Users.verify_token, async (r
     }
 
     // Remove the tracks
-    for (let trackid of req.body.deleted)
+    for (let trackid of req.body.removed)
         Database.removeFromIncludedTracks(req.params.playlistid, req.user.id, trackid);
 
     res.status(200);
