@@ -48,6 +48,7 @@ export default class Info extends Pinia {
     constructor() {
         super();
         if (!process.client) return;
+        // Get the persistent search config
         this.searchConfig = JSON.parse(localStorage.getItem('sc') || 'null');
     }
 

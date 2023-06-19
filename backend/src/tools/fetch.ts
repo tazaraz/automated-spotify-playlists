@@ -96,13 +96,13 @@ export default class Fetch {
         let response: any;
 
         if (pagination) {
-            let total  = 0;
-            let requests = [];
-
+            // Do the first request. This will also tell us how many items there will be in total
             response = (await Fetch.parseRequest(`${url}${options.query ? '&' : '?'}limit=${limit}&offset=0`, parameters, options)).data;
-            total = response.total;
-            requests.push({data: response});
 
+            const total = response.total;
+            const requests: any = [{data: response}];
+
+            // Do the rest of the requests in parallel
             for (let i = limit; i < total; i += limit) {
                 requests.push(Fetch.parseRequest(
                     `${url}${options.query ? '&' : '?'}limit=${limit}&offset=${i}`,
@@ -110,6 +110,7 @@ export default class Fetch {
                 ));
             }
 
+            // Wait for all requests to finish and format the data
             const responses = await Promise.all(requests);
             responses.map(response => result.push(...Fetch.format(response.data)));
 

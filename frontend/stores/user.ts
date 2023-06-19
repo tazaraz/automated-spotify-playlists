@@ -42,12 +42,14 @@ export default class User extends Pinia {
         else {
             const user = response.data as CUser;
 
+            // Store the user in the local storage
             localStorage.setItem("u", JSON.stringify({
                 id: user.id,
                 name: user.name,
                 country: user.country,
             }))
 
+            // Store the tokens in the local storage
             localStorage.setItem("e", JSON.stringify({t: user.server_token, e: user.server_token_expiry}))
             localStorage.setItem("p", JSON.stringify({p: user.spotify_token, e: user.spotify_token_expiry}))
 
@@ -94,6 +96,7 @@ export default class User extends Pinia {
             spotify_token_expiry: p.e
         }
 
+        // Create a new fetch instance
         new Fetch(this);
         return true;
     }

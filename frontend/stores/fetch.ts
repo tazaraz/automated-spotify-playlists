@@ -110,13 +110,13 @@ export default class Fetch {
         let response: any;
 
         if (pagination) {
-            let total  = 0;
-            let requests = [];
-
+            // Do the first request. This will also tell us how many items there will be in total
             response = (await Fetch.parseRequest(`${url}${options.query ? '&' : '?'}limit=${limit}&offset=0`, parameters, options)).data;
-            total = response.total;
-            requests.push({data: response});
 
+            const total = response.total;
+            const requests: any = [{data: response}];
+
+            // Do the rest of the requests in parallel
             for (let i = limit; i < total; i += limit) {
                 requests.push(Fetch.parseRequest(
                     `${url}${options.query ? '&' : '?'}limit=${limit}&offset=${i}`,
@@ -124,6 +124,7 @@ export default class Fetch {
                 ));
             }
 
+            // Wait for all requests to finish and format the data
             const responses = await Promise.all(requests);
             responses.map(response => result.push(...Fetch.format(response.data)));
 
@@ -229,15 +230,17 @@ export default class Fetch {
      * @param options Fetch options
      */
     protected static async setAccessToken(url: string, options: FetchOptions): Promise<void> {
+        // If the user is not defined, the page might still be loading. Wait a moment
         if (!Fetch.user?.info) {
             // Wait for 0.5 seconds for the User store to be loaded
             await new Promise(resolve => setTimeout(resolve, 500));
 
+            // Actual check
             if (!Fetch.user?.info)
                 throw new Error("User not logged in");
         }
 
-        // If the system is refreshing the token, wait for it to finish
+        // If the system is refreshing the token, wait for that to finish first
         await Fetch.refreshingToken;
 
         // If the access token is expired, refresh it
@@ -250,30 +253,31 @@ export default class Fetch {
             // Refresh the token
             Fetch.refreshingToken = new Promise(async resolve => {
                 const response = await Fetch.post(`server:/user/refresh`);
-                console.log(response)
 
                 // If the token is invalid, log out
                 if (response.status === 401 || response.status === 406) {
                     Fetch.user.logout();
 
+                    // Throw the appropriate error
                     if (response.status === 401)
                         throw new Error("No server token");
                     if (response.status === 406)
                         throw new Error("Invalid server token");
                 }
 
+                // Parse the response
                 const { spotify_token, spotify_token_expiry } = response.data;
-                console.log(spotify_token, spotify_token_expiry)
 
                 // Store the new server token
                 Fetch.user.info!.spotify_token = spotify_token;
                 Fetch.user.info!.spotify_token_expiry = spotify_token_expiry;
                 localStorage.setItem("e", JSON.stringify({t: spotify_token, e: spotify_token_expiry}))
-                console.log(JSON.stringify(Fetch.user.info))
 
+                // Resolve the promise
                 resolve(true);
             })
 
+            // Wait for the token to be refreshed
             await Fetch.refreshingToken;
         }
 
