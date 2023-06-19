@@ -4,12 +4,11 @@ export interface CUser {
     name: string;
     id: string;
     country: string;
-    refresh_token?: string;
-}
 
-export interface CPlaylist extends Playlist {
-    // Image of the playlist
-    image: string
+    spotify_token: string;
+    spotify_token_expiry: number;
+    server_token: string;
+    server_token_expiry: number;
 }
 
 export interface CTrack {

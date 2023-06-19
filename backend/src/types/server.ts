@@ -12,9 +12,16 @@ export interface FilterItem extends STrack, SAlbum, SArtist {
     kind: "track" | "album" | "artist"
 }
 
-export interface SUser extends CUser {
+export interface DBUser {
+    name: string;
+    id: string;
+    country: string;
+    refresh_token: string;
+}
+
+export interface SUser extends DBUser {
     access_token: string;
-    access_token_valid_until: Date;
+    access_token_expiry: Date;
 }
 
 /**

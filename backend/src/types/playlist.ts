@@ -1,5 +1,5 @@
-import { AvailableFilters, AvailableSources } from "../available";
 import { FilterBoolean, FilterCombination, FilterString, FilterValue } from "../processing/matching";
+import { Filters, Sources } from "./filters";
 
 export interface Playlist {
     id:                 string;

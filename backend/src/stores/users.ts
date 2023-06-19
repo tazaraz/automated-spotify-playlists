@@ -27,7 +27,7 @@ export default class Users {
             Users.users[id] = {
                 ...cuser,
                 access_token: data.access_token,
-                access_token_valid_until: new Date(Date.now() + data.expires_in * 1000),
+                access_token_expiry: new Date(Date.now() + data.expires_in * 1000),
             }
         }
 
@@ -44,7 +44,7 @@ export default class Users {
      */
     static accessTokenExpired(id: string): boolean {
         // Check if the access token has expired, or will expire in the next 5 minutes
-        return Users.users[id].access_token_valid_until.getTime() < Date.now() + 5 * 60 * 1000;
+        return Users.users[id].access_token_expiry.getTime() < Date.now() + 5 * 60 * 1000;
     }
 
     static generate_token(data: object) {

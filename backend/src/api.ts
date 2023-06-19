@@ -8,6 +8,7 @@ import { Playlist } from './types/playlist';
 import { FilterCombination } from './processing/matching';
 import { MusicSources } from './processing/sources';
 import FilterLog from './stores/filterlog';
+import { CUser } from './types/client';
 
 const api = express.Router();
 
@@ -48,16 +49,16 @@ api.post('/user/authorize', async (req, res) => {
 
     // Store the user in the cache
     Users.set({
-        name: user.display_name,
-        id: user.id,
+        name: response.data.display_name,
+        id: response.data.id,
+        country: response.data.country,
         refresh_token: spotify_response.refresh_token,
         access_token: spotify_response.access_token,
-        access_token_valid_until: new Date(Date.now() + spotify_response.expires_in * 1000),
-        country: user.country,
+        access_token_expiry: new Date(Date.now() + spotify_response.expires_in * 1000),
     })
 
     // Update or insert the user into the database
-    Database.setUser(await Users.get(user.id))
+    Database.setUser(await Users.get(response.data.id))
 
     // Generate a token for the user
     const server_token = Users.generate_token({
@@ -66,17 +67,16 @@ api.post('/user/authorize', async (req, res) => {
         country: user.country,
     });
 
-
     // Send the user the data
     res.json({
+        name: response.data.display_name,
+        id: response.data.id,
+        country: response.data.country,
         server_token: server_token,
+        server_token_expiry: new Date(Date.now() + 60 * 60 * 24 * 1000).getTime(),
         spotify_token: spotify_response.access_token,
-        user: {
-            name: user.display_name,
-            id: user.id,
-            country: user.country,
-        }
-    })
+        spotify_token_expiry: new Date(Date.now() + spotify_response.expires_in * 1000).getTime(),
+    } as CUser)
 });
 
 /**

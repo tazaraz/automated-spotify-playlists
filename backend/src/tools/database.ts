@@ -1,8 +1,7 @@
 import { Client as postgresClient, QueryResult } from 'pg';
-import { CUser } from '../types/client';
 import { Playlist } from '../types/playlist';
 import { LOG_DEBUG, LOG } from '../main';
-
+import { DBUser, SUser } from '../types/server';
 
 export default class Database {
     private static client: postgresClient;
@@ -37,24 +36,24 @@ export default class Database {
      * Gets a user from the database
      * @param id user id
      */
-    static async getUser(id: string): Promise<CUser | undefined> {
+    static async getUser(id: string) {
         const result = await Database.client.query(`SELECT * FROM users WHERE id = '${id}'`);
-        return result?.rows[0];
+        return result?.rows[0] as DBUser | undefined;
     }
 
     /**
      * Gets all users from the database
      */
-    static async getAllUsers(): Promise<CUser[]> {
+    static async getAllUsers() {
         const result = await Database.client.query(`SELECT * FROM users`);
-        return result?.rows;
+        return result?.rows as DBUser[];
     }
 
     /**
      * Saves/updates a user to the database
      * @param user user information to save
      */
-    static async setUser(user: CUser) {
+    static async setUser(user: SUser) {
         const query = await Database.client.query(`
             INSERT INTO users (id, name, country, refresh_token) VALUES ($1, $2, $3, $4)
                 ON CONFLICT (id) DO UPDATE
