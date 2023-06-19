@@ -1,0 +1,16 @@
+.multilayer {
+    display: grid;
+    align-items: center;
+    gap: 0;
+    color: $white;
+
+    > :first-child:hover {
+        color: $white;
+        text-decoration: underline;
+    }
+
+    > :not(:first-child),
+    > :not(:first-child) a {
+        color: $gray-500;
+    }
+}

@@ -1,0 +1,34 @@
+.add-icon, .delete-icon, .branch-icon {
+    margin: 0 !important;
+    padding: 0.8rem !important;
+    mask-size: 80% !important;
+
+    &:hover {
+        background-color: #aaa !important;
+    }
+}
+
+.add-icon {
+    background-color: $primary !important;
+    mask: url('/add.svg') no-repeat center;
+}
+
+.branch-icon {
+    background-color: $primary !important;
+    mask: url('/branch.svg') no-repeat center;
+    mask-size: 85% !important;
+}
+
+.delete-icon {
+    background-color: rgb(155, 0, 0) !important;
+    mask: url('/delete.svg') no-repeat center;
+}
+
+.loading-icon {
+    height: 2rem;
+    width: 2rem;
+
+    background-color: $primary;
+    mask: url('/loading.svg') no-repeat center;
+    mask-size: 75%;
+}
