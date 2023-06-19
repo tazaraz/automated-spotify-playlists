@@ -2,10 +2,12 @@ import { FilterBoolean, FilterCombination, FilterString, FilterValue } from "../
 import { Filters, Sources } from "./filters";
 
 export interface Playlist {
-    id:                 string;
-    user_id:            string;
-    name:               string;
-    description:        string;
+    id: string;
+    user_id: string;
+    name: string;
+    description: string;
+    image?: string;
+    track_sources:      PlaylistSource[];
     filters:            PlaylistStatement;
     // Tracks which are matched and not manually excluded or included
     matched_tracks:     string[];
@@ -13,7 +15,6 @@ export interface Playlist {
     excluded_tracks:    string[];
     // Tracks which are included from the smart playlists manually
     included_tracks:    string[];
-    track_sources:      PlaylistSource[];
     log: { sources: string[], filters: string[] };
 }
 

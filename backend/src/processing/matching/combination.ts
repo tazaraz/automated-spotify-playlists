@@ -153,8 +153,8 @@ export class FilterCombination {
             throw Error("Invalid playlist condition")
 
         // Someone tried funky business with the condition
-        if (!AvailableFilters.hasOwnProperty(condition.category) ||
-           (AvailableFilters as any)[condition.category][condition.filter] === undefined){
+        if (!Filters.hasOwnProperty(condition.category) ||
+           (Filters as any)[condition.category][condition.filter] === undefined){
             throw Error(`Unknown filter "${condition.category}.${condition.filter}"`)
         }
 
