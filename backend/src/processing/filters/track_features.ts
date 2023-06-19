@@ -1,4 +1,4 @@
-import { FilterValue, FilterSlider, FilterBoolean, FilterSpeech } from "../matching";
+import { FilterValue, FilterSlider, FilterBoolean } from "../matching";
 import { FilterItem, STrack } from "../../types/server";
 import { filter_async, get_by_kind } from ".";
 
@@ -116,22 +116,7 @@ export class TrackFeatures {
         })
     }
 
-    static async Speech(items: FilterItem[],
-                        operation: keyof typeof FilterSpeech.operation,
-                        filter: number,
-                        dry_run=false){
-        if (dry_run) {
-            FilterSpeech.matches(operation, 0.5)
-            return [];
-        }
-
-        return await filter_async(items, TrackFeatures.convert, async item => {
-            if (FilterSpeech.matches(operation, (await item.features()).speechiness))
-                return item;
-        })
-    }
-
-    static async Tempo(items: FilterItem[],
+    static async BPM(items: FilterItem[],
                        operation: keyof typeof FilterValue.operation,
                        filter: number,
                        dry_run=false){
