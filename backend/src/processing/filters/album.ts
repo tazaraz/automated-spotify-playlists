@@ -99,10 +99,24 @@ export class Album {
         }
 
         return await filter_async(items, Album.convert, async item => {
-            // This is a new field, and might not exist yet
             if (!item.genres || item.genres.length > 0) return item;
 
             if (FilterString.matches(operation, filter, item.genres.toString()))
+                return item;
+        })
+    }
+
+    static async Popularity(items: FilterItem[],
+                            operation: keyof typeof FilterValue.operation,
+                            filter: number,
+                            dry_run=false){
+        if (dry_run) {
+            FilterValue.matches(operation, filter, 0)
+            return [];
+        }
+
+        return await filter_async(items, Album.convert, async item => {
+            if (FilterValue.matches(operation, filter, item.popularity))
                 return item;
         })
     }

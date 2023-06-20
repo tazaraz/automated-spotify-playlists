@@ -334,6 +334,7 @@ export default class Metadata {
             release_date: data.release_date,
             id: data.id,
             genres: data.genres,
+            popularity: data.popularity,
             tracks: async () => Promise.all(data.tracks.items.map((item: any) => Metadata.getTrack(item.id))),
             artists: () => Promise.all(data.artists.map((artist: any) => Metadata.getArtist(artist.id))),
         }

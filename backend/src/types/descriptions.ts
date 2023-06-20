@@ -15,6 +15,7 @@ export const FilterDescription = {
         "Release date": "The release date of the album. May contain only a year or a year and month",
         "Track count": "Amount of tracks in the album",
         "Genres": "A list of the genres the album is associated with. If not yet classified, the array is empty.",
+        "Popularity": "The popularity of the album. Ranges from 0 - 100.",
     },
     "Artist": {
         "Name": "Name of the artist",

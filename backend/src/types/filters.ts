@@ -60,6 +60,11 @@ export const Filters = {
             type: FilterString,
             description: FilterDescription.Album.Genres
         },
+        "Popularity": {
+            filter: Album.Popularity,
+            type: FilterSlider,
+            description: FilterDescription.Album.Popularity
+        },
     },
     "Artist": {
         "Name": {
