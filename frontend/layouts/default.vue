@@ -5,7 +5,6 @@
         <toolbar />
         <template v-if="user && user.loggedIn()">
             <slot></slot>
-
         </template>
         <article v-else class="rounded-2 p-2 bg-dark-subtle overflow-hidden">
             <Title>Smart playlists</Title>
@@ -15,6 +14,7 @@
 
 <script lang="ts">
 import { Vue } from 'vue-property-decorator';
+import BreadCrumbs from '~/stores/breadcrumbs';
 import User from '~/stores/user';
 
 export default class Sidebar extends Vue {
@@ -24,6 +24,13 @@ export default class Sidebar extends Vue {
         if (!process.client) return;
         this.user = new User()
         this.user.loadCredentials();
+    }
+
+    mounted() {
+        if (!process.client) return;
+        if (!this.user.loggedIn()) {
+            (new BreadCrumbs()).clear();
+        }
     }
 }
 </script>
@@ -83,7 +90,7 @@ main {
         }
 
         &:deep(#toolbelt) + * { grid-column: span 1; grid-row: span 2; }
-        & > :nth-last-child(2) { grid-row: span 1 !important;}
+        & > :nth-last-child(2):not(nav) { grid-row: span 1 !important;}
     }
 }
 </style>
