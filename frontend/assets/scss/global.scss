@@ -4,13 +4,26 @@
     gap: 0;
     color: $white;
 
-    > :first-child:hover {
+    > a:hover {
         color: $white;
         text-decoration: underline;
     }
 
     > :not(:first-child),
-    > :not(:first-child) a {
+    > a {
         color: $gray-500;
     }
+}
+
+a {
+    text-decoration: none;
+}
+
+.loading-icon {
+    height: 2rem;
+    width: 2rem;
+
+    background-color: $primary;
+    mask: url('/loading.svg') no-repeat center;
+    mask-size: 75%;
 }
