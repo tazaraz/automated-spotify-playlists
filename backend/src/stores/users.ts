@@ -1,6 +1,7 @@
 import * as jwt from "jsonwebtoken";
 import Database from "../tools/database";
 import { SUser } from "../types/server";
+import Fetch from "../tools/fetch";
 
 export default class Users {
     private static users: {[id: string]: SUser} = {};
@@ -82,15 +83,28 @@ export default class Users {
 
     private static async refreshAccessToken(refresh_token: string, retry = 1) {
         // Fetch an access token
-        const res = await fetch('https://accounts.spotify.com/api/token', {
-            method: 'POST',
+        const response = await Fetch.post('https://accounts.spotify.com/api/token', {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Authorization': `Basic ${Buffer.from(process.env.SP_CLIENT_ID + ':' + process.env.SP_CLIENT_SECRET).toString('base64')}`,
             },
-            body: `grant_type=refresh_token&refresh_token=${refresh_token}`,
+            data: {
+                grant_type: 'refresh_token',
+                refresh_token,
+            },
         })
 
-        return await res.json();
+        if (response.status !== 200) {
+            // If the response is not 200, try again, waiting 1 second
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            if (retry > 0) {
+                return await Users.refreshAccessToken(refresh_token, retry - 1);
+            } else {
+                throw new Error("Could not refresh access token");
+            }
+        }
+
+        return response.data;
     }
 }

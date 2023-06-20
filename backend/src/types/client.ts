@@ -47,10 +47,16 @@ export interface CAlbum {
     release_date: number
     // ID of the album
     id: string
+    // Popularity of the album
+    popularity: number
     // Genres associated with this album. Might be empty
     genres: string[]
     // Url of the artwork
     image?: string
+    // Artists of the album
+    artists?: CArtist[]
+    // Tracks of the album
+    tracks?: CTrack[]
 }
 
 export interface CArtist {
