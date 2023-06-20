@@ -6,14 +6,14 @@ import * as SPlaylist from "~/../backend/src/types/playlist";
 import { CArtist } from "~/../backend/src/types/client";
 import { CTrack } from "~/../backend/src/types/client";
 
-interface Playlist extends SPlaylist.Playlist {
+export interface Playlist extends SPlaylist.Playlist {
     owner: {
         id: string;
         display_name: string;
     }
 }
 
-interface SelectedPlaylist extends Playlist {
+export interface SelectedPlaylist extends Playlist {
     index: number;
 
     matched_tracks: CTrack[];
@@ -22,16 +22,19 @@ interface SelectedPlaylist extends Playlist {
 }
 
 @Store
-export default class PlaylistStore extends Pinia {
+export default class Playlists extends Pinia {
     user!: User;
 
-    playlists!: Playlist[];
-    selectedPlaylist!: SelectedPlaylist;
+    storage!: Playlist[];
+    selected!: SelectedPlaylist;
 
     // If there are any smart playlists
     hasSmartPlaylists: boolean = false;
     // If the user already has a smart playlist which is not yet pushed. Stored here for components to access
     unpublishedSmartPlaylist: Playlist | null = null;
+
+    // Whether all the playlist have their track ids loaded
+    private loadedPlaylistsTrackIds: boolean | Promise<any> = false;
 
     constructor(user: User) {
         super();
@@ -42,7 +45,7 @@ export default class PlaylistStore extends Pinia {
      * Loads all the playlists the user has
      */
     async loadUserPlaylists(){
-        if (this.playlists)
+        if (this.storage !== undefined)
             return;
 
         let playlists: Playlist[] = [];
@@ -67,23 +70,78 @@ export default class PlaylistStore extends Pinia {
         /* Overwrite the playlists with the smart playlists
          * NOTE: Not all playlists are actually smart playlists, but for typing we treat them as if
          *       Hence we check everywhere there is a distinction */
-        this.playlists = playlists.map(playlist => {
+        this.storage = playlists.map(playlist => {
             const smartPlaylist = smart.find(smart => smart.id === playlist.id);
             if (smartPlaylist) {
+                // Set some basic stuff
                 smartPlaylist.image = playlist.image;
                 smartPlaylist.owner = playlist.owner;
             }
             return smartPlaylist || playlist;
-        })
+        });
+    }
 
-        // Save only the first 3
-        this.playlists = this.playlists.slice(0, 3);
+    /**
+     * Returns the playlists in which the track appears
+     * @Param trackId The id of the track
+     */
+    async trackAppearsIn(trackId: string){
+        if (!this.loadedPlaylistsTrackIds) {
+            // Try to get all the track ids for each playlist
+            this.loadedPlaylistsTrackIds = Promise.all(this.storage.map(async playlist => {
+                // If the playlist is not a smart playlist, we need to load the track ids
+                if (playlist.filters === undefined) {
+                    const tracks = (await Fetch.get<any[]>(`spotify:/playlists/${playlist.id}/tracks`, {pagination: true})).data;
+                    playlist.matched_tracks = tracks.map(track => track.id);
+                }
+            }))
+
+            // Wait to complete
+            await this.loadedPlaylistsTrackIds;
+            this.loadedPlaylistsTrackIds = true;
+        }
+
+        // Wait for the track ids to be loaded
+        await this.loadedPlaylistsTrackIds;
+
+        // Return the playlists in which the track appears
+        return this.storage.filter(playlist => {
+            if (playlist.matched_tracks.find(t => t === trackId) ||
+                playlist.included_tracks?.find(t => t === trackId)) {
+                return playlist;
+            }
+        })
+    }
+
+    /**
+     * Saves the old selectedPlaylist and loads the requested playlist and sets it as the selectedPlaylist
+     * @param id ID of the playlist to load
+     */
+    async loadSelectedPlaylist(id: string){
+        // As we are probably loading another playlist, first save the old one
+        if (this.selected !== undefined)
+            this.storage[this.selected.index] = this.convertToPlaylist(this.selected)
+
+        // Load the playlist
+        const playlist = await this.loadUserPlaylistByID(id);
+        if (!playlist) return false;
+
+        const tracks = await this.loadPlaylistTracks(playlist);
+
+        // Set the selected playlist
+        this.selected = {
+            ...playlist,
+            index: this.storage.findIndex(p => p.id === id),
+            matched_tracks: tracks.matched,
+            included_tracks: tracks.included,
+            excluded_tracks: tracks.excluded,
+        }
     }
 
     /**
      * Loads tracks from your library
      */
-    async loadLibrary(){
+    async loadUserLibrary(){
         // Load the library tracks
         const matched_tracks: CTrack[] = [];
         (await Fetch.get(`spotify:/me/tracks`, {pagination: true})).data
@@ -92,52 +150,39 @@ export default class PlaylistStore extends Pinia {
         })
 
         // We load the rest of the content later
-        this.selectedPlaylist = {
+        return {
             name: "Library",
             image: "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png",
             index: -1,
             matched_tracks,
-            excluded_tracks: [],
-            included_tracks: [],
-        } as any;
+        } as any as Playlist;
     }
 
     /**
      * Loads a playlist by its ID
      * @param id ID of the playlist to load
      */
-    async loadPlaylistByID(id: string){
-        if (!this.playlists)
+    async loadUserPlaylistByID(id: string){
+        if (!this.storage)
             await this.loadUserPlaylists();
 
-        const index = this.playlists.findIndex(p => p.id === id);
+        let index = this.storage.findIndex(p => p.id === id);
         if (index === -1) return false;
 
-        return await this.loadPlaylist(index);
-    }
-
-    /**
-     * Saves the old selectedPlaylist and loads the requested playlist and sets it as the selectedPlaylist
-     * @param index playlist to load
-     */
-    async loadPlaylist(index: number){
-        // As we are probably loading another playlist, first save the old one
-        if (this.selectedPlaylist !== undefined)
-            this.playlists[this.selectedPlaylist.index] = this.convertToPlaylist(this.selectedPlaylist)
-
         // Ensure the playlist exists
-        index = Math.max(0, Math.min(index, this.playlists.length - 1));
+        index = Math.max(0, Math.min(index, this.storage.length - 1));
+        // Load the tracks
+        const tracks = await this.loadPlaylistTracks(this.storage[index]);
 
         // Get the tracks associated with the playlist
-        this.selectedPlaylist = {
-            ...this.copy(this.playlists[index]),
+        return {
+            ...this.copy(this.storage[index]),
             index: index,
-            matched_tracks: [],
-            excluded_tracks: [],
-            included_tracks: [],
-            owner: { id: this.playlists[index].owner.id, display_name: this.playlists[index].owner.display_name }
-        }
-        await this.loadPlaylistTracks(this.playlists[index]);
+            matched_tracks: tracks.matched,
+            excluded_tracks: tracks.excluded,
+            included_tracks: tracks.included,
+            owner: { id: this.storage[index].owner.id, display_name: this.storage[index].owner.display_name }
+        } as any as Playlist;
     }
 
     /**
@@ -170,14 +215,9 @@ export default class PlaylistStore extends Pinia {
 
             // Remove the excluded and included tracks from the matched tracks
             matched = matched.filter(mt => !included.some(st => st.id === mt.id))
-
-            // Store the result
-            this.selectedPlaylist.excluded_tracks = excluded;
-            this.selectedPlaylist.included_tracks = included;
         }
 
-        // Store the matched tracks
-        this.selectedPlaylist.matched_tracks = matched;
+        return { matched, excluded, included }
     }
 
     /**
@@ -186,11 +226,11 @@ export default class PlaylistStore extends Pinia {
     async createSmartPlaylist() {
         // If the user already has a smart playlist, return it
         if (this.unpublishedSmartPlaylist)
-            return this.unpublishedSmartPlaylist;
+            return this.storage.findIndex(p => p.id === this.unpublishedSmartPlaylist!.id);
 
         const playlist = {
             id:       "unpublished",
-            user_id:  this.user.info.id,
+            user_id:  this.user.info!.id,
             name:     "Smart Playlist",
             description: '',
             image: '',
@@ -203,13 +243,12 @@ export default class PlaylistStore extends Pinia {
             excluded_tracks: [],
             included_tracks: [],
             log: { sources: [], filters: []},
-            owner: { id: this.user.info.id, display_name: this.user.info.name }
+            owner: { id: this.user.info!.id, display_name: this.user.info!.name }
         } as Playlist;
 
         this.unpublishedSmartPlaylist = playlist;
-        this.playlists.push(playlist);
         this.hasSmartPlaylists = true;
-        await this.loadPlaylist(this.playlists.length - 1)
+        return this.storage.push(playlist) - 1;
     }
 
     /**
@@ -218,14 +257,14 @@ export default class PlaylistStore extends Pinia {
      */
     removeMatched(track: CTrack){
         // Remove the tracks from the from the origin
-        this.selectedPlaylist.excluded_tracks = this.selectedPlaylist.excluded_tracks.filter(t => t.id !== track.id)
+        this.selected.excluded_tracks = this.selected.excluded_tracks.filter(t => t.id !== track.id)
 
         // Add the tracks to the destination
-        this.selectedPlaylist.matched_tracks.push(track);
-        this.selectedPlaylist.matched_tracks.sort();
+        this.selected.matched_tracks.push(track);
+        this.selected.matched_tracks.sort();
 
         // Let the server know the change
-        this.removeTracks(this.selectedPlaylist, 'matched', [track.id])
+        this.removeTracks(this.selected, 'matched', [track.id])
     }
 
 
@@ -235,14 +274,14 @@ export default class PlaylistStore extends Pinia {
      */
     removeExcluded(track: CTrack){
         // Remove the tracks from the from the origin
-        this.selectedPlaylist.matched_tracks = this.selectedPlaylist.matched_tracks.filter(t => t.id !== track.id);
+        this.selected.matched_tracks = this.selected.matched_tracks.filter(t => t.id !== track.id);
 
         // Add the tracks to the destination
-        this.selectedPlaylist.excluded_tracks = this.selectedPlaylist.excluded_tracks.concat(track);
-        this.selectedPlaylist.excluded_tracks.sort();
+        this.selected.excluded_tracks = this.selected.excluded_tracks.concat(track);
+        this.selected.excluded_tracks.sort();
 
         // Let the server know the change
-        this.removeTracks(this.selectedPlaylist, 'matched', [track.id])
+        this.removeTracks(this.selected, 'matched', [track.id])
     }
 
     /**
@@ -251,10 +290,10 @@ export default class PlaylistStore extends Pinia {
      */
     removeIncluded(track: CTrack){
         // Remove the tracks from the from the origin
-        this.selectedPlaylist.included_tracks = this.selectedPlaylist.included_tracks.filter(t => t.id !== track.id)
+        this.selected.included_tracks = this.selected.included_tracks.filter(t => t.id !== track.id)
 
         // Let the server know the change
-        this.removeTracks(this.selectedPlaylist, 'included', [track.id])
+        this.removeTracks(this.selected, 'included', [track.id])
     }
 
     /**
@@ -274,23 +313,23 @@ export default class PlaylistStore extends Pinia {
             await Fetch.delete("server:/playlist", { data: { id: playlist.id } })
 
         // Remove the playlist from the list
-        this.playlists = this.playlists.filter(item => item.id !== playlist.id);
+        this.storage = this.storage.filter(item => item.id !== playlist.id);
 
         // If there are more smart playlists
-        this.hasSmartPlaylists = this.playlists.some(playlist => playlist.filters !== undefined);
+        this.hasSmartPlaylists = this.storage.some(playlist => playlist.filters !== undefined);
     }
 
     /**
-     * Saves a playlist to the this.playlists array
+     * Saves a playlist to the this.storage array
      * @param playlist Playlist to save
      */
     async save(playlist: SelectedPlaylist | Playlist) {
         // If it is the selectedplaylist, convert and save.
         if ((playlist as SelectedPlaylist).index !== undefined) {
-            this.playlists[this.selectedPlaylist.index] = this.convertToPlaylist((playlist as SelectedPlaylist));
+            this.storage[this.selected.index] = this.convertToPlaylist((playlist as SelectedPlaylist));
         } else {
-            const index = this.playlists.findIndex(p => p.id === playlist.id)
-            this.playlists[index] = (playlist as Playlist);
+            const index = this.storage.findIndex(p => p.id === playlist.id)
+            this.storage[index] = (playlist as Playlist);
         }
     }
 
@@ -302,8 +341,12 @@ export default class PlaylistStore extends Pinia {
             this.save(response.data)
 
             // If it is the selected playlist, load the new tracks
-            if (response.data.id === this.selectedPlaylist.id)
-                this.loadPlaylistTracks(response.data)
+            if (response.data.id === this.selected.id) {
+                const tracks = await this.loadPlaylistTracks(response.data)
+                this.selected.matched_tracks = tracks.matched;
+                this.selected.excluded_tracks = tracks.excluded;
+                this.selected.included_tracks = tracks.included;
+            }
 
             return true;
         }
@@ -379,15 +422,15 @@ export default class PlaylistStore extends Pinia {
             url:            track.external_urls.spotify,
             name:           track.name,
             popularity:     track.popularity,
-            duration:       `${Math.floor(track.duration_ms / 60000)}:`+Math.floor((track.duration_ms / 1000) % 60).toString().padStart(2, "0"),
+            duration:       this.formatDuration(track.duration_ms),
             disc_number:    track.disc_number,
             track_number:   track.track_number,
             image:          Fetch.bestArtwork(track.album.images),
             artists:        track.artists.map((artist: CArtist) => { return {
                 name: artist.name,
-                id: artist.id
+                id: artist.id,
             }}),
-            album:          {
+            album: {
                 name: track.album.name,
                 id: track.album.id
             } as any,
@@ -409,5 +452,9 @@ export default class PlaylistStore extends Pinia {
         playlist.included_tracks = selectedPlaylist.included_tracks.map(track => track.id)
 
         return playlist
+    }
+
+    formatDuration(duration: number){
+        return `${Math.floor(duration / 60000)}:`+Math.floor((duration / 1000) % 60).toString().padStart(2, "0")
     }
 }
