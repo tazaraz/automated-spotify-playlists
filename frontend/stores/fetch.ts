@@ -173,9 +173,8 @@ export default class Fetch {
             case 403:
             case 404:
             case 503:
-                if (options.retries > 0) {
+                if (options.retries-- > 0) {
                     return await new Promise(resolve => {
-                        options.retries--;
                         setTimeout(async () => {
                             // Retry the request
                             resolve(await Fetch.parseRequest(url, parameters, options));
@@ -186,6 +185,9 @@ export default class Fetch {
                 break;
 
             /* Spotify had a hiccough, give it some time */
+            case 429:
+                if (!options.retries || options.retries-- <= 0)
+                    break;
             case 500:
             case 502:
             case 504:
@@ -204,19 +206,25 @@ export default class Fetch {
         return response as FetchResponse<T>;
     }
 
-    static format(data: any) {
-        /* Converting containers to a simple form */
-        if (data.tracks) data = data.tracks;
-        if (data.albums) data = data.albums;
-        if (data.artists) data = data.artists;
-        if (data.playlists) data = data.playlists;
-        if (data.audio_features) data = data.audio_features;
+    /**
+     * Removes any containers spotify might have wrapped the data in
+     * @param data Raw spotify data
+     */
+    static format<T>(data: T) {
+        /* We ignore everything here, as data enters as <any>, but might already be typed,
+         * allowing us to maintain that typing */
+        // @ts-ignore
+        if (data.tracks) data = data.tracks; // @ts-ignore
+        if (data.albums) data = data.albums; // @ts-ignore
+        if (data.artists) data = data.artists; // @ts-ignore
+        if (data.playlists) data = data.playlists; // @ts-ignore
+        if (data.audio_features) data = data.audio_features; // @ts-ignore
 
         // If there are multiple items, get those
-        if (data.items) data = data.items;
+        if (data.items) data = data.items; // @ts-ignore
 
         /* Converting items in the container to a simple form */
-        if (Array.isArray(data)) {
+        if (Array.isArray(data)) { // @ts-ignore
             // Tracks are nested in the data: track.track.id instead of track.id
             data = data.map((track: any) => track.track ? track.track : track);
         }
@@ -236,8 +244,9 @@ export default class Fetch {
             await new Promise(resolve => setTimeout(resolve, 500));
 
             // Actual check
-            if (!Fetch.user?.info)
+            if (!Fetch.user?.info) {
                 throw new Error("User not logged in");
+            }
         }
 
         // If the system is refreshing the token, wait for that to finish first
@@ -288,7 +297,7 @@ export default class Fetch {
 
     static bestArtwork(artworks: any): string {
         return artworks ? (artworks as any[]).reduce((a, b) => {
-            return Math.abs(300 - a.width) < Math.abs(300 - b.width) ? a : b;
+            return Math.abs(500 - a.width) < Math.abs(500 - b.width) ? a : b;
         }, "").url : "/no-artwork.png";
     }
 }
