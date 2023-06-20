@@ -5,7 +5,6 @@ export default defineNuxtConfig({
     // https://nuxtjs.org/docs/2.x/configuration-glossary/configuration-cli#clearconsole
     css: [
         "~/assets/scss/overrides.scss",
-        "@/assets/scss/icons.scss",
         "@/assets/scss/global.scss",
         '@fortawesome/fontawesome-svg-core/styles.css',
     ],
