@@ -19,11 +19,10 @@ export default class BreadCrumbs extends Pinia {
         this.show = this.history.length > 0;
     }
 
-    goto(to: string | undefined, name: string | undefined) {
+    add(to: string | undefined, name: string | undefined) {
         // If the target url is somewhere else than a possible info page, empty the history
         if (to == "/" || to == "/info" || to == "/profile") {
-            this.show = false;
-            return this.history = []
+            return this.clear()
         }
 
         // If the item is the last item in the array (the current page)
@@ -33,17 +32,20 @@ export default class BreadCrumbs extends Pinia {
         // Make sure we know the name of the location
         if (!to || !name) return
 
+
         // If we are going from the info page to a playlist, empty the history
         if (this.history.length > 0 && !to.startsWith("/info")) {
-            this.history = []
+            this.clear()
         }
 
         // If the item is already in the history
         else if (this.history.find(h => h.to === to)) {
             // Remove all items after the item
             this.history = this.history.slice(0, this.history.findIndex(h => h.to === to) + 1)
+            // Save the history
+            localStorage.setItem("b", JSON.stringify(this.history))
             // Go to the item
-            navigateTo(to)
+            return navigateTo(to)
         }
 
         // Store the item
@@ -52,6 +54,12 @@ export default class BreadCrumbs extends Pinia {
         localStorage.setItem("b", JSON.stringify(this.history))
         // Show the breadcrumbs
         this.show = !to.startsWith("/playlist");
+    }
+
+    clear() {
+        this.history = []
+        localStorage.setItem("b", JSON.stringify(this.history))
+        this.show = false;
     }
 
     back() {

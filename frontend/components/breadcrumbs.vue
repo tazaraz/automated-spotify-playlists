@@ -13,12 +13,12 @@
 import { Vue } from 'vue-property-decorator';
 import BreadCrumbs from '~/stores/breadcrumbs';
 import Info from '~/stores/info';
-import PlaylistStore from '~/stores/playlists';
+import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
 
 export default class Breadcrumbs extends Vue {
-    playlistStore!: PlaylistStore
+    playlists!: Playlists
     breadcrumbs!: BreadCrumbs;
     info!: Info;
     RC = useRuntimeConfig();
@@ -26,16 +26,15 @@ export default class Breadcrumbs extends Vue {
     async created() {
         if (!process.client) return;
         this.breadcrumbs = new BreadCrumbs();
-        this.playlistStore = new PlaylistStore(new User());
+        this.playlists = new Playlists(new User());
         this.info = new Info();
 
         const route = useRoute();
         watch(() => route.fullPath, () => this.$nextTick(() => {
-            console.log("redirect to:", route.fullPath, this.playlistStore.selectedPlaylist?.name, this.info.currentItem?.name)
+            console.log("redirect to:", route.fullPath, this.playlists.selected?.name, this.info.currentItem?.name)
             if (route.fullPath.startsWith('/playlist'))
-                this.breadcrumbs.goto(route.fullPath, this.playlistStore.selectedPlaylist?.name)
-            else if (route.fullPath.startsWith("/info"))
-                this.breadcrumbs.goto(route.fullPath, this.info.currentItem?.name)
+                this.breadcrumbs.add(route.fullPath, this.playlists.selected?.name)
+
         }), {deep: true, immediate: true})
     }
 }
