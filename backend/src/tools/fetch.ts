@@ -170,6 +170,9 @@ export default class Fetch {
                 break;
 
             /* Spotify had a hiccough, give it some time */
+            case 429:
+                if (!options.retries || options.retries-- <= 0)
+                    break;
             case 500:
             case 502:
             case 504:
