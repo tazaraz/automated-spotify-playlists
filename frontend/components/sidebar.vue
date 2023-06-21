@@ -15,7 +15,7 @@
             </ol>
         </div>
         <div id="playlists" class="me-2 p-2 rounded-3 bg-dark-subtle h-100 overflow-hidden">
-            <ol v-if="playlists && user && user.loggedIn()" class="nav nav-pills flex-column overflow-y-auto h-100 d-block">
+            <ol v-if="playlists && user && user.loggedIn()" class="nav nav-pills overflow-y-auto h-100 d-block">
                 <div class="p-2 d-flex align-items-center">
                     <span class="flex-grow-1">Smart playlists</span>
                     <url class="text-white p-0 fs-5"><i><fa-icon :icon="['fas', 'plus']" style="width:2rem;"></fa-icon></i></url>
