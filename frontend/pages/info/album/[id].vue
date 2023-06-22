@@ -34,7 +34,7 @@
                     <span class="placeholder rounded-2 ms-3" style="width: 7rem;"></span>
                 </li>
                 <li v-else v-for="artist, index of album.artists" class="col-auto p-2 d-flex">
-                    <img :src="artist.image" class="rounded-5" style="width: 3rem; height: 3rem" />
+                    <Image :source="artist.image" class="rounded-5" style="width: 3rem; height: 3rem" />
                     <span class="multilayer ms-3">
                         <span>{{ index == 0 ? 'Artist' : 'Featuring' }}</span>
                         <url :to="`/info/artist/${artist.id}`" class="rounded-2">{{ artist.name }}</url>

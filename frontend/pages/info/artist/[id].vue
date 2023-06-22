@@ -3,11 +3,7 @@
         <div class="h-100 pe-1 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow">
             <Title v-if="!artist">Loading artist...</Title>
             <Title v-else>{{ artist.name }}</Title>
-            <header class="p-4 pt-5 d-flex gap-4 flex-column flex-lg-row align-items-center align-items-lg-stretch">
-                <div v-if="!artist" class="bg-body loading-container">
-                    <img src="/loading.svg" style="transform: scale(0.2); box-shadow: none;">
-                </div>
-                <img v-else :src="artist.image" />
+                <Image :source="artist" />
                 <div class="flex-fill d-flex flex-column text-white">
                     <template v-if="!artist">
                         <span class="mt-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>
@@ -70,7 +66,7 @@
                                 </template>
 
                                 <li v-else v-for="item of store.items" class="col-xxl-4 col-12 p-2 d-flex">
-                                    <img :src="item.image" :class="store.kind == 'track' ? '' : 'rounded-5'" style="width: 3rem; height: 3rem" />
+                                    <Image :source="item" :class="store.kind == 'track' ? '' : 'rounded-5'" style="width: 3rem; height: 3rem"/>
                                     <span class="multilayer ms-3">
                                         <url :to="`/info/${store.kind}/${item.id}`" class="rounded-2 text-white">{{ item.name }}</url>
                                     </span>
@@ -176,7 +172,7 @@ export default class InfoAlbum extends Vue {
 
 <style lang="scss" scoped>
 header {
-    img {
+    .image {
         width: 230px;
         height: 230px;
         box-shadow: 0 4px 60px rgba(0, 0, 0, .8);
@@ -194,7 +190,7 @@ a {
 
 @include media-breakpoint-down(lg) {
     header {
-        img {
+        .image {
             width: 190px;
             height: 190px;
         }

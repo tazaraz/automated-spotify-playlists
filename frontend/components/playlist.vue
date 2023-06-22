@@ -3,11 +3,7 @@
         <div v-if="playlists" class="h-100 pe-1 overflow-y-auto">
             <Title v-if="!playlist">Loading playlist</Title>
             <Title v-else>{{ playlist.name }}</Title>
-            <header class="p-4 pt-5 d-flex gap-4 flex-column flex-lg-row align-items-center align-items-lg-stretch">
-                <div v-if="!playlist" class="bg-body loading-container">
-                    <img src="/loading.svg" style="transform: scale(0.2); box-shadow: none;">
-                </div>
-                <img v-else :src="playlist.image" />
+                <Image :source="playlist" />
                 <div class="flex-fill d-flex flex-column text-white">
                     <template v-if="!playlist">
                         <span class="mt-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>
@@ -90,23 +86,16 @@ export default class PlaylistDisplay extends Vue {
 </script>
 
 <style lang="scss" scoped>
-header {
-    .loading-container, img {
-        box-shadow: 0 4px 60px rgba(0, 0, 0, .8);
-    }
-
-    img {
-        width: 230px;
-        height: 230px;
-    }
+.image {
+    box-shadow: 0 4px 60px rgba(0, 0, 0, .8);
+    width: 230px;
+    height: 230px;
 }
 
 @include media-breakpoint-down(lg) {
-    header {
-        img {
-            width: 190px;
-            height: 190px;
-        }
+    .image {
+        width: 190px;
+        height: 190px;
     }
 }
 </style>

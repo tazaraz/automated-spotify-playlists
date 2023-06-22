@@ -23,7 +23,7 @@
             </button>
             <button v-else class="accordion-button shadow-none collapsed" type="button" @click="getFeatures()" data-bs-toggle="collapse" :data-bs-target="`#track:${track.id}`">
                 <div class="container d-flex gap-3 align-items-center ps-0">
-                    <img class="flex-shrink-0" :src="track.image" />
+                    <Image :source="track" class="flex-shrink-0"/>
                     <div class="flex-grow-1 multilayer m-0 d-grid gap-1">
                         <div class="text-truncate">
                             <url @click="follow" class="text-white" :to="`/info/track/${track.id}`">{{ track.name }}</url>

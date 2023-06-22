@@ -3,11 +3,7 @@
         <div class="h-100 pe-1 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow">
             <Title v-if="!track">Loading track...</Title>
             <Title v-else>{{ track.name }}</Title>
-            <header class="p-4 pt-5 d-flex gap-4 flex-column flex-lg-row align-items-center align-items-lg-stretch">
-                <div v-if="!track" class="bg-body loading-container">
-                    <img src="/loading.svg" style="transform: scale(0.2); box-shadow: none;">
-                </div>
-                <img v-else :src="track.image"/>
+                <Image :source="track"/>
                 <div class="flex-fill d-flex flex-column text-white">
                     <span v-if="!track" class="mt-auto mb-auto placeholder rounded-2" style="width: 17rem; height:2rem"></span>
                     <h1 v-else class="mt-auto mb-auto">{{ track.name }}</h1>
@@ -19,7 +15,7 @@
                         </div>
                     </div>
                     <div v-else class="d-flex mt-3 mb-3">
-                        <img :src="track.album.image" class="rounded-5" style="width: 3rem; height: 3rem" />
+                        <Image :source="track.album" class="border rounded-5" style="width: 3rem; height: 3rem" />
                         <div class="multilayer ms-3">
                             <span>Album</span>
                             <url :to="`/info/album/${track.album.id}`" class="rounded-2">{{ track.album.name }}</url>
@@ -34,10 +30,7 @@
                     <span class="placeholder rounded-2 ms-3" style="width: 7rem;"></span>
                 </li>
                 <li v-else v-for="artist of track.artists" class="col-auto p-2 d-flex">
-                    <img v-if="artist.image" :src="artist.image" class="rounded-5" style="width: 3rem; height: 3rem" />
-                    <span v-else class="rounded-5 d-flex align-items-center justify-content-center border" style="width: 3rem; height: 3rem">
-                        <i><fa-icon :icon="['fas', 'question']"></fa-icon></i>
-                    </span>
+                    <Image :source="artist" class="rounded-5"/>
                     <url :to="`/info/artist/${artist.id}`" class="rounded-2 ms-3 m-auto">{{ artist.name }}</url>
                 </li>
             </ol>
@@ -194,7 +187,7 @@ export default class InfoTrack extends Vue {
 
 <style lang="scss" scoped>
 header {
-    img {
+    .image {
         width: 230px;
         height: 230px;
         box-shadow: 0 4px 60px rgba(0,0,0,.8);
@@ -210,7 +203,7 @@ a {
 
 @include media-breakpoint-down(lg) {
     header {
-        img {
+        .image {
             width: 190px;
             height: 190px;
         }

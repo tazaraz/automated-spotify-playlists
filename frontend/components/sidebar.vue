@@ -24,7 +24,7 @@
                     <li v-if="playlist.filters" class="nav-item cursor-pointer">
                         <url :to="`/playlist/${playlist.id}`"
                             :class="`ps-2 d-flex nav-link${selectedPlaylist == index ? ' active' : ''}`">
-                            <img class="rounded-1" style="width: 3.2rem" :src="playlist.image">
+                            <Image :source="playlist" class="rounded-1" />
                             <span class="m-auto ms-3 text-truncate">{{ playlist.name }}</span>
                         </url>
                     </li>
@@ -41,7 +41,7 @@
                     <li v-if="!playlist.filters" class="nav-item cursor-pointer">
                         <url :to="`/playlist/${playlist.id}`"
                             :class="`ps-2 d-flex nav-link${selectedPlaylist == index ? ' active' : ''}`">
-                            <img class="rounded-1" style="width: 3.2rem" :src="playlist.image">
+                            <Image :source="playlist" class="image rounded-1" />
                             <span class="m-auto ms-3 text-truncate">{{ playlist.name }}</span>
                         </url>
                     </li>
@@ -111,5 +111,12 @@ nav {
     a {
         cursor: pointer;
     }
+}
+
+.image {
+    width: 3.5rem;
+    height: 3.5rem;
+    object-position: 50% 50%;
+    object-fit: cover;
 }
 </style>
