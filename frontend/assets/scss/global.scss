@@ -23,7 +23,7 @@ a {
     height: 2rem;
     width: 2rem;
 
-    background-color: $primary;
+    background-color: currentColor;
     mask: url('/loading.svg') no-repeat center;
     mask-size: 75%;
 }
