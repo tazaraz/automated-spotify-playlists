@@ -19,7 +19,7 @@
                         <div class="mt-3 d-flex align-items-center flex-wrap gap-2">
                             <span class="rounded-2">{{ playlist.owner.display_name }}</span>
                             &nbsp;&nbsp;━&nbsp;&nbsp;
-                            <template v-if="loading">
+                            <template v-if="loading || !playlist || !playlist.matched_tracks">
                                 <span class="d-inline-block loading-icon"></span>loading tracks
                             </template>
                             <span v-else >{{ playlist.matched_tracks.length }}
@@ -30,7 +30,8 @@
                 </div>
             </header>
             <slot></slot>
-            <div v-if="!loading && playlist" class="accordion rounded-5">
+            <div v-if="!loading && playlist && playlist.matched_tracks
+                        && (playlist.matched_tracks.length == 0 || typeof playlist.matched_tracks[0] !== `string`)" class="accordion rounded-5">
                 <Track v-for="t of playlist.matched_tracks" :track="t" />
             </div>
             <div v-else class="accordion rounded-5">
@@ -42,31 +43,36 @@
 
 <script lang="ts">
 import { Prop, Vue } from 'vue-property-decorator';
+import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
-import Playlists, { Playlist, SelectedPlaylist } from '~/stores/playlists';
+import Playlists, { Playlist, EditingPlaylist } from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class PlaylistDisplay extends Vue {
     @Prop({ required: true }) id!: string;
     /* Passing this property overrides the default behaviour of loading the playlist based on its ID and the URL
-     * and instead will always load the given selectedPlaylist */
-    @Prop({ default: false }) selectedPlaylist!: SelectedPlaylist;
+     * and instead will always load the given editingPlaylist */
+    @Prop({ default: false }) editingPlaylist!: EditingPlaylist;
 
-    playlist: Playlist | SelectedPlaylist | null = null;
-    playlists!: Playlists;
+    user: User = null;
+    playlists: Playlists = null;
+    breadcrumbs: BreadCrumbs = null
+
+    playlist: Playlist | EditingPlaylist | null = null;
     loading: boolean = true;
 
-    async created() {
+    async mounted() {
         if (!process.client) return;
 
         this.user = new User();
         this.playlists = new Playlists();
         this.playlists.setUser(this.user)
         await this.playlists.loadUserPlaylists();
+        this.breadcrumbs = new BreadCrumbs();
 
         /* We must load tracks as CTracks, these cannot be string[] */
         // Load the library if we're on the library page
-        if (this.$route.path == '/library')
+        if (this.$route.path == '/library' || this.id == 'library')
             this.playlist = await this.playlists.loadUserLibrary();
 
         // Load the user playlist if we're supposed to show that
@@ -77,12 +83,15 @@ export default class PlaylistDisplay extends Vue {
 
         // Load a random playlist the user stumbled upon
         else {
-            this.playlist = (await Fetch.get<Playlist>(`spotify:/playlist/${this.id}`)).data;
+            this.playlist = (await Fetch.get<Playlist>(`spotify:/playlists/${this.id}`)).data;
+            this.playlist.image = Fetch.bestArtwork(this.playlist.images);
             this.loading = false;
+
             const tracks = await this.playlists.loadPlaylistTracks(this.playlist);
             this.playlist.matched_tracks = tracks.matched;
         }
 
+        this.breadcrumbs.add(useRoute().fullPath, this.playlist!.name)
         this.loading = false;
     }
 }

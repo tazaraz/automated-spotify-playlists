@@ -16,7 +16,7 @@
                     <div class="text-truncate flex-shrink-0 d-none d-lg-block" style="width: 40%;">
                         <span class="placeholder" :style="`width: ${randomBetween(2, 5)}rem`"></span>
                     </div>
-                    <div class="text-truncate flex-shrink-0" style="width: 7%;">
+                    <div class="text-truncate flex-shrink-0" style="width: 10%;">
                         <span class="placeholder ms-auto d-block" :style="`width: ${randomBetween(2, 3)}rem`"></span>
                     </div>
                 </div>
@@ -39,7 +39,7 @@
                         <url @click="follow" class="text-body" :to="`/info/album/${track.album!.id}`">{{ track.album!.name
                         }}</url>
                     </div>
-                    <div class="flex-shrink-0" style="width: 7%;">{{ track.duration }}</div>
+                    <div class="flex-shrink-0" style="width: 10%;">{{ track.duration }}</div>
                     <i v-if="deleteable" @click="$emit('delete', track)"><fa-icon style="color: rgb(155, 0, 0)"
                             :icon="['fas', 'trash-can']"></fa-icon></i>
                 </div>
@@ -167,8 +167,7 @@ export default class Track extends Vue {
         text-decoration: none;
     }
 
-    .loading-container,
-    img {
+    .loading-container {
         width: 3rem;
         height: 3rem;
     }

@@ -13,17 +13,23 @@
         </template>
         <article v-else class="rounded-2 p-2 bg-dark-subtle overflow-hidden">
             <Title>Smart playlists</Title>
+            <h2>Please log in first</h2>
         </article>
+        <Edit v-if="playlists && playlists.editing"></Edit>
     </main>
 </template>
 
 <script lang="ts">
+import { Offcanvas } from 'bootstrap';
 import { Vue } from 'vue-property-decorator';
 import BreadCrumbs from '~/stores/breadcrumbs';
+import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class Sidebar extends Vue {
     user!: User;
+    playlists!: Playlists;
+
     /* Breakpoints, for when the editor is visibile,
      * on how to treat the playlist, album, etc. view ('mobile-like' or normal) */
     breakpoints = { min: 1200, max: 1550 };
@@ -83,27 +89,28 @@ export default class Sidebar extends Vue {
 </script>
 <style lang="scss">
 * {
-    scrollbar-color: grey rgba(0, 0, 0, 0);
+    scrollbar-color: grey transparent;
 
     ::-webkit-scrollbar {
         width: 0.6em;
-        background:  rgba(0,0,0,0);
+        background: rgba(0, 0, 0, 0);
     }
+
     ::-webkit-scrollbar-thumb {
         background: grey;
         border-radius: 3rem
     }
 
-    ::-webkit-scrollbar-track{
-       background: rgba(0,0,0,0);
+    ::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0);
     }
 }
 </style>
 <style lang="scss" scoped>
 main {
     display: grid;
-    grid-template-columns: minmax(310px, 400px) minmax(380px, 70vw) minmax(400px, 550px);
-    grid-template-rows: 60px 1fr;
+    grid-template-columns: minmax(20rem, 25rem) minmax(23rem, 70vw) minmax(25rem, 34rem);
+    grid-template-rows: 4rem 1fr;
     height: 100vh;
     width: 100vw;
 
@@ -117,14 +124,19 @@ main {
     }
 
     // This splits the main content into two columns if there are two components present
-    &:deep(#toolbelt) + * { grid-column: span 2; }
-    & > :nth-last-child(2) { grid-column: span 1 !important;}
+    &:deep(#toolbelt)+* {
+        grid-column: span 2;
+    }
+
+    &> :nth-last-child(2) {
+        grid-column: span 1 !important;
+    }
 }
 
 @include media-breakpoint-down(xl) {
     main {
-        grid-template-columns: 320px 1fr;
-        grid-template-rows: 60px 1fr 1fr;
+        grid-template-columns: 20rem 1fr;
+        grid-template-rows: 4rem 1fr 1fr;
 
         nav {
             grid-column: span 1;
@@ -136,8 +148,55 @@ main {
             grid-column: span 1 !important;
         }
 
-        &:deep(#toolbelt) + * { grid-column: span 1; grid-row: span 2; }
-        & > :nth-last-child(2):not(nav) { grid-row: span 1 !important;}
+        &:deep(#toolbelt)+* {
+            grid-column: span 1;
+            grid-row: span 2;
+        }
+
+        &> :nth-last-child(2):not(nav) {
+            grid-row: span 1 !important;
+        }
     }
 }
-</style>
+
+@include media-breakpoint-down(md) {
+    main {
+        grid-template-columns: 6.5rem 1fr;
+        grid-template-rows: 4rem 1fr 1fr;
+
+        nav {
+            grid-column: span 1;
+            grid-row: span 3;
+        }
+
+        &:deep(#toolbelt) {
+            grid-row: span 1;
+            grid-column: span 1 !important;
+        }
+
+        &:deep(#toolbelt)+* {
+            grid-column: span 1;
+            grid-row: span 2;
+        }
+
+        &> :nth-last-child(2):not(nav) {
+            grid-row: span 1 !important;
+        }
+    }
+}
+
+@include media-breakpoint-down(sm) {
+    main {
+        grid-template-columns: 1fr;
+        grid-template-rows: 4rem calc(100% - 4rem);
+
+        nav {
+            grid-row-start: 2;
+            grid-row-end: 3;
+        }
+
+        &:deep(#toolbelt) {
+            grid-row: span 1;
+        }
+    }
+}</style>
