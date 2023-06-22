@@ -8,15 +8,11 @@ interface BreadCrumbItem {
 @Store
 export default class BreadCrumbs extends Pinia {
     history: BreadCrumbItem[] = []
-    show: boolean = false
 
     constructor() {
         super();
-
         if (!process.client) return;
-
         this.history = JSON.parse((localStorage.getItem("b") || "[]"))
-        this.show = this.history.length > 0;
     }
 
     add(to: string | undefined, name: string | undefined) {
@@ -52,14 +48,11 @@ export default class BreadCrumbs extends Pinia {
         this.history.push({ to, name })
         // Save the history
         localStorage.setItem("b", JSON.stringify(this.history))
-        // Show the breadcrumbs
-        this.show = !to.startsWith("/playlist");
     }
 
     clear() {
         this.history = []
         localStorage.setItem("b", JSON.stringify(this.history))
-        this.show = false;
     }
 
     back() {
