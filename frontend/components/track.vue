@@ -3,7 +3,7 @@
         <h2 class="accordion-header">
             <button v-if="!track || placeholder" class="accordion-button shadow-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="undefined">
                 <div class="container d-flex gap-3 align-items-center ps-0 placeholder-glow">
-                    <span class="placeholder loading-container flex-shrink-0"></span>
+                    <span class="placeholder image flex-shrink-0"></span>
                     <div class="flex-grow-1 multilayer m-0 d-grid gap-1">
                         <div class="text-truncate placeholder" :style="`width: ${randomBetween(6, 14)}rem`"></div>
                         <div class="text-truncate">
@@ -23,7 +23,7 @@
             </button>
             <button v-else class="accordion-button shadow-none collapsed" type="button" @click="getFeatures()" data-bs-toggle="collapse" :data-bs-target="`#track:${track.id}`">
                 <div class="container d-flex gap-3 align-items-center ps-0">
-                    <Image :source="track" class="flex-shrink-0"/>
+                    <Image :source="track" class="flex-shrink-0" />
                     <div class="flex-grow-1 multilayer m-0 d-grid gap-1">
                         <div class="text-truncate">
                             <url @click="follow" class="text-white" :to="`/info/track/${track.id}`">{{ track.name }}</url>
@@ -35,9 +35,8 @@
                             </template>
                         </div>
                     </div>
-                    <div class="text-truncate flex-shrink-0 d-none d-lg-block" style="width: 40%;">
-                        <url @click="follow" class="text-body" :to="`/info/album/${track.album!.id}`">{{ track.album!.name
-                        }}</url>
+                    <div class="flex-shrink-0 d-none" style="width: 40%;" data-editing-class="d-lg-block">
+                        <url @click="follow" class="text-truncate d-block text-body" :to="`/info/album/${track.album!.id}`">{{ track.album!.name }}</url>
                     </div>
                     <div class="flex-shrink-0" style="width: 10%;">{{ track.duration }}</div>
                     <i v-if="deleteable" @click="$emit('delete', track)"><fa-icon style="color: rgb(155, 0, 0)"
@@ -167,7 +166,7 @@ export default class Track extends Vue {
         text-decoration: none;
     }
 
-    .loading-container {
+    .image {
         width: 3rem;
         height: 3rem;
     }
