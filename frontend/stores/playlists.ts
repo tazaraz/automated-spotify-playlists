@@ -13,7 +13,7 @@ export interface Playlist extends SPlaylist.Playlist {
     }
 }
 
-export interface SelectedPlaylist extends Playlist {
+export interface EditingPlaylist extends Playlist {
     index: number;
 
     matched_tracks: CTrack[];
@@ -26,7 +26,7 @@ export default class Playlists extends Pinia {
     user!: User;
 
     storage!: Playlist[];
-    selected!: SelectedPlaylist;
+    editing!: EditingPlaylist;
 
     // If there are any smart playlists
     hasSmartPlaylists: boolean = false;
@@ -113,13 +113,13 @@ export default class Playlists extends Pinia {
     }
 
     /**
-     * Saves the old selectedPlaylist and loads the requested playlist and sets it as the selectedPlaylist
+     * Saves the old editingPlaylist and loads the requested playlist and sets it as the editingPlaylist
      * @param id ID of the playlist to load
      */
-    async loadSelectedPlaylist(id: string){
+    async loadEditingPlaylist(id: string){
         // As we are probably loading another playlist, first save the old one
-        if (this.selected !== undefined)
-            this.storage[this.selected.index] = this.convertToPlaylist(this.selected)
+        if (this.editing !== undefined)
+            this.storage[this.editing.index] = this.convertToPlaylist(this.editing)
 
         // Load the playlist
         const playlist = await this.loadUserPlaylistByID(id);
@@ -127,8 +127,8 @@ export default class Playlists extends Pinia {
 
         const tracks = await this.loadPlaylistTracks(playlist);
 
-        // Set the selected playlist
-        this.selected = {
+        // Set the editing playlist
+        this.editing = {
             ...playlist,
             index: this.storage.findIndex(p => p.id === id),
             matched_tracks: tracks.matched,
@@ -141,6 +141,9 @@ export default class Playlists extends Pinia {
      * Loads tracks from your library
      */
     async loadUserLibrary(){
+        if (!this.storage)
+            await this.loadUserPlaylists();
+
         // Load the library tracks
         const matched_tracks: CTrack[] = [];
         (await Fetch.get(`spotify:/me/tracks`, {pagination: true})).data
@@ -154,6 +157,7 @@ export default class Playlists extends Pinia {
             image: "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png",
             index: -1,
             matched_tracks,
+            owner: { id: this.user.info!.id, display_name: this.user.info!.name },
         } as any as Playlist;
     }
 
@@ -185,7 +189,7 @@ export default class Playlists extends Pinia {
     }
 
     /**
-     * Loads tracks from a playlist, or selectedPlaylist if url is none.
+     * Loads tracks from a playlist, or editingPlaylist if url is none.
      * If a playlist is specified, the tracks will be sorted into matched, excluded and included
      * @param url Url from which to receive tracks
      * @param playlist Optional smart playlist to sort the tracks into matched, excluded and included
@@ -256,14 +260,14 @@ export default class Playlists extends Pinia {
      */
     removeMatched(track: CTrack){
         // Remove the tracks from the from the origin
-        this.selected.excluded_tracks = this.selected.excluded_tracks.filter(t => t.id !== track.id)
+        this.editing.excluded_tracks = this.editing.excluded_tracks.filter(t => t.id !== track.id)
 
         // Add the tracks to the destination
-        this.selected.matched_tracks.push(track);
-        this.selected.matched_tracks.sort();
+        this.editing.matched_tracks.push(track);
+        this.editing.matched_tracks.sort();
 
         // Let the server know the change
-        this.removeTracks(this.selected, 'matched', [track.id])
+        this.removeTracks(this.editing, 'matched', [track.id])
     }
 
 
@@ -273,14 +277,14 @@ export default class Playlists extends Pinia {
      */
     removeExcluded(track: CTrack){
         // Remove the tracks from the from the origin
-        this.selected.matched_tracks = this.selected.matched_tracks.filter(t => t.id !== track.id);
+        this.editing.matched_tracks = this.editing.matched_tracks.filter(t => t.id !== track.id);
 
         // Add the tracks to the destination
-        this.selected.excluded_tracks = this.selected.excluded_tracks.concat(track);
-        this.selected.excluded_tracks.sort();
+        this.editing.excluded_tracks = this.editing.excluded_tracks.concat(track);
+        this.editing.excluded_tracks.sort();
 
         // Let the server know the change
-        this.removeTracks(this.selected, 'matched', [track.id])
+        this.removeTracks(this.editing, 'matched', [track.id])
     }
 
     /**
@@ -289,10 +293,10 @@ export default class Playlists extends Pinia {
      */
     removeIncluded(track: CTrack){
         // Remove the tracks from the from the origin
-        this.selected.included_tracks = this.selected.included_tracks.filter(t => t.id !== track.id)
+        this.editing.included_tracks = this.editing.included_tracks.filter(t => t.id !== track.id)
 
         // Let the server know the change
-        this.removeTracks(this.selected, 'included', [track.id])
+        this.removeTracks(this.editing, 'included', [track.id])
     }
 
     /**
@@ -307,7 +311,7 @@ export default class Playlists extends Pinia {
      * Deletes a playlist
      * @param playlist Playlist to delete
      */
-    async delete(playlist: SelectedPlaylist | Playlist) {
+    async delete(playlist: EditingPlaylist | Playlist) {
         if (!this.unpublishedSmartPlaylist)
             await Fetch.delete("server:/playlist", { data: { id: playlist.id } })
 
@@ -322,29 +326,29 @@ export default class Playlists extends Pinia {
      * Saves a playlist to the this.storage array
      * @param playlist Playlist to save
      */
-    async save(playlist: SelectedPlaylist | Playlist) {
-        // If it is the selectedplaylist, convert and save.
-        if ((playlist as SelectedPlaylist).index !== undefined) {
-            this.storage[this.selected.index] = this.convertToPlaylist((playlist as SelectedPlaylist));
+    async save(playlist: EditingPlaylist | Playlist) {
+        // If it is the editing playlist, convert and save.
+        if ((playlist as EditingPlaylist).index !== undefined) {
+            this.storage[this.editing.index] = this.convertToPlaylist((playlist as EditingPlaylist));
         } else {
             const index = this.storage.findIndex(p => p.id === playlist.id)
             this.storage[index] = (playlist as Playlist);
         }
     }
 
-    async execute(playlist: SelectedPlaylist | Playlist){
+    async execute(playlist: EditingPlaylist | Playlist){
         const response = await Fetch.patch(`server:/playlist/${playlist.id}`);
         if (response.status === 304) {
             return response.data.log as Playlist['log']
         } else if (response.status === 200) {
             this.save(response.data)
 
-            // If it is the selected playlist, load the new tracks
-            if (response.data.id === this.selected.id) {
+            // If it is the editing playlist, load the new tracks
+            if (response.data.id === this.editing.id) {
                 const tracks = await this.loadPlaylistTracks(response.data)
-                this.selected.matched_tracks = tracks.matched;
-                this.selected.excluded_tracks = tracks.excluded;
-                this.selected.included_tracks = tracks.included;
+                this.editing.matched_tracks = tracks.matched;
+                this.editing.excluded_tracks = tracks.excluded;
+                this.editing.included_tracks = tracks.included;
             }
 
             return true;
@@ -381,7 +385,7 @@ export default class Playlists extends Pinia {
      * Updates the basic information of a playlist
      * @param playlist Playlist to sync
      */
-    async updateBasic(playlist: SelectedPlaylist | Playlist) {
+    async updateBasic(playlist: EditingPlaylist | Playlist) {
         if (!this.unpublishedSmartPlaylist) {
             this.save(playlist)
 
@@ -399,7 +403,7 @@ export default class Playlists extends Pinia {
      * @param removed What was changed in the track list
      */
     async removeTracks(
-        playlist: SelectedPlaylist | Playlist,
+        playlist: EditingPlaylist | Playlist,
         what: "matched" | "included" | "excluded",
         removed: string[],
     ) {
@@ -437,18 +441,18 @@ export default class Playlists extends Pinia {
     }
 
     /**
-     * Creates a copy of the selectedPlaylist and converts it to a normal playlist
-     * @param selectedPlaylist selectedPlaylist
+     * Creates a copy of the editingPlaylist and converts it to a normal playlist
+     * @param editingPlaylist editingPlaylist
      */
-    convertToPlaylist(selectedPlaylist: SelectedPlaylist){
-        let splaylist = this.copy(selectedPlaylist)
+    convertToPlaylist(editingPlaylist: EditingPlaylist){
+        let splaylist = this.copy(editingPlaylist)
         // Remove the index
         delete splaylist.index
 
         const playlist = splaylist as unknown as Playlist
-        playlist.matched_tracks = selectedPlaylist.matched_tracks.map(track => track.id)
-        playlist.excluded_tracks = selectedPlaylist.excluded_tracks.map(track => track.id)
-        playlist.included_tracks = selectedPlaylist.included_tracks.map(track => track.id)
+        playlist.matched_tracks = editingPlaylist.matched_tracks.map(track => track.id)
+        playlist.excluded_tracks = editingPlaylist.excluded_tracks.map(track => track.id)
+        playlist.included_tracks = editingPlaylist.included_tracks.map(track => track.id)
 
         return playlist
     }
