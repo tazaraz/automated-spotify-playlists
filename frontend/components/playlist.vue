@@ -30,9 +30,11 @@
                 </div>
             </header>
             <slot></slot>
-            <div v-if="!loading && playlist && playlist.matched_tracks
-                        && (playlist.matched_tracks.length == 0 || typeof playlist.matched_tracks[0] !== `string`)" class="accordion rounded-5">
-                <Track v-for="t of playlist.matched_tracks" :track="t" />
+            <template>
+
+            </template>
+            <div v-if="!loading && playlist && shownTracks" class="accordion rounded-5">
+                <Track v-for="track of shownTracks" :track="track" />
             </div>
             <div v-else class="accordion rounded-5">
                 <Track v-for="i of 10"/>
@@ -47,6 +49,7 @@ import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
 import Playlists, { Playlist, EditingPlaylist } from '~/stores/playlists';
 import User from '~/stores/user';
+import { CTrack } from '../../backend/src/types/client';
 
 export default class PlaylistDisplay extends Vue {
     @Prop({ required: true }) id!: string;
@@ -60,6 +63,34 @@ export default class PlaylistDisplay extends Vue {
 
     playlist: Playlist | EditingPlaylist | null = null;
     loading: boolean = true;
+
+    /* Tracks which should be shown. Only possible if the playlist is a smart playlist */
+    shownTracks: CTrack[] = [];
+    showTracks(kind: "matched" | "excluded" | "included") {
+        // Make sure we have a playlist and that we can select the requested tracks
+        if (!this.playlist || (!this.playlist.filters && (kind == 'excluded' || kind == 'included'))) return false;
+
+        // Get the tracks we want to show
+        let tracks: any[];
+        switch(kind) {
+            case "matched":
+                tracks = this.playlist.matched_tracks;
+                break;
+            case "excluded":
+                tracks = this.playlist.excluded_tracks;
+                break;
+            case "included":
+                tracks = this.playlist.included_tracks;
+                break;
+        }
+
+        // If these tracks are not loaded yet, stop
+        if (tracks.length == 0 || typeof tracks[0] === `string`) return false;
+
+        // Set the tracks as shown
+        this.shownTracks = tracks;
+        return true;
+    }
 
     async mounted() {
         if (!process.client) return;
@@ -91,6 +122,7 @@ export default class PlaylistDisplay extends Vue {
             this.playlist.matched_tracks = tracks.matched;
         }
 
+        this.showTracks("matched");
         this.breadcrumbs.add(useRoute().fullPath, this.playlist!.name)
         this.loading = false;
     }

@@ -1,5 +1,5 @@
 <template>
-    <playlist :id="$route.params.id">
+    <playlist ref="playlist" :id="$route.params.id">
         <span @click="setEditedPlaylist($route.params.id)">edit</span>
     </playlist>
 </template>
@@ -20,7 +20,8 @@ export default class PlaylistWrapper extends Vue {
     }
 
     setEditedPlaylist(id: string) {
-        this.playlists.loadEditingPlaylist(id)
+        this.playlists.loadEditingPlaylist(id);
+        (this.$refs.playlist as any).shownTracks = "excluded";
     }
 }
 </script>
