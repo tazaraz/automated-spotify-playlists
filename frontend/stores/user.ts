@@ -6,6 +6,12 @@ import Fetch from "./fetch";
 export default class User extends Pinia {
     info: CUser | undefined;
 
+    constructor() {
+        super();
+        if (!process.client) return;
+        this.loadCredentials();
+    }
+
     getCodeGrant(client_id: string, domain: string){
         /**
          * Redirect the user to the spotify authorization page
@@ -16,14 +22,15 @@ export default class User extends Pinia {
             `&redirect_uri=${domain}` +
             `&state=` +
             `&scope=${[
-                "ugc-image-upload",
                 "playlist-modify-public",
                 "playlist-modify-private",
                 "playlist-read-private",
-                "user-read-recently-played",
                 "user-read-private",
                 "user-follow-read",
-                "user-library-read"
+                "user-library-read",
+                // Frontend only
+                "ugc-image-upload",
+                "user-read-currently-playing"
             ].join(" ")}`;
     }
 
