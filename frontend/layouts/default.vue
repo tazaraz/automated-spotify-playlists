@@ -1,8 +1,13 @@
 <template>
     <Html data-bs-theme="dark"></Html>
     <main class="p-3 bg-black overflow-hidden" ref="main">
-        <sidebar />
+        <div class="offcanvas offcanvas-start bg-black d-sm-flex w-100 p-3" tabindex="-1" id="sidebar">
+            <sidebar />
+        </div>
+        <sidebar class="d-sm-flex d-none" />
+
         <toolbar />
+
         <template v-if="user && user.loggedIn()">
             <slot></slot>
         </template>
@@ -19,11 +24,18 @@ import User from '~/stores/user';
 
 export default class Sidebar extends Vue {
     user!: User;
+    /* Breakpoints, for when the editor is visibile,
+     * on how to treat the playlist, album, etc. view ('mobile-like' or normal) */
+    breakpoints = { min: 1200, max: 1550 };
+    breakpointOverrides!: NodeListOf<Element>;
+    offcanvas!: Offcanvas[];
 
     created() {
         if (!process.client) return;
         this.user = new User()
-        this.user.loadCredentials();
+        this.playlists = new Playlists();
+        this.playlists.setUser(this.user)
+        this.playlists.loadUserPlaylists();
     }
 
     mounted() {
@@ -31,6 +43,41 @@ export default class Sidebar extends Vue {
         if (!this.user.loggedIn()) {
             (new BreadCrumbs()).clear();
         }
+
+        const offcanvasElementList = document.querySelectorAll('.offcanvas')
+        this.offcanvas = [...offcanvasElementList].map(offcanvasEl => new this.$bootstrap.Offcanvas(offcanvasEl))
+
+        watch(() => this.$route.fullPath, () => this.onUpdate())
+        watch(() => this.playlists.editing, () => this.onUpdate())
+        addEventListener("resize", () => this.onUpdate())
+        this.onUpdate();
+    }
+
+    onUpdate() {
+        // Wait for the next tick, so the DOM is updated
+        this.$nextTick(() => {
+            // Close all offcanvas
+            for (const offcanvas of this.offcanvas) {
+                offcanvas.hide();
+            }
+
+            this.breakpointOverrides = document.querySelectorAll("[data-editing-class]")
+
+            for (const element of this.breakpointOverrides) {
+                const classes = element.getAttribute("data-editing-class")?.split(" ") ?? [];
+                for (const className of classes) {
+                    // If we should replace the breakpoint with a lower one
+                    if (this.playlists.editing &&
+                        this.breakpoints.min <= window.innerWidth && window.innerWidth <= this.breakpoints.max) {
+                        // Remove the breakpoint class
+                        element.classList.remove(className);
+                    } else {
+                        // Add the breakpoint class
+                        element.classList.add(className);
+                    }
+                }
+            }
+        })
     }
 }
 </script>

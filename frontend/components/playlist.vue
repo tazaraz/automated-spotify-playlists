@@ -3,6 +3,7 @@
         <div v-if="playlists" class="h-100 pe-1 overflow-y-auto">
             <Title v-if="!playlist">Loading playlist</Title>
             <Title v-else>{{ playlist.name }}</Title>
+            <header class="p-4 pt-5 d-flex gap-4 flex-column align-items-center align-items-lg-stretch" data-editing-class="flex-lg-row">
                 <Image :source="playlist" />
                 <div class="flex-fill d-flex flex-column text-white">
                     <template v-if="!playlist">

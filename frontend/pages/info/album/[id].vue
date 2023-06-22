@@ -3,11 +3,8 @@
         <div class="h-100 pe-1 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow">
             <Title v-if="!album">Loading album...</Title>
             <Title v-else>{{ album.name }}</Title>
-            <header class="p-4 pt-5 d-flex gap-4 flex-column flex-lg-row align-items-center align-items-lg-stretch">
-                <div v-if="!album" class="bg-body loading-container">
-                    <img src="/loading.svg" style="transform: scale(0.2); box-shadow: none;">
-                </div>
-                <img v-else :src="album.image"/>
+            <header class="p-4 pt-5 d-flex gap-4 flex-column align-items-center align-items-lg-stretch" data-editing-class="flex-lg-row">
+                <Image :source="album"/>
                 <div class="flex-fill d-flex flex-column text-white">
                     <template v-if="!album">
                         <span class="mt-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>

@@ -3,6 +3,7 @@
         <div class="h-100 pe-1 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow">
             <Title v-if="!artist">Loading artist...</Title>
             <Title v-else>{{ artist.name }}</Title>
+            <header class="p-4 pt-5 d-flex gap-4 flex-column align-items-center align-items-lg-stretch" data-editing-class="flex-lg-row">
                 <Image :source="artist" />
                 <div class="flex-fill d-flex flex-column text-white">
                     <template v-if="!artist">
