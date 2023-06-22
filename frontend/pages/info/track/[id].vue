@@ -143,8 +143,9 @@ export default class InfoTrack extends Vue {
 
     async created() {
         if (!process.client) return;
-        this.playlists = new Playlists(new User());
         this.breadcrumbs = new BreadCrumbs();
+        this.playlists = new Playlists();
+        this.playlists.setUser(new User())
         await this.playlists.loadUserPlaylists();
 
         // Get the track and the image

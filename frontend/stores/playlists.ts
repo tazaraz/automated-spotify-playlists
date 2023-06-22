@@ -36,8 +36,7 @@ export default class Playlists extends Pinia {
     // Whether all the playlist have their track ids loaded
     private loadedPlaylistsTrackIds: boolean | Promise<any> = false;
 
-    constructor(user: User) {
-        super();
+    setUser(user: User){
         this.user = user;
     }
 

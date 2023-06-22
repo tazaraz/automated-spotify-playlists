@@ -58,7 +58,9 @@ export default class PlaylistDisplay extends Vue {
     async created() {
         if (!process.client) return;
 
-        this.playlists = new Playlists(new User());
+        this.user = new User();
+        this.playlists = new Playlists();
+        this.playlists.setUser(this.user)
         await this.playlists.loadUserPlaylists();
 
         /* We must load tracks as CTracks, these cannot be string[] */
