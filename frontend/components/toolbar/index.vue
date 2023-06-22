@@ -1,18 +1,22 @@
 <template>
-    <nav id="toolbelt" class="d-flex rounded-3 mb-2 bg-dark-subtle">
+    <nav id="toolbelt" class="d-flex bg-dark-subtle justify-content-between align-items-center rounded-3 mb-2">
         <ClientOnly>
-            <Breadcrumbs class="ms-3" />
-            <ul class="nav nav-pills align-self-end m-auto">
+            <button class="navbar-toggler d-sm-none ms-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
+                <h2 class="m-0 me-2"><fa-icon :icon="['fas', 'bars']"></fa-icon></h2>
+            </button>
+            <ToolbarPlaying class="ms-2 me-2"/>
+            <ToolbarBreadcrumbs class="d-none d-lg-flex me-2"/>
+            <ul class="d-flex nav nav-pills">
                 <li v-if="user && user.info" class="nav-item cursor-pointer">
-                    <url class="nav-link pe-0" @click="user.logout()">
-                        <span class="me-1">{{ user.info.name }}</span>
-                        <i><fa-icon :icon="['fas', 'user']" style="width:2rem; padding-right: .5rem;"></fa-icon></i>
+                    <url class="nav-link text-nowrap p-2 me-3" @click="user.logout()">
+                        <span class="d-md-inline d-none me-3">{{ user.info.name }}</span>
+                        <i><fa-icon :icon="['fas', 'user']"></fa-icon></i>
                     </url>
                 </li>
                 <li v-else class="nav-item cursor-pointer">
-                    <url class="nav-link pe-0" @click="user?.login">
-                        <span class="me-1">Log in</span>
-                        <i><fa-icon :icon="['fas', 'user']" style="width:2rem; padding-right: .5rem;"></fa-icon></i>
+                    <url class="nav-link text-nowrap p-2 me-3" @click="user?.login">
+                        <span class="me-3">Log in</span>
+                        <i><fa-icon :icon="['fas', 'user']"></fa-icon></i>
                     </url>
                 </li>
             </ul>
@@ -36,7 +40,6 @@ export default class Sidebar extends Vue {
 
         this.user = new User();
         this.breadcrumbs = new BreadCrumbs();
-        this.user.loadCredentials();
         const code = this.$route.query?.code;
 
         // If there is a code in the url, ask our server for tokens

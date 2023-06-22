@@ -1,11 +1,15 @@
 <template>
-    <ol v-if="breadcrumbs && breadcrumbs.history" class="breadcrumb p-2 m-auto me-3 flex-fill vertical-align-center">
-        <template v-if="breadcrumbs.show">
-            <li v-for="(item, index) of breadcrumbs.history"
-                :key="index"
-                :class="`breadcrumb-item${index == breadcrumbs.history.length - 1 ? ' active' : ''}`"
-            ><url :to="item.to">{{ item.name }}</url></li>
+    <ol v-if="breadcrumbs && breadcrumbs.history" class="breadcrumb flex-fill flex-nowrap vertical-align-center p-2 m-auto me-3 w-0">
+        <li v-for="(item, index) of breadcrumbs.history"
+            :key="index"
+            style="min-width: 0rem; max-width: 10rem"
+            :class="`breadcrumb-item text-truncate${index == breadcrumbs.history.length - 1 ? ' active' : ''}`"
+        >
+        <url v-if="index < breadcrumbs.history.length - 1" class="text-truncate" :to="item.to">{{ item.name }}</url>
+        <template v-else>
+            {{ item.name }}
         </template>
+        </li>
     </ol>
 </template>
 
@@ -26,14 +30,15 @@ export default class Breadcrumbs extends Vue {
     async created() {
         if (!process.client) return;
         this.breadcrumbs = new BreadCrumbs();
-        this.playlists = new Playlists(new User());
+        this.playlists = new Playlists();
+        this.playlists.setUser(new User())
         this.info = new Info();
 
         const route = useRoute();
         watch(() => route.fullPath, () => this.$nextTick(() => {
-            console.log("redirect to:", route.fullPath, this.playlists.selected?.name, this.info.currentItem?.name)
+            console.log("redirect to:", route.fullPath, this.playlists.editing?.name, this.info.currentItem?.name)
             if (route.fullPath.startsWith('/playlist'))
-                this.breadcrumbs.add(route.fullPath, this.playlists.selected?.name)
+                this.breadcrumbs.add(route.fullPath, this.playlists.editing?.name)
 
         }), {deep: true, immediate: true})
     }
