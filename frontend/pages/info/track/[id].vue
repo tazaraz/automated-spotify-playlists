@@ -6,7 +6,7 @@
             <header class="p-4 pt-5 d-flex gap-4 flex-column align-items-center align-items-lg-stretch" data-editing-class="flex-lg-row">
                 <Image :source="track"/>
                 <div class="flex-fill d-flex flex-column text-white">
-                    <span v-if="!track" class="mt-auto mb-auto placeholder rounded-2" style="width: 17rem; height:2rem"></span>
+                    <span v-if="!track" class="mt-auto mb-auto placeholder rounded-2" style="width: 17rem; height: 2rem"></span>
                     <h1 v-else class="mt-auto mb-auto">{{ track.name }}</h1>
                     <div v-if="!track || !track.album" class="d-flex mt-3 mb-3">
                         <span class="placeholder rounded-5 bg-light" style="width: 3rem; height: 3rem"></span>
@@ -37,7 +37,10 @@
             </ol>
             <div class="m-lg-5 mt-lg-3 m-4 mt-3 row placeholder-glow">
                 <div class="col-12 mb-2 multilayer">
-                    <span>Track ID</span>
+                    <span>
+                        Track ID&nbsp;&nbsp;━&nbsp;&nbsp;
+                        <url v-if="track" :to="`https://open.spotify.com/track/${track.id}`" :direct="true" target="_blank" class="text-primary">Spotify</url>
+                    </span>
                     <span v-if="!track" class="placeholder rounded-1"></span>
                     <span v-else>{{ track.id }} </span>
                 </div>

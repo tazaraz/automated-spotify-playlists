@@ -22,7 +22,10 @@
             </header>
             <div class="m-lg-5 mt-lg-3 m-4 mt-3 row placeholder-glow">
                 <div class="col-12 mb-2 multilayer">
-                    <span>Artist ID</span>
+                    <span>
+                        Artist ID&nbsp;&nbsp;━&nbsp;&nbsp;
+                        <url v-if="artist" :to="`https://open.spotify.com/artist/${artist.id}`" :direct="true" target="_blank" class="text-primary">Spotify</url>
+                    </span>
                     <span v-if="!artist" class="placeholder rounded-1"></span>
                     <span v-else>{{ artist.id }} </span>
                 </div>
