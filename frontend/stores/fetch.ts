@@ -239,12 +239,12 @@ export default class Fetch {
      */
     protected static async setAccessToken(url: string, options: FetchOptions): Promise<void> {
         // If the user is not defined, the page might still be loading. Wait a moment
-        if (!Fetch.user?.info) {
+        if (!Fetch.user?.loggedIn()) {
             // Wait for 0.5 seconds for the User store to be loaded
             await new Promise(resolve => setTimeout(resolve, 500));
 
             // Actual check
-            if (!Fetch.user?.info) {
+            if (!Fetch.user?.loggedIn()) {
                 throw new Error("User not logged in");
             }
         }
