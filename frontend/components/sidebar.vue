@@ -31,9 +31,9 @@
                 <template v-for="(playlist, index) in playlists.storage" :key="index">
                     <li v-if="playlist.filters" class="nav-item cursor-pointer">
                         <url :to="`/playlist/${playlist.id}`"
-                            :class="`ps-2 d-flex nav-link${selectedPlaylist == index ? ' active' : ''}`">
-                            <Image :source="playlist" class="rounded-1" />
-                            <span class="m-auto ms-3 text-truncate">{{ playlist.name }}</span>
+                            :class="`ps-2 d-flex align-items-center nav-link${selectedPlaylist == index ? ' active' : ''}`">
+                            <Image :source="playlist" class="m-sm-auto m-md-0 rounded-1" />
+                            <span class="d-sm-none d-md-block m-auto ms-3 text-truncate">{{ playlist.name }}</span>
                         </url>
                     </li>
                 </template>
@@ -51,9 +51,9 @@
                 <template v-for="(playlist, index) in playlists.storage" :key="index">
                     <li v-if="!playlist.filters" class="nav-item cursor-pointer">
                         <url :to="`/playlist/${playlist.id}`"
-                            :class="`ps-2 d-flex nav-link${selectedPlaylist == index ? ' active' : ''}`">
-                            <Image :source="playlist" class="rounded-1" />
-                            <span class="m-auto ms-3 text-truncate">{{ playlist.name }}</span>
+                            :class="`p-2 d-flex nav-link${selectedPlaylist == index ? ' active' : ''}`">
+                            <Image :source="playlist" class="m-sm-auto m-md-0 rounded-1" />
+                            <span class="d-sm-none d-md-block m-auto ms-3 text-truncate">{{ playlist.name }}</span>
                         </url>
                     </li>
                 </template>
@@ -118,7 +118,7 @@ export default class Sidebar extends Vue {
     async createSmartPlaylist() {
         await this.playlists.createSmartPlaylist();
         await navigateTo('/playlist/unpublished')
-        console.log(await this.playlists.loadEditingPlaylist(this.playlists.loaded.id));
+        console.log(await this.playlists.loadEditingPlaylist('unpublished'));
     }
 }
 </script>
