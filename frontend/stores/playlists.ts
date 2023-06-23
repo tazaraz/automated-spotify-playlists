@@ -25,14 +25,17 @@ export interface EditingPlaylist extends Playlist {
 export default class Playlists extends Pinia {
     user!: User;
 
+    /** Contains all the playlists from the user */
     storage!: Playlist[];
+    /** The playlist which is currently in view. Different functionality from the editing variable */
     loaded!: Playlist;
+    /** The smart playlist the user is currently editing */
     editing!: EditingPlaylist;
+    /** If the user already has a smart playlist which is not yet pushed. Stored here for components to access */
+    unpublished: Playlist | null = null;
 
     // If there are any smart playlists
     hasSmartPlaylists: boolean = false;
-    // If the user already has a smart playlist which is not yet pushed. Stored here for components to access
-    unpublishedSmartPlaylist: Playlist | null = null;
 
     // Whether all the playlist have their track ids loaded
     private loadedPlaylistsTrackIds: boolean | Promise<any> = false;
@@ -249,8 +252,8 @@ export default class Playlists extends Pinia {
      */
     async createSmartPlaylist() {
         // If the user already has a smart playlist, return it
-        if (this.unpublishedSmartPlaylist)
-            return this.storage.findIndex(p => p.id === this.unpublishedSmartPlaylist!.id);
+        if (this.unpublished)
+            return this.storage.findIndex(p => p.id === this.unpublished!.id);
 
         const playlist = {
             id:       "unpublished",
@@ -270,7 +273,7 @@ export default class Playlists extends Pinia {
             owner: { id: this.user.info!.id, display_name: this.user.info!.name }
         } as Playlist;
 
-        this.unpublishedSmartPlaylist = playlist;
+        this.unpublished = playlist;
         this.hasSmartPlaylists = true;
         return this.storage.push(playlist) - 1;
     }
@@ -333,7 +336,7 @@ export default class Playlists extends Pinia {
      * @param playlist Playlist to delete
      */
     async delete(playlist: EditingPlaylist | Playlist) {
-        if (!this.unpublishedSmartPlaylist)
+        if (!this.unpublished)
             await Fetch.delete("server:/playlist", { data: { id: playlist.id } })
 
         // Remove the playlist from the list
@@ -394,9 +397,9 @@ export default class Playlists extends Pinia {
         if (response.status === 400)
             return response.data;
 
-        if (this.unpublishedSmartPlaylist) {
-            this.unpublishedSmartPlaylist.id = response.data.id;
-            this.unpublishedSmartPlaylist = null;
+        if (this.unpublished) {
+            this.unpublished.id = response.data.id;
+            this.unpublished = null;
         }
 
         return response.data
@@ -407,7 +410,7 @@ export default class Playlists extends Pinia {
      * @param playlist Playlist to sync
      */
     async updateBasic(playlist: EditingPlaylist | Playlist) {
-        if (!this.unpublishedSmartPlaylist) {
+        if (!this.unpublished) {
             this.save(playlist)
 
             await Fetch.put(`server:/playlist/${playlist.id}/basic`, { data: {
@@ -431,7 +434,7 @@ export default class Playlists extends Pinia {
         // Save the playlist
         this.save(playlist)
 
-        if (!this.unpublishedSmartPlaylist) {
+        if (!this.unpublished) {
             await Fetch.delete(`server:/playlist/${playlist!.id}/${what}-tracks`, { data: { removed } })
         }
     }
