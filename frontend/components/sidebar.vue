@@ -25,7 +25,7 @@
             <ol v-if="playlists && user && user.loggedIn()" class="nav nav-pills d-block overflow-y-auto h-100">
                 <div id="playlist-sp-header" class="d-flex flex-md-row flex-sm-column flex-row align-items-center gap-3 p-2">
                     <span class="lh-base flex-grow-1">Smart playlists</span>
-                    <url class="d-md-block d-sm-none d-block rounded-3 text-white p-0 fs-5"><i><fa-icon :icon="['fas', 'plus']" style="width:2rem;"></fa-icon></i></url>
+                    <url @click="createSmartPlaylist" class="d-md-block d-sm-none d-block rounded-3 text-white p-0 fs-5"><i><fa-icon :icon="['fas', 'plus']" style="width:2rem;"></fa-icon></i></url>
                 </div>
 
                 <template v-for="(playlist, index) in playlists.storage" :key="index">
@@ -41,7 +41,7 @@
                     <div class="nav-link bg-light-subtle p-3">
                         <span class="me-2 text-body-secondary">You don't have any smart playlists yet.</span>
                         <br><br>
-                        <button class="btn bg-white text-black ps-1"><i><fa-icon :icon="['fas', 'plus']" style="width:2rem;"></fa-icon></i>Create one now</button>
+                        <button @click="createSmartPlaylist" class="btn bg-white text-black ps-1"><i><fa-icon :icon="['fas', 'plus']" style="width:2rem;"></fa-icon></i>Create one now</button>
                     </div>
                 </li>
                 <div id="playlist-sp-header" class="d-md-none d-sm-flex d-none flex-column flex-md-row align-items-center gap-3 mt-2">
@@ -52,14 +52,14 @@
                     <li v-if="!playlist.filters" class="nav-item cursor-pointer">
                         <url :to="`/playlist/${playlist.id}`"
                             :class="`ps-2 d-flex nav-link${selectedPlaylist == index ? ' active' : ''}`">
-                            <Image :source="playlist" class="image rounded-1" />
+                            <Image :source="playlist" class="rounded-1" />
                             <span class="m-auto ms-3 text-truncate">{{ playlist.name }}</span>
                         </url>
                     </li>
                 </template>
                 <li v-if="playlists.storage?.length == 0" class="nav-item cursor-pointer">
                     <div class="nav-link bg-light-subtle p-3">
-                        <span class="me-2 text-body-secondary">You don't have any playlists! Create in Spotify</span>
+                        <span class="me-2 text-body-secondary">You don't have any playlists! Create them in Spotify</span>
                     </div>
                 </li>
             </ol>
@@ -77,7 +77,6 @@
                 </li>
             </ol>
         </div>
-        <!-- {{ playlists }} -->
     </nav>
 </template>
 
@@ -114,6 +113,12 @@ export default class Sidebar extends Vue {
                 await this.playlists.loadUserPlaylists();
             }
         })
+    }
+
+    async createSmartPlaylist() {
+        await this.playlists.createSmartPlaylist();
+        await navigateTo('/playlist/unpublished')
+        console.log(await this.playlists.loadEditingPlaylist(this.playlists.loaded.id));
     }
 }
 </script>
