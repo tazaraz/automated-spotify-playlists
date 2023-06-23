@@ -1,6 +1,6 @@
 .DS_Store
 # Ignore data folder
-/data
+/database
 
 # Ignore compiled javascript
 /src/**/*.js
