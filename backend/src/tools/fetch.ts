@@ -10,10 +10,10 @@ export interface FetchOptions {
     user?: SUser;
     // The maximum amount of retries
     retries?: number;
-    /* The ids of the items to fetch. You may need to specify limit as well,
+    /**The ids of the items to fetch. You may need to specify limit as well,
      * indicating how many items per API call may be requested */
     ids?: string[];
-    /* If the response contains a next url. You may need to specify limit as well,
+    /**If the response contains a next url. You may need to specify limit as well,
      * indicating how many items per API call may be requested */
     pagination?: boolean;
     // If ids are provided or has_next is true, limit indicates how many items per API call may be requested
@@ -152,7 +152,7 @@ export default class Fetch {
         const response = await fetch(url, parameters);
 
         switch (response.status) {
-            /* Use a retry limit for these codes */
+            /**Use a retry limit for these codes */
             case 401:
             case 403:
             case 404:
@@ -169,7 +169,7 @@ export default class Fetch {
 
                 break;
 
-            /* Spotify had a hiccough, give it some time */
+            /**Spotify had a hiccough, give it some time */
             case 429:
                 if (!options.retries || options.retries-- <= 0)
                     break;
@@ -192,7 +192,7 @@ export default class Fetch {
     }
 
     protected static format(data: any) {
-        /* Converting containers to a simple form */
+        /**Converting containers to a simple form */
         if (data.tracks) data = data.tracks;
         if (data.albums) data = data.albums;
         if (data.artists) data = data.artists;
@@ -202,7 +202,7 @@ export default class Fetch {
         // If there are multiple items, get those
         if (data.items) data = data.items;
 
-        /* Converting items in the container to a simple form */
+        /**Converting items in the container to a simple form */
         if (Array.isArray(data)) {
             // Tracks are nested in the data: track.track.id instead of track.id
             data = data.map((track: any) => track.track ? track.track : track);

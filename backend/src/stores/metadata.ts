@@ -56,11 +56,11 @@ class Queue {
 }
 
 export default class Metadata {
-    /* This is the user that is used to fetch data from Spotify.
+    /**This is the user that is used to fetch data from Spotify.
      * Often overwritten when another user specific call is made */
     static token: SUser;
 
-    /* Contains known track information */
+    /**Contains known track information */
     static tracks: { [id: string]: STrack } = {};
     static albums: { [id: string]: SAlbum } = {};
     static artists: { [id: string]: SArtist } = {};
@@ -71,7 +71,7 @@ export default class Metadata {
     static artist_queue         = new Queue((items: string[]) => this.getMultipleArtists("/artists", { ids: items }));
     static track_features_queue = new Queue((items: string[]) => this.getMultipleTrackFeatures("/audio-features", { ids: items }));
 
-    /* The value of the url links to the yielded result of that url */
+    /**The value of the url links to the yielded result of that url */
     static url_cache: {
         [url: string]: {
             expires: Date;
@@ -79,7 +79,7 @@ export default class Metadata {
         };
     } = {}
 
-    /* Requests tied to a specific user */
+    /**Requests tied to a specific user */
     static user_cache: {
         [id: string]: {
             [url: string]: {
@@ -90,7 +90,7 @@ export default class Metadata {
     } = {};
 
     constructor() {
-        /* We define the getters and setters for the objects */
+        /**We define the getters and setters for the objects */
         Metadata.tracks = new Proxy(Metadata.tracks, {
             set: Metadata.setTrack,
             deleteProperty: Metadata.delete,
@@ -253,7 +253,7 @@ export default class Metadata {
         expires: number,
         options: FetchOptions,
     ): Promise<any[]> {
-        /* If the general token is about to expire, get a new one from a different user
+        /**If the general token is about to expire, get a new one from a different user
          * This spreads out the use of the api along multiple users */
         if (Users.accessTokenExpired(Metadata.token.id))
             Metadata.token = await Users.get(options.user.id)

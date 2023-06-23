@@ -99,7 +99,7 @@ export class FilterCombination {
 
                 log.filters.push(`Filter matched ${result.length} of ${input.length} items (change: ${result.length - input.length})`);
 
-                /* Otherwise pipe the output into the next input, in effect filtering out all
+                /**Otherwise pipe the output into the next input, in effect filtering out all
                  * which do not match, leaving the ones who do */
                 switch (statement.mode) {
                     // If only one filter needs be true

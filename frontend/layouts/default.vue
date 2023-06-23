@@ -30,7 +30,7 @@ export default class Sidebar extends Vue {
     user!: User;
     playlists!: Playlists;
 
-    /* Breakpoints, for when the editor is visibile,
+    /**Breakpoints, for when the editor is visibile,
      * on how to treat the playlist, album, etc. view ('mobile-like' or normal) */
     breakpoints = { min: 1200, max: 1550 };
     breakpointOverrides!: NodeListOf<Element>;

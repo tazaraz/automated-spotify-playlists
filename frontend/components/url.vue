@@ -15,9 +15,9 @@ import { Prop, Vue } from  'vue-property-decorator';
 
 export default class Url extends Vue {
     @Prop({default: ""}) to!: string;
-    /* Sets the <a></a> target */
+    /**Sets the <a></a> target */
     @Prop({default: ""}) target!: string;
-    /* Enforces the link to be an <a> tag */
+    /**Enforces the link to be an <a> tag */
     @Prop({default: false}) direct!: boolean;
 
     externalUrl(url: string){

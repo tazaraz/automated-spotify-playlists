@@ -44,7 +44,7 @@ export default class Edit extends Vue {
     computedFilters: PlaylistStatement = null;
     flattenedFilters: PlaylistFilterEntry[] = [];
 
-    /* If the playlist is converted to a smart playlist, upon saving, we need to move the tracks in the playlist
+    /**If the playlist is converted to a smart playlist, upon saving, we need to move the tracks in the playlist
      * to the manually included tracks */
     includedTracks: CTrack[] = [];
 
@@ -62,7 +62,7 @@ export default class Edit extends Vue {
      */
      flatten(filter: PlaylistStatement, index="", indent=0): PlaylistFilterEntry[] {
         let flattened = [];
-        /* Add filters. We don't care about the content, as we update the selectedPlaylist directly every time a
+        /**Add filters. We don't care about the content, as we update the selectedPlaylist directly every time a
         * component updates. After this we reconstruct the list by calling this function again. */
 
         // The first PlaylistStatement is always present, and we render this one somewhere else.
@@ -270,7 +270,7 @@ export default class Edit extends Vue {
             const old_id = this.playlists.editing.id
             await this.playlists.syncPlaylist(this.playlists.convertToPlaylist(this.playlists.editing))
 
-            /* Execute the playlist. While incomplete, this will yield a log */
+            /**Execute the playlist. While incomplete, this will yield a log */
             let status = await this.playlists.execute(this.playlists.editing)
             while (typeof status != 'boolean') {
                 this.executingLog = status

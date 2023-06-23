@@ -11,7 +11,7 @@ export default class Users {
      * @param id The id of the user to get
      */
     static async get(id: string): Promise<SUser | undefined> {
-        /* If the user is not in the cache, get the user from the database
+        /**If the user is not in the cache, get the user from the database
          * Or if the access token expired, get a new one */
         if (!Users.users[id] || Users.accessTokenExpired(id)) {
             // Get the user from the database or cache
@@ -73,7 +73,7 @@ export default class Users {
             // If it is valid, go to the next part of expressjs handling
             req.user = user;
 
-            /* If the user is not in the User cache, try to renew it. if still undefined, error */
+            /**If the user is not in the User cache, try to renew it. if still undefined, error */
             if (await Users.get(user.id) === undefined)
                 return res.status(406)
 

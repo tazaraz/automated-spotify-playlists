@@ -91,7 +91,7 @@ export default class Filters {
          *      - to be removed: tracks present in Spotify but not in matched
          * */
 
-        /* Get the playlist tracks from Spotify
+        /**Get the playlist tracks from Spotify
          * First remove the url from the cache, preventing the cache from being used
          */
         delete Metadata.url_cache.tracks[`/playlists/${playlist.id}/tracks`]
@@ -159,7 +159,7 @@ export default class Filters {
      * @returns Filtered track list
      */
     static subtract(items: FilterItem[] | string[], remove: FilterItem[] | string[]): string[] {
-        /* If there are no tracks to filter OR
+        /**If there are no tracks to filter OR
          * no tracks to remove, return nothing */
         if (items.length === 0)
             return [];
@@ -184,7 +184,7 @@ export default class Filters {
      * @returns Filtered track list
      */
     static common(list1: STrack[] | string[], list2: STrack[] | string[]): string[] {
-        /* If there are no tracks to filter OR
+        /**If there are no tracks to filter OR
          * no tracks to remove, return nothing */
         if (list1.length === 0 || list2.length === 0)
             return [];

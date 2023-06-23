@@ -53,7 +53,7 @@ import { CTrack } from '../../backend/src/types/client';
 
 export default class PlaylistDisplay extends Vue {
     @Prop({ required: true }) id!: string;
-    /* Passing this property overrides the default behaviour of loading the playlist based on its ID and the URL
+    /**Passing this property overrides the default behaviour of loading the playlist based on its ID and the URL
      * and instead will always load the given editingPlaylist */
     @Prop({ default: false }) editingPlaylist!: EditingPlaylist;
 
@@ -63,7 +63,7 @@ export default class PlaylistDisplay extends Vue {
 
     loading: boolean = true;
 
-    /* Tracks which should be shown. Only possible if the playlist is a smart playlist */
+    /**Tracks which should be shown. Only possible if the playlist is a smart playlist */
     shownTracks: CTrack[] = [];
     showTracks(kind: "matched" | "excluded" | "included") {
         // Make sure we have a playlist and that we can select the requested tracks
@@ -100,7 +100,7 @@ export default class PlaylistDisplay extends Vue {
         await this.playlists.loadUserPlaylists();
         this.breadcrumbs = new BreadCrumbs();
 
-        /* We must load tracks as CTracks, these cannot be string[] */
+        /**We must load tracks as CTracks, these cannot be string[] */
         // Load the library if we're on the library page
         if (this.$route.path == '/library' || this.id == 'library')
             await this.playlists.loadUserLibrary();

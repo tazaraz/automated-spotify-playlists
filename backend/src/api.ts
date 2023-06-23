@@ -119,11 +119,11 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
         log: { filters: [], sources: [] },
     };
 
-    /* make sure that it is not creating a normal playlist */
+    /**make sure that it is not creating a normal playlist */
     if (playlist.filters === undefined)
         return res.status(400).json({ error: "Playlist is not a smart playlist" });
 
-    /* We now verify the validity of the filters and sources */
+    /**We now verify the validity of the filters and sources */
     const user = await Users.get(req.user.id)
     const log = new FilterLog(Math.random().toString())
 
@@ -139,7 +139,7 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
     // Delete the log
     log.finalize();
 
-    /* We now update or create the playlist */
+    /**We now update or create the playlist */
     const dbplaylist = await Database.getPlaylist(playlist.id, req.user.id);
     if (dbplaylist) {
         // If something changed, update the playlist
@@ -178,7 +178,7 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
  * Deletes a smart playlist for the user
  */
 api.delete('/playlist', Users.verify_token, async (req, res) => {
-    /* Spotify does not do 'deleting', it just unfollows
+    /**Spotify does not do 'deleting', it just unfollows
      * We make sure the playlist does exist by first checking if spotify succeeds */
     Fetch.delete(`/playlists/${req.body.id}/followers`, {
         user: await Users.get(req.user.id),

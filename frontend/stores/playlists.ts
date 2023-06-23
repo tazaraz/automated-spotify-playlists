@@ -72,7 +72,7 @@ export default class Playlists extends Pinia {
         const smart = (await Fetch.get<Playlist[]>('server:/playlists')).data;
         if (smart.length > 0) this.hasSmartPlaylists = true;
 
-        /* Overwrite the playlists with the smart playlists
+        /**Overwrite the playlists with the smart playlists
          * NOTE: Not all playlists are actually smart playlists, but for typing we treat them as if
          *       Hence we check everywhere there is a distinction */
         this.storage = playlists.map(playlist => {

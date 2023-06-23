@@ -14,12 +14,12 @@ export class Track {
             async () => [item],
             // Albums can easily get all their tracks
             async () => item.tracks(),
-            /* This is the tricky and expensive one. Pray we the items are already cached.
+            /**This is the tricky and expensive one. Pray we the items are already cached.
              * By converting an artist to their tracks, we get a 2D array:
              * * artist -> [album, album, ...] -> [[track, track, ...], [track, track, ...], ...] */
             // Concat merges a 2D array into a 1D one.
             async () => ([] as STrack[]).concat(
-                /* We can await the first step with a simple 'await', but from albums to tracks we get a
+                /**We can await the first step with a simple 'await', but from albums to tracks we get a
                  * Promise<STrack>[], thus requiring a Promise.all(...)*/
                 ...await Promise.all(
                     (await item.albums()).map(async album => await album.tracks())
