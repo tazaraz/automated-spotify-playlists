@@ -179,6 +179,13 @@ export default class Playlists extends Pinia {
         let index = this.storage.findIndex(p => p.id === id);
         if (index === -1) return false;
 
+        // Partially load the playlist
+        this.loaded = {
+            ...this.copy(this.storage[index]),
+            index: index,
+            owner: { id: this.storage[index].owner.id, display_name: this.storage[index].owner.display_name }
+        } as any as Playlist
+
         // Ensure the playlist exists
         index = Math.max(0, Math.min(index, this.storage.length - 1));
         // Load the tracks
