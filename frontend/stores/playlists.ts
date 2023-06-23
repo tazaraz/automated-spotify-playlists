@@ -26,6 +26,7 @@ export default class Playlists extends Pinia {
     user!: User;
 
     storage!: Playlist[];
+    loaded!: Playlist;
     editing!: EditingPlaylist;
 
     // If there are any smart playlists
@@ -124,14 +125,14 @@ export default class Playlists extends Pinia {
             this.storage[this.editing.index] = this.convertToPlaylist(this.editing)
 
         // Load the playlist
-        const playlist = await this.loadUserPlaylistByID(id);
-        if (!playlist) return false;
+        await this.loadUserPlaylistByID(id);
+        if (!this.loaded) return false;
 
-        const tracks = await this.loadPlaylistTracks(playlist);
+        const tracks = await this.loadPlaylistTracks(this.loaded);
 
-        // Set the editing playlist
+        // Set the editing this.loaded
         this.editing = {
-            ...playlist,
+            ...this.loaded,
             index: this.storage.findIndex(p => p.id === id),
             matched_tracks: tracks.matched,
             included_tracks: tracks.included,
@@ -154,7 +155,7 @@ export default class Playlists extends Pinia {
         })
 
         // We load the rest of the content later
-        return {
+        this.loaded = {
             name: "Library",
             image: "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png",
             index: -1,
@@ -168,6 +169,7 @@ export default class Playlists extends Pinia {
      * @param id ID of the playlist to load
      */
     async loadUserPlaylistByID(id: string){
+        // If the storage does not exist
         if (!this.storage)
             await this.loadUserPlaylists();
 
@@ -187,7 +189,7 @@ export default class Playlists extends Pinia {
         this.loadingPlaylistID = "";
 
         // Get the tracks associated with the playlist
-        return {
+        this.loaded = {
             ...this.copy(this.storage[index]),
             index: index,
             matched_tracks: tracks.matched,
@@ -207,6 +209,9 @@ export default class Playlists extends Pinia {
         let matched: CTrack[] = [];
         let included: CTrack[] = []
         let excluded: CTrack[] = [];
+
+        if (playlist.id === "unpublished")
+            return { matched, included, excluded };
 
         // Get the matched (and included as spotify does not know the difference) tracks from spotify
         const url = `/playlists/${playlist.id}/tracks`;
