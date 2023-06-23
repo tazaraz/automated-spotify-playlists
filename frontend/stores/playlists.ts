@@ -35,6 +35,8 @@ export default class Playlists extends Pinia {
 
     // Whether all the playlist have their track ids loaded
     private loadedPlaylistsTrackIds: boolean | Promise<any> = false;
+    // What playlist is currently being loaded
+    private loadingPlaylistID: string = "";
 
     setUser(user: User){
         this.user = user;
@@ -169,6 +171,9 @@ export default class Playlists extends Pinia {
         if (!this.storage)
             await this.loadUserPlaylists();
 
+        // Save the loading playlist ID
+        this.loadingPlaylistID = id;
+
         let index = this.storage.findIndex(p => p.id === id);
         if (index === -1) return false;
 
@@ -176,6 +181,10 @@ export default class Playlists extends Pinia {
         index = Math.max(0, Math.min(index, this.storage.length - 1));
         // Load the tracks
         const tracks = await this.loadPlaylistTracks(this.storage[index]);
+
+        // If the loading playlist ID changed, we are loading another playlist, so dont save
+        if (this.loadingPlaylistID !== id) return;
+        this.loadingPlaylistID = "";
 
         // Get the tracks associated with the playlist
         return {
