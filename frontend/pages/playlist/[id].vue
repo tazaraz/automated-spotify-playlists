@@ -1,12 +1,19 @@
 <template>
     <playlist ref="playlist" :id="$route.params.id">
-        <span @click="setEditedPlaylist($route.params.id)">edit</span>
+        <template v-if="playlists && playlists.loaded">
+            <template v-if="playlists.loaded.filters">
+
+            </template>
+            <template v-else>
+                <button class="btn btn-primary" @click="setEditedPlaylist($route.params.id)">Convert</button>
+            </template>
+        </template>
     </playlist>
 </template>
 
 <script lang="ts">
 import { Vue } from 'vue-property-decorator';
-import Playlists from '~/stores/playlists';
+import Playlists, { Playlist } from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class PlaylistWrapper extends Vue {

@@ -19,12 +19,12 @@
                         <div class="mt-4 mb-3">
                             <span class="rounded-2">{{ new Date(album.release_date).getFullYear() }}</span>
                             &nbsp;&nbsp;━&nbsp;&nbsp;
-                            <span class="rounded-2">{{ album.total_tracks }} track{{ album.total_tracks > 1 ? 's' : '' }}</span>
+                            <span class="rounded-2">{{ album.total_tracks }} track{{ album.total_tracks == 1 ? 's' : '' }}</span>
                         </div>
                     </template>
                 </div>
             </header>
-            <h4 v-if="album && album.artists" class="text-white mt-3 ms-3 p-2 pb-0">Artist{{ album.artists.length > 1 ? 's' : '' }}</h4>
+            <h4 v-if="album && album.artists" class="text-white mt-3 ms-3 p-2 pb-0">Artist{{ album.artists.length == 1 ? 's' : '' }}</h4>
             <ol class="m-4 mt-0 d-flex nav row">
                 <li v-if="!album || !album.artists" class="col-12">
                     <span class="placeholder rounded-5 bg-light" style="width: 3rem; height: 3rem"></span>

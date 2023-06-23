@@ -23,7 +23,7 @@
                                 <span class="d-inline-block loading-icon"></span>loading tracks
                             </template>
                             <span v-else >{{ playlists.loaded.matched_tracks.length }}
-                                track{{ playlists.loaded.matched_tracks.length > 1 ? 's' : ''}}
+                                track{{ playlists.loaded.matched_tracks.length == 1 ? 's' : ''}}
                             </span>
                         </div>
                     </template>

@@ -24,7 +24,7 @@
                     </div>
                 </div>
             </header>
-            <h4 v-if="track && track.artists" class="text-white mt-3 ms-3 p-2 pb-0">Artist{{ track.artists.length > 1 ? 's' : '' }}</h4>
+            <h4 v-if="track && track.artists" class="text-white mt-3 ms-3 p-2 pb-0">Artist{{ track.artists.length == 1 ? 's' : '' }}</h4>
             <ol class="m-4 mt-0 d-flex nav row">
                 <li v-if="!track || !track.artists" class="col-12">
                     <span class="placeholder rounded-5 bg-light" style="width: 3rem; height: 3rem"></span>
