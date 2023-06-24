@@ -149,7 +149,13 @@ export default class Fetch {
 
     protected static async parseRequest<T>(url: string, parameters: any, options: FetchOptions): Promise<FetchResponse<T>> {
         // Fetch the data
-        const response = await fetch(url, parameters);
+        let response: Response;
+        try {
+            response = await fetch(url, parameters);
+        } catch (error) {
+            console.log(error);
+            throw new Error("Failed to fetch data");
+        }
 
         switch (response.status) {
             /**Use a retry limit for these codes */
