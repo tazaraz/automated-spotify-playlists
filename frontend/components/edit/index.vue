@@ -4,12 +4,9 @@
             <div class="input-group mb-3">
                 <input type="text" class="form-control" :value="playlists.editing.name" />
             </div>
-            <select class="form-select" aria-label="Default select example">
-                <option selected>Open this select menu</option>
-                <option value="1">One</option>
-                <option value="2">Two</option>
-                <option value="3">Three</option>
-            </select>
+            <div id="filters" v-if="computedFilters">
+
+            </div>
         </div>
     </article>
 </template>
@@ -327,4 +324,12 @@ export default class Edit extends Vue {
 }
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+#filters {
+    margin-top: 1rem;
+    display: grid;
+    grid-template-columns: repeat(4, 0.25fr) 1fr 0.25fr 1fr 0.25fr 1fr 1fr repeat(3, 1.7rem);
+    min-height:2rem;
+    z-index: unset;
+}
+</style>
