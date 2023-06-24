@@ -98,19 +98,22 @@ export default class Sidebar extends Vue {
 
         this.user = new User()
 
-        watch(() => this.user.info, async () => {
-            console.log(this.user.info, this.user.loggedIn())
-            if (!this.user.loggedIn()) {
-                (new BreadCrumbs()).clear();
-                this.playlists.storage = [];
-                this.playlists.editing = undefined;
-            } else {
-                this.playlists = new Playlists();
-                this.playlists.setUser(this.user)
-                await this.playlists.loadUserPlaylists();
-                this.$forceUpdate();
-            }
-        })
+        watch(() => this.user.info, () => this.update());
+        this.update();
+    }
+
+    async update() {
+        console.log(this.user.info, this.user.loggedIn())
+        if (!this.user.loggedIn()) {
+            (new BreadCrumbs()).clear();
+            this.playlists.storage = [];
+            this.playlists.editing = undefined;
+        } else {
+            this.playlists = new Playlists();
+            this.playlists.setUser(this.user)
+            await this.playlists.loadUserPlaylists();
+            this.$forceUpdate();
+        }
     }
 
     async createSmartPlaylist() {
