@@ -97,10 +97,9 @@ export default class Sidebar extends Vue {
         if (!process.client) return;
 
         this.user = new User()
-        this.playlists = new Playlists();
-        this.$forceUpdate();
 
         watch(() => this.user.info, async () => {
+            console.log(this.user.info, this.user.loggedIn())
             if (!this.user.loggedIn()) {
                 (new BreadCrumbs()).clear();
                 this.playlists.storage = [];
@@ -109,6 +108,7 @@ export default class Sidebar extends Vue {
                 this.playlists = new Playlists();
                 this.playlists.setUser(this.user)
                 await this.playlists.loadUserPlaylists();
+                this.$forceUpdate();
             }
         })
     }
