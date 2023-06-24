@@ -36,19 +36,21 @@ export default class Sidebar extends Vue {
     breakpointOverrides!: NodeListOf<Element>;
     offcanvas!: Offcanvas[];
 
-    created() {
+    async created() {
         if (!process.client) return;
         this.user = new User()
+        this.user.loadCredentials();
+
+        if (!this.user.loggedIn())
+            return (new BreadCrumbs()).clear();
+
         this.playlists = new Playlists();
         this.playlists.setUser(this.user)
-        this.playlists.loadUserPlaylists();
+        await this.playlists.loadUserPlaylists();
     }
 
     mounted() {
-        if (!process.client) return;
-        if (!this.user.loggedIn()) {
-            (new BreadCrumbs()).clear();
-        }
+        if (!process.client) return; if (!this.user.loggedIn()) return (new BreadCrumbs()).clear();
 
         const offcanvasElementList = document.querySelectorAll('.offcanvas')
         this.offcanvas = [...offcanvasElementList].map(offcanvasEl => new this.$bootstrap.Offcanvas(offcanvasEl))

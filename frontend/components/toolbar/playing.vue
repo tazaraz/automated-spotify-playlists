@@ -47,11 +47,12 @@ export default class Sidebar extends Vue {
 
     created() {
         this.user = new User();
-        this.user.loadCredentials();
-        this.updatePlayer();
 
-        // Update the player every 3 seconds
-        setInterval(() => this.updatePlayer(), 10000);
+        if (this.user.loggedIn()) {
+            this.updatePlayer();
+            // Update the player every 3 seconds
+            setInterval(() => this.updatePlayer(), 10000);
+        }
     }
 
     updatePlayer() {

@@ -93,13 +93,11 @@ export default class Sidebar extends Vue {
 
     selectedPlaylist = -1;
 
-    async created() {
+    async beforeMount() {
         if (!process.client) return;
 
         this.user = new User()
         this.playlists = new Playlists();
-        this.playlists.setUser(this.user)
-        await this.playlists.loadUserPlaylists();
         this.$forceUpdate();
 
         watch(() => this.user.info, async () => {
