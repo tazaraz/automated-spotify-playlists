@@ -60,7 +60,7 @@ export default class Sidebar extends Vue {
         .then(response => {
             // Do preparations
             if (response.status !== 200) return;
-            else if (!response.data.item) return;
+            else if (!response.data?.item) return;
             // Update the player if necessary
             else if (!this.player) this.player = {} as any;
             else if (this.player.track.id === response.data.item.id) return;

@@ -52,10 +52,8 @@ export default class Sidebar extends Vue {
                 code as string
             );
 
-            if (!error) {
-                navigateTo(localStorage.getItem("origin") || "/");
-                localStorage.removeItem("origin");
-            }
+            if (!error)
+                this.user.finishLogin();
         }
     }
 }

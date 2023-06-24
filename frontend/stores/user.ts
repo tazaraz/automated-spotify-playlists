@@ -67,8 +67,13 @@ export default class User extends Pinia {
     }
 
     login() {
-        localStorage.setItem("origin", window.location.pathname);
+        localStorage.setItem("o", window.location.pathname);
         this.getCodeGrant(useRuntimeConfig().public.SP_CLIENT_ID, useRuntimeConfig().public.DOMAIN)
+    }
+
+    finishLogin() {
+        navigateTo(localStorage.getItem("o") || "/");
+        localStorage.removeItem("o");
     }
 
     loggedIn() {

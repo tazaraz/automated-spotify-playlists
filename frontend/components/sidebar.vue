@@ -103,11 +103,8 @@ export default class Sidebar extends Vue {
     }
 
     async update() {
-        console.log(this.user.info, this.user.loggedIn())
         if (!this.user.loggedIn()) {
             (new BreadCrumbs()).clear();
-            this.playlists.storage = [];
-            this.playlists.editing = undefined;
         } else {
             this.playlists = new Playlists();
             this.playlists.setUser(this.user)
@@ -118,8 +115,8 @@ export default class Sidebar extends Vue {
 
     async createSmartPlaylist() {
         await this.playlists.createSmartPlaylist();
-        await navigateTo('/playlist/unpublished')
-        console.log(await this.playlists.loadEditingPlaylist('unpublished'));
+        await navigateTo('/playlist/unpublished');
+        await this.playlists.loadEditingPlaylist('unpublished');
     }
 }
 </script>

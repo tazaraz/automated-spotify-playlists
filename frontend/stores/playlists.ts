@@ -128,8 +128,8 @@ export default class Playlists extends Pinia {
             this.storage[this.editing.index] = this.convertToPlaylist(this.editing)
 
         // Load the playlist
-        await this.loadUserPlaylistByID(id);
-        if (!this.loaded) return false;
+        const status = await this.loadUserPlaylistByID(id);
+        if (!this.loaded || !status) return false;
 
         const tracks = await this.loadPlaylistTracks(this.loaded);
 
@@ -195,7 +195,7 @@ export default class Playlists extends Pinia {
         const tracks = await this.loadPlaylistTracks(this.storage[index]);
 
         // If the loading playlist ID changed, we are loading another playlist, so dont save
-        if (this.loadingPlaylistID !== id) return;
+        if (this.loadingPlaylistID !== id) return true;
         this.loadingPlaylistID = "";
 
         // Get the tracks associated with the playlist
@@ -207,6 +207,8 @@ export default class Playlists extends Pinia {
             included_tracks: tracks.included,
             owner: { id: this.storage[index].owner.id, display_name: this.storage[index].owner.display_name }
         } as any as Playlist;
+
+        return true;
     }
 
     /**

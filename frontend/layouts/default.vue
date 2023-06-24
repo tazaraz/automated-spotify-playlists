@@ -40,13 +40,18 @@ export default class Sidebar extends Vue {
         if (!process.client) return;
         this.user = new User()
         this.user.loadCredentials();
+        this.playlists = new Playlists();
 
+        // If the user is not logged in, don't load the playlists
         if (!this.user.loggedIn())
             return (new BreadCrumbs()).clear();
 
-        this.playlists = new Playlists();
         this.playlists.setUser(this.user)
         await this.playlists.loadUserPlaylists();
+
+        // If the unpublished playlist is not populated, but the url contains 'unpublished', redirect
+        if (this.$route.fullPath.includes('unpublished') && !this.playlists.unpublished)
+            await navigateTo('/')
     }
 
     mounted() {
