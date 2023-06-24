@@ -65,31 +65,6 @@ export default class PlaylistDisplay extends Vue {
 
     /**Tracks which should be shown. Only possible if the playlist is a smart playlist */
     shownTracks: CTrack[] = [];
-    showTracks(kind: "matched" | "excluded" | "included") {
-        // Make sure we have a playlist and that we can select the requested tracks
-        if (!this.playlists.loaded || (!this.playlists.loaded.filters && (kind == 'excluded' || kind == 'included'))) return false;
-
-        // Get the tracks we want to show
-        let tracks: any[];
-        switch(kind) {
-            case "matched":
-                tracks = this.playlists.loaded.matched_tracks;
-                break;
-            case "excluded":
-                tracks = this.playlists.loaded.excluded_tracks;
-                break;
-            case "included":
-                tracks = this.playlists.loaded.included_tracks;
-                break;
-        }
-
-        // If these tracks are not loaded yet, stop
-        if (tracks.length == 0 || typeof tracks[0] === `string`) return false;
-
-        // Set the tracks as shown
-        this.shownTracks = tracks;
-        return true;
-    }
 
     async mounted() {
         if (!process.client) return;
@@ -124,6 +99,32 @@ export default class PlaylistDisplay extends Vue {
         this.showTracks("matched");
         this.breadcrumbs.add(useRoute().fullPath, this.playlists.loaded.name)
         this.loading = false;
+    }
+
+    showTracks(kind: "matched" | "excluded" | "included") {
+        // Make sure we have a playlist and that we can select the requested tracks
+        if (!this.playlists.loaded || (!this.playlists.loaded.filters && (kind == 'excluded' || kind == 'included'))) return false;
+
+        // Get the tracks we want to show
+        let tracks: any[];
+        switch(kind) {
+            case "matched":
+                tracks = this.playlists.loaded.matched_tracks;
+                break;
+            case "excluded":
+                tracks = this.playlists.loaded.excluded_tracks;
+                break;
+            case "included":
+                tracks = this.playlists.loaded.included_tracks;
+                break;
+        }
+
+        // If these tracks are not loaded yet, stop
+        if (tracks.length == 0 || typeof tracks[0] === `string`) return false;
+
+        // Set the tracks as shown
+        this.shownTracks = tracks;
+        return true;
     }
 }
 </script>
