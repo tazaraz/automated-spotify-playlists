@@ -2,15 +2,15 @@
     <div v-if="user && user.info" class="d-flex align-items-center" style="max-width: 16rem;">
         <template v-if="player">
             <span class="now-playing">Now playing</span>
-            <url :to="`/info/track/${player.track.id}`" class="loading-container">
+            <url @click="breadcrumbs.clear()" :to="`/info/track/${player.track.id}`" class="loading-container">
                 <Image :source="player"/>
             </url>
             <span class="multilayer ms-3 pe-3">
-                <url :to="`/info/track/${player.track.id}`" class="text-truncate text-white">{{ player.track.name }}</url>
+                <url @click="breadcrumbs.clear()" :to="`/info/track/${player.track.id}`" class="text-truncate text-white">{{ player.track.name }}</url>
                 <div class="text-truncate">
                     <template v-for="(artist, index) in player.artists">
                         {{ index > 0 ? ", " : "" }}
-                        <url :to="`/info/artist/${artist.id}`">{{ artist.name }}</url>
+                        <url @click="breadcrumbs.clear()" :to="`/info/artist/${artist.id}`">{{ artist.name }}</url>
                     </template>
                 </div>
             </span>
@@ -28,11 +28,14 @@
 
 <script lang="ts">
 import { Vue } from 'vue-property-decorator';
+import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
 import User from '~/stores/user';
 
 export default class Sidebar extends Vue {
     user!: User;
+    breadcrumbs!: BreadCrumbs;
+
     player: {
         image: string
         track: {
@@ -47,6 +50,7 @@ export default class Sidebar extends Vue {
 
     created() {
         this.user = new User();
+        this.breadcrumbs = new BreadCrumbs();
 
         if (this.user.loggedIn()) {
             this.updatePlayer();
