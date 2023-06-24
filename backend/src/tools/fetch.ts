@@ -195,9 +195,9 @@ export default class Fetch {
 
         // Parse the data. If it fails, there is no data. return null
         try {
-            response.data = await response.json();
+            (response as any).data = await response.json();
         } catch (e) {
-            response.data = null;
+            (response as any).data = null;
         }
         return response as FetchResponse<T>;
     }
