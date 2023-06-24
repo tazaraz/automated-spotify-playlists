@@ -16,7 +16,6 @@
                         </div>
                     </div>
                     <div v-else class="d-flex mt-3 mb-3">
-                        <Image :source="track.album" class="border rounded-5" style="width: 3rem; height: 3rem" />
                         <div class="multilayer ms-3">
                             <span>Album</span>
                             <url :to="`/info/album/${track.album.id}`" class="rounded-2">{{ track.album.name }}</url>
@@ -31,7 +30,7 @@
                     <span class="placeholder rounded-2 ms-3" style="width: 7rem;"></span>
                 </li>
                 <li v-else v-for="artist of track.artists" class="col-auto p-2 d-flex">
-                    <Image :source="artist" class="rounded-5"/>
+                    <Image :source="artist" class="border rounded-5" style="width: 3rem; height: 3rem" />
                     <url :to="`/info/artist/${artist.id}`" class="rounded-2 ms-3 m-auto">{{ artist.name }}</url>
                 </li>
             </ol>

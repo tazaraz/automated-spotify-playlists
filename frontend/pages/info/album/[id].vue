@@ -167,12 +167,10 @@ export default class InfoAlbum extends Vue {
 </script>
 
 <style lang="scss" scoped>
-header {
-    img {
-        width: 230px;
-        height: 230px;
-        box-shadow: 0 4px 60px rgba(0,0,0,.8);
-    }
+.image {
+    width: 230px;
+    height: 230px;
+    box-shadow: 0 4px 60px rgba(0,0,0,.8);
 }
 a {
     color: $gray-500;
@@ -183,11 +181,9 @@ a {
 }
 
 @include media-breakpoint-down(lg) {
-    header {
-        img {
-            width: 190px;
-            height: 190px;
-        }
+    .image {
+        width: 190px;
+        height: 190px;
     }
 }
 </style>

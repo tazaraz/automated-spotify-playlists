@@ -64,6 +64,10 @@ export default class Sidebar extends Vue {
         watch(() => this.playlists.editing, () => this.onUpdate())
         addEventListener("resize", () => this.onUpdate())
         this.onUpdate();
+
+        // If the unpublished playlist is not populated, but the url contains 'unpublished', redirect
+        if (this.$route.fullPath.includes('unpublished') && !this.playlists.unpublished)
+            navigateTo('/')
     }
 
     onUpdate() {
