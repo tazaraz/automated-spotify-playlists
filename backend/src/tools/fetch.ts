@@ -191,14 +191,17 @@ export default class Fetch {
                         resolve(await Fetch.parseRequest(url, parameters, options));
                     }, retry_after)
                 });
+
+            /** No data */
+            case 204:
+                (response as any).data = null;
+                break;
+
+            default:
+                (response as any).data = await response.json();
         }
 
         // Parse the data. If it fails, there is no data. return null
-        try {
-            (response as any).data = await response.json();
-        } catch (e) {
-            (response as any).data = null;
-        }
         return response as FetchResponse<T>;
     }
 
