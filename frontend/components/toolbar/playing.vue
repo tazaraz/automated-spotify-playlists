@@ -16,7 +16,7 @@
             </span>
         </template>
     </div>
-    <div v-else-if="user && user.info" class="d-flex align-items-center p-2 placeholder-glow" style="max-width: 16rem;">
+    <div v-else class="d-flex align-items-center p-2 placeholder-glow" style="max-width: 16rem;">
         <span class="now-playing">Now playing</span>
         <span class="placeholder loading-container flex-shrink-0"></span>
         <span class="multilayer ms-3">
@@ -52,11 +52,13 @@ export default class Sidebar extends Vue {
         this.user = new User();
         this.breadcrumbs = new BreadCrumbs();
 
-        if (this.user.loggedIn()) {
-            this.updatePlayer();
-            // Update the player every 3 seconds
-            setInterval(() => this.updatePlayer(), 10000);
-        }
+        // Try to update the player every 10 seconds
+        setInterval(() => {
+            if (this.user.loggedIn()) {
+                this.updatePlayer();
+            }
+        }, 10000);
+
     }
 
     updatePlayer() {
