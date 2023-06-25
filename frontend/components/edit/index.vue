@@ -4,9 +4,17 @@
             <div class="input-group mb-3">
                 <input type="text" class="form-control" :value="playlists.editing.name" />
             </div>
-            <div id="filters" v-if="computedFilters">
+            <section id="sources" v-if="computedSources.length > 0">
+                <EditSource
+                    v-for="source, index in computedSources"
+                    ref="sources"
+                    :source="source"
+                    @change="updateSource(index, $event)"
+                    @delete="deleteSource(index)"></EditSource>
+            </section>
+            <section id="filters" v-if="computedFilters">
 
-            </div>
+            </section>
         </div>
     </article>
 </template>
@@ -51,13 +59,18 @@ export default class Edit extends Vue {
         this.playlists.setUser(new User());
     }
 
+    beforeMount() {
+        if (!process.client) return;
+        this.reset();
+    }
+
     /**
      * Flattens the SelectedPlaylist filters object to a flat 1D array
      * @param filter Filters of the SelectedPlaylist
      * @param index For recursion, don't use. Indicates the flattened index
      * @param indent For recursion, don't use. Indicated the indent of an entry
      */
-     flatten(filter: PlaylistStatement, index="", indent=0): PlaylistFilterEntry[] {
+    flatten(filter: PlaylistStatement, index="", indent=0): PlaylistFilterEntry[] {
         let flattened = [];
         /**Add filters. We don't care about the content, as we update the selectedPlaylist directly every time a
         * component updates. After this we reconstruct the list by calling this function again. */
@@ -105,7 +118,7 @@ export default class Edit extends Vue {
      * @param source The new source
      * @param index Index of the source which has been updated
      */
-    updateSource(source: PlaylistSource, index: number) {
+    updateSource(index: number, source: PlaylistSource) {
         this.computedSources[index] = source
     }
 
