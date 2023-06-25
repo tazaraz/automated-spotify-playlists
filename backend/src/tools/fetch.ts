@@ -153,7 +153,7 @@ export default class Fetch {
         try {
             response = await fetch(url, parameters);
         } catch (error) {
-            console.log(error);
+            console.log(JSON.stringify(error));
             throw new Error("Failed to fetch data");
         }
 
