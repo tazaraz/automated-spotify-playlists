@@ -15,6 +15,9 @@ export interface SearchConfig {
     artist: boolean;
     playlist: boolean;
 
+    /* Whether to save the configuration and result to localStorage */
+    save?: boolean;
+
     is_advanced: boolean;
     advanced?: {
         tracks: string[];
@@ -26,7 +29,7 @@ export interface SearchConfig {
     }
 }
 
-interface InfoItem {
+export interface InfoItem {
     id: string;
     name: string;
     image?: string;
@@ -82,12 +85,15 @@ export default class Info extends Pinia {
         if (response.status !== 200)
             return { error: response.statusText };
 
-        // Clear the results
-        this.searchResult = { tracks: [], albums: [], artists: [], playlists: [] };
+        const searchResult: typeof this.searchResult = { tracks: [], albums: [], artists: [], playlists: [] };
+        if (!config?.save) {
+            // Clear the previous results
+            this.searchResult = searchResult;
 
-        // Save the config
-        this.searchConfig = config;
-        localStorage.setItem('sc', JSON.stringify(config));
+            // Save the config
+            this.searchConfig = config;
+            localStorage.setItem('sc', JSON.stringify(config));
+        }
 
         // For every type requested
         for (const kind of Object.keys(response.data) as InfoItemType[]) {
@@ -95,14 +101,19 @@ export default class Info extends Pinia {
             const items = Fetch.format(response.data[kind]);
 
             for (const item of items)
-                this.searchResult[kind].push(this.parseItem(item, kind));
+                searchResult[kind].push(this.parseItem(item, kind));
         }
 
         // Limit the amount of items in each result
-        this.searchResult[InfoItemType.artists] = this.searchResult[InfoItemType.artists].slice(0, 5);
-        this.searchResult[InfoItemType.playlists] = this.searchResult[InfoItemType.playlists].slice(0, 5);
-        this.searchResult[InfoItemType.tracks] = this.searchResult[InfoItemType.tracks].slice(0, 10);
-        this.searchResult[InfoItemType.albums] = this.searchResult[InfoItemType.albums].slice(0, 10);
+        searchResult[InfoItemType.artists] = searchResult[InfoItemType.artists].slice(0, 5);
+        searchResult[InfoItemType.playlists] = searchResult[InfoItemType.playlists].slice(0, 5);
+        searchResult[InfoItemType.tracks] = searchResult[InfoItemType.tracks].slice(0, 10);
+        searchResult[InfoItemType.albums] = searchResult[InfoItemType.albums].slice(0, 10);
+
+        if (!config?.save)
+            this.searchResult = searchResult;
+
+        return searchResult;
     }
 
     parseItem(item: any, kind: InfoItemType): InfoItem {
