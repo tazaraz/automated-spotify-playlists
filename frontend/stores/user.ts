@@ -6,12 +6,6 @@ import Fetch from "./fetch";
 export default class User extends Pinia {
     info: CUser | undefined;
 
-    constructor() {
-        super();
-        if (!process.client) return;
-        this.loadCredentials();
-    }
-
     getCodeGrant(client_id: string, domain: string){
         /**
          * Redirect the user to the spotify authorization page
@@ -76,7 +70,7 @@ export default class User extends Pinia {
         localStorage.removeItem("o");
     }
 
-    loggedIn() {
+    dataExists() {
         return localStorage.getItem("u") !== null;
     }
 
@@ -85,7 +79,7 @@ export default class User extends Pinia {
      */
     loadCredentials() {
         // If the user is not logged in, redirect them to the login page
-        if (!this.loggedIn())
+        if (!this.dataExists())
             return false;
 
         // If the user is logged in

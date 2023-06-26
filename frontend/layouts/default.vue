@@ -8,14 +8,14 @@
 
         <toolbar />
 
-        <template v-if="user && user.loggedIn()">
+        <template v-if="user && user.info">
             <slot></slot>
         </template>
         <article v-else class="rounded-2 p-2 bg-dark-subtle overflow-hidden">
             <Title>Smart playlists</Title>
             <h2>Please log in first</h2>
         </article>
-        <Edit v-if="playlists && playlists.editing"></Edit>
+        <Edit v-if="user && user.info && playlists && playlists.editing"></Edit>
     </main>
 </template>
 
@@ -43,11 +43,8 @@ export default class Sidebar extends Vue {
         this.playlists = new Playlists();
 
         // If the user is not logged in, don't load the playlists
-        if (!this.user.loggedIn())
+        if (!this.user.info)
             return (new BreadCrumbs()).clear();
-
-        this.playlists.setUser(this.user)
-        await this.playlists.loadUserPlaylists();
 
         // If the unpublished playlist is not populated, but the url contains 'unpublished', redirect
         if (this.$route.fullPath.includes('unpublished') && !this.playlists.unpublished)
@@ -55,7 +52,7 @@ export default class Sidebar extends Vue {
     }
 
     mounted() {
-        if (!process.client) return; if (!this.user.loggedIn()) return (new BreadCrumbs()).clear();
+        if (!process.client) return; if (!this.user.info) return (new BreadCrumbs()).clear();
 
         const offcanvasElementList = document.querySelectorAll('.offcanvas')
         this.offcanvas = [...offcanvasElementList].map(offcanvasEl => new this.$bootstrap.Offcanvas(offcanvasEl))

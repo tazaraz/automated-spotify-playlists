@@ -22,7 +22,7 @@
             </ol>
         </div>
         <div id="playlists" class="me-sm-2 p-2 rounded-3 bg-dark-subtle h-100 overflow-hidden">
-            <ol v-if="playlists && user && user.loggedIn()" class="nav nav-pills d-block overflow-y-auto h-100">
+            <ol v-if="playlists && user && user.info" class="nav nav-pills d-block overflow-y-auto h-100">
                 <div id="playlist-sp-header" class="d-flex flex-md-row flex-sm-column flex-row align-items-center gap-3 p-2">
                     <span class="lh-base flex-grow-1">Smart playlists</span>
                     <url @click="createSmartPlaylist" class="d-md-block d-sm-none d-block rounded-3 text-white p-0 fs-5"><i><fa-icon :icon="['fas', 'plus']" style="width:2rem;"></fa-icon></i></url>
@@ -103,7 +103,7 @@ export default class Sidebar extends Vue {
     }
 
     async update() {
-        if (!this.user.loggedIn()) {
+        if (!this.user.info) {
             (new BreadCrumbs()).clear();
         } else {
             this.playlists = new Playlists();
