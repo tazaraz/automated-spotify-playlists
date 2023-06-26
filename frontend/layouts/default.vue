@@ -49,6 +49,9 @@ export default class Sidebar extends Vue {
         // If the unpublished playlist is not populated, but the url contains 'unpublished', redirect
         if (this.$route.fullPath.includes('unpublished') && !this.playlists.unpublished)
             await navigateTo('/')
+
+        this.playlists.setUser(this.user)
+        await this.playlists.loadUserPlaylists();
     }
 
     mounted() {

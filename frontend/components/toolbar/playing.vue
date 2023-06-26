@@ -53,12 +53,12 @@ export default class Sidebar extends Vue {
         this.breadcrumbs = new BreadCrumbs();
 
         // Try to update the player every 10 seconds
+        this.updatePlayer();
         setInterval(() => {
-            if (this.user.loggedIn()) {
+            if (this.user.dataExists()) {
                 this.updatePlayer();
             }
         }, 10000);
-
     }
 
     updatePlayer() {
