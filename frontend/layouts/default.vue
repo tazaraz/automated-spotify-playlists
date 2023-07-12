@@ -144,10 +144,9 @@ main {
     }
 }
 
-@include media-breakpoint-down(xl) {
-    main {
-        grid-template-columns: 20rem 1fr;
-        grid-template-rows: 4rem 1fr 1fr;
+    width: 100vw;
+    height: 100%;
+    position: fixed;
 
         nav {
             grid-column: span 1;
