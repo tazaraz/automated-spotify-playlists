@@ -1,10 +1,10 @@
 <template>
     <article key="track" class="rounded-2 p-2 bg-dark-subtle overflow-hidden">
-        <div class="h-100 pe-1 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow">
+        <div class="h-100 pe-1 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
             <Title v-if="!track">Loading track...</Title>
             <Title v-else>{{ track.name }}</Title>
-            <header class="p-4 pt-5 d-flex gap-4 flex-column align-items-center align-items-lg-stretch" data-editing-class="flex-lg-row">
-                <Image :source="track"/>
+            <header class="p-4 pt-5 d-flex gap-4" data-main-class="small-flex-column small-align-items-center normal-flex-row normal-align-items-stretch">
+                <Image :src="track"/>
                 <div class="flex-fill d-flex flex-column text-white">
                     <span v-if="!track" class="mt-auto mb-auto placeholder rounded-2" style="width: 17rem; height: 2rem"></span>
                     <h1 v-else class="mt-auto mb-auto">{{ track.name }}</h1>
@@ -34,7 +34,7 @@
                     <url :to="`/info/artist/${artist.id}`" class="rounded-2 ms-3 m-auto">{{ artist.name }}</url>
                 </li>
             </ol>
-            <div class="m-lg-5 mt-lg-3 m-4 mt-3 row placeholder-glow">
+            <div class="row placeholder-glow" style="max-width: 60rem;" data-main-class="normal-m-5 normal-mt-3 small-m-4 small-mt-3">
                 <div class="col-12 mb-2 multilayer">
                     <span>
                         Track ID&nbsp;&nbsp;━&nbsp;&nbsp;
@@ -43,63 +43,63 @@
                     <span v-if="!track" class="placeholder rounded-1"></span>
                     <span v-else>{{ track.id }} </span>
                 </div>
-                <div class="col-xxl-2 col-lg-3 col-4 mb-2 multilayer"
+                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
                         data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
                         :data-bs-title="FilterDescription.Track.Popularity">
                     <span>Popularity</span>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ track!.popularity }}</span>
                 </div>
-                <div class="col-xxl-2 col-lg-3 col-4 mb-2 multilayer"
+                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
                         data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
                         :data-bs-title="FilterDescription.Track.Danceability">
                     <span>Danceability</span>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ Math.round(track.features.danceability * 100) }}%</span>
                 </div>
-                <div class="col-xxl-2 col-lg-3 col-4 mb-2 multilayer"
+                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
                         data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
                         :data-bs-title="FilterDescription.Track.Positivity">
                     <span>Positivity</span>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ Math.round(track.features.valence * 100) }}%</span>
                 </div>
-                <div class="col-xxl-2 col-lg-3 col-4 mb-2 multilayer"
+                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
                         data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
                         :data-bs-title="FilterDescription.Track.Energy">
                     <span>Energy</span>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ Math.round(track.features.energy * 100) }}%</span>
                 </div>
-                <div class="col-xxl-2 col-lg-3 col-4 mb-2 multilayer"
+                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
                         data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
                         :data-bs-title="FilterDescription.Track.Duration">
                     <span>Duration</span>
                     <span v-if="!track || !track" class="placeholder rounded-1"></span>
                     <span v-else>{{ playlists.formatDuration(track.duration_ms) }}</span>
                 </div>
-                <div class="col-xxl-2 col-lg-3 col-4 mb-2 multilayer"
+                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
                         data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
                         :data-bs-title="FilterDescription.Track.BPM">
                     <span>BPM</span>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ Math.round(track.features.tempo) }}</span>
                 </div>
-                <div class="col-xxl-2 col-lg-3 col-4 mb-2 multilayer"
+                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
                         data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
                         :data-bs-title="FilterDescription.Track['is Acoustic']">
                     <span>Acoustic</span>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ track.features.acousticness > 0.5 ? "Yes" : "No" }}</span>
                 </div>
-                <div class="col-xxl-2 col-lg-3 col-4 mb-2 multilayer"
+                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
                         data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
                         :data-bs-title="FilterDescription.Track['has Vocals']">
                     <span>Vocals</span>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ track.features.instrumentalness > 0.5 ? "No" : "Yes" }}</span>
                 </div>
-                <div class="col-xxl-2 col-lg-3 col-4 mb-2 multilayer"
+                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
                         data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
                         :data-bs-title="FilterDescription.Track['is Live']">
                     <span>Live</span>
@@ -130,12 +130,14 @@ import { CArtist, CTrack, CTrackFeatures } from "~/../backend/src/types/client";
 import { FilterDescription } from '~/../backend/src/types/descriptions';
 import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
+import Layout from '~/stores/layout';
 import Playlists, { CPlaylist } from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class InfoTrack extends Vue {
     breadcrumbs!: BreadCrumbs
     playlists!: Playlists
+    layout!: Layout
 
     track: CTrack | null = null;
     trackGenres!: string
@@ -150,6 +152,7 @@ export default class InfoTrack extends Vue {
         this.playlists = new Playlists();
         this.playlists.setUser(new User())
         await this.playlists.loadUserPlaylists();
+        this.layout = new Layout();
 
         // Get the track and the image
         this.track = (await Fetch.get<CTrack>(`spotify:/tracks/${this.$route.params.id}`)).data;

@@ -9,6 +9,16 @@ $primary:                   $blue;
 @import "@/node_modules/bootstrap/scss/variables";
 @import "@/node_modules/bootstrap/scss/variables-dark";
 
+// sm has to be a bit bigger than normal: 576px -> 638px
+$grid-breakpoints: (
+    xs: 0,
+    sm: 638px,
+    md: 768px,
+    lg: 992px,
+    xl: 1200px,
+    xxl: 1400px
+);
+
 // 4. Include any default map overrides here
 $primary-text:                  $blue-600;
 $primary-bg-subtle:             $blue-100;

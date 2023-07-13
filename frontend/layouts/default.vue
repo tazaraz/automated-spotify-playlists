@@ -1,21 +1,41 @@
 <template>
     <Html data-bs-theme="dark"></Html>
-    <main class="p-3 bg-black overflow-hidden" ref="main">
-        <div class="offcanvas offcanvas-start bg-black d-sm-flex w-100 p-3" tabindex="-1" id="sidebar">
-            <sidebar />
+    <main v-if="layout" class="bg-black overflow-hidden" ref="wrapper"
+        @touchend="layout.setDragging('sidebar', false); layout.setDragging('edit', false)"
+        @touchmove="layout.resize($event)"
+        @mouseup="layout.setDragging('sidebar', false); layout.setDragging('edit', false)"
+        @mousemove="layout.resize($event)">
+        <div v-if="layout.app.width > 0 && layout.app.width < layout.app.mobile" class="offcanvas offcanvas-start bg-black d-sm-flex w-100 p-3"
+            tabindex="-1" id="sidebar">
+            <Sidebar></Sidebar>
         </div>
-        <sidebar class="d-sm-flex d-none" />
+        <template v-else>
+            <Sidebar></Sidebar>
+            <span class="resize-handle d-sm-flex d-none" style="grid-row: span 2; grid-column: span 1"
+                @touchstart="layout.setDragging('sidebar', true)"
+                @mousedown="layout.setDragging('sidebar', true)"><i class="rounded-5"></i></span>
+        </template>
 
         <toolbar />
+        <slot v-if="user && user.info" open></slot>
 
-        <template v-if="user && user.info">
-            <slot></slot>
-        </template>
         <article v-else class="rounded-2 p-2 bg-dark-subtle overflow-hidden">
             <Title>Smart playlists</Title>
             <h2>Please log in first</h2>
         </article>
-        <Edit v-if="user && user.info && playlists && playlists.editing"></Edit>
+
+        <template v-if="user && user.info && playlists && playlists.editing">
+            <div v-if="layout.app.width > 0 && layout.app.width < layout.app.mobile" class="offcanvas offcanvas-end bg-black d-sm-flex w-100 p-3"
+                tabindex="-1" id="edit">
+                <Edit @open="layout.open('edit')" />
+            </div>
+            <template v-else>
+                <span class="resize-handle d-sm-flex d-none" style="grid-row: span 2; grid-column: span 1"
+                    @touchstart="layout.setDragging('edit', true)"
+                    @mousedown="layout.setDragging('edit', true)"><i class="rounded-5"></i></span>
+                <Edit @open="layout.open('edit')" />
+            </template>
+        </template>
     </main>
 </template>
 
@@ -23,17 +43,15 @@
 import { Offcanvas } from 'bootstrap';
 import { Vue } from 'vue-property-decorator';
 import BreadCrumbs from '~/stores/breadcrumbs';
+import Layout from '~/stores/layout';
 import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
-export default class Sidebar extends Vue {
+export default class App extends Vue {
     user!: User;
     playlists!: Playlists;
+    layout!: Layout;
 
-    /**Breakpoints, for when the editor is visibile,
-     * on how to treat the playlist, album, etc. view ('mobile-like' or normal) */
-    breakpoints = { min: 1200, max: 1550 };
-    breakpointOverrides!: NodeListOf<Element>;
     offcanvas!: Offcanvas[];
 
     async created() {
@@ -41,59 +59,52 @@ export default class Sidebar extends Vue {
         this.user = new User()
         this.user.loadCredentials();
         this.playlists = new Playlists();
+        this.layout = new Layout();
+
+        // If the unpublished playlist is not populated, but the url contains 'unpublished', redirect
+        if (this.$route.fullPath.includes('unpublished') && !this.playlists.unpublished)
+            await navigateTo('/');
 
         // If the user is not logged in, don't load the playlists
         if (!this.user.info)
             return (new BreadCrumbs()).clear();
-
-        // If the unpublished playlist is not populated, but the url contains 'unpublished', redirect
-        if (this.$route.fullPath.includes('unpublished') && !this.playlists.unpublished)
-            await navigateTo('/')
 
         this.playlists.setUser(this.user)
         await this.playlists.loadUserPlaylists();
     }
 
     mounted() {
-        if (!process.client) return; if (!this.user.info) return (new BreadCrumbs()).clear();
+        this.layout.nextTick = this.$nextTick;
+        this.layout.appElement = this.$refs.wrapper as HTMLElement;
+        this.layout.mainElement = this.layout.appElement.getElementsByTagName('article')[0] as HTMLElement;
+        this.layout.app.width = this.layout.appElement.clientWidth;
+        this.layout.playlistEditing = this.playlists.editing == null;
 
         const offcanvasElementList = document.querySelectorAll('.offcanvas')
         this.offcanvas = [...offcanvasElementList].map(offcanvasEl => new this.$bootstrap.Offcanvas(offcanvasEl))
 
-        watch(() => this.$route.fullPath, () => this.onUpdate())
-        watch(() => this.playlists.editing, () => this.onUpdate())
-        addEventListener("resize", () => this.onUpdate())
-        this.onUpdate();
+        /** When the basic stuff is loaded */
+        watch(() => [this.user.info, this.playlists?.storage], () => {
+            this.layout.resize(null, true)
+        })
 
-        // If the unpublished playlist is not populated, but the url contains 'unpublished', redirect
-        if (this.$route.fullPath.includes('unpublished') && !this.playlists.unpublished)
-            navigateTo('/')
-    }
+        /** Watch the url */
+        watch(() => this.$route.fullPath, async () => {
+            /** When the url changes, the info view changes. Update it */
+            await this.$nextTick();
+            this.layout.mainElement = this.layout.appElement.getElementsByTagName('article')[0] as HTMLElement;
+            this.layout.resize(null, true);
+        })
 
-    onUpdate() {
-        // Wait for the next tick, so the DOM is updated
-        this.$nextTick(() => {
-            // Close all offcanvas
-            for (const offcanvas of this.offcanvas) {
-                offcanvas.hide();
-            }
+        /** When we start/stop editing */
+        watch(() => this.playlists?.editing, async () => {
+            this.layout.resize(null, true);
+        })
 
-            this.breakpointOverrides = document.querySelectorAll("[data-editing-class]")
-
-            for (const element of this.breakpointOverrides) {
-                const classes = element.getAttribute("data-editing-class")?.split(" ") ?? [];
-                for (const className of classes) {
-                    // If we should replace the breakpoint with a lower one
-                    if (this.playlists.editing &&
-                        this.breakpoints.min <= window.innerWidth && window.innerWidth <= this.breakpoints.max) {
-                        // Remove the breakpoint class
-                        element.classList.remove(className);
-                    } else {
-                        // Add the breakpoint class
-                        element.classList.add(className);
-                    }
-                }
-            }
+        /** When the user resizes the window */
+        addEventListener("resize", () => {
+            this.layout.app.width = this.layout.appElement.clientWidth;
+            this.layout.resize(null, true)
         })
     }
 }
@@ -118,12 +129,33 @@ export default class Sidebar extends Vue {
 }
 </style>
 <style lang="scss" scoped>
+/** Width of the handle used to resize content. FIXED IN JAVASCRIPT ABOVE (layout.handle) */
+$handle: 12px;
+/** This is hardcoded in the javascript above! (search for '2*16' (padding on both sides)) */
+$app_padding: 1rem;
+
+.resize-handle {
+    width: $handle;
+    padding: 0 4px;
+    align-items: center;
+    cursor: col-resize;
+
+    i {
+        display: block;
+        height: 6rem;
+        width: 100%;
+        background-color: $gray-600;
+    }
+}
+
 main {
     display: grid;
-    grid-template-columns: minmax(20rem, 25rem) minmax(23rem, 70vw) minmax(25rem, 34rem);
+    grid-template-columns: 20rem $handle 1fr 0px 0px;
     grid-template-rows: 4rem 1fr;
-    height: 100vh;
     width: 100vw;
+    height: 100%;
+    position: fixed;
+    padding: $app_padding;
 
     nav {
         grid-row: span 2;
@@ -131,67 +163,16 @@ main {
 
     &:deep(#toolbelt) {
         grid-row: span 1;
-        grid-column: span 2 !important;
+        grid-column: span 3 !important;
     }
 
-    // This splits the main content into two columns if there are two components present
+    // This splits the app content into two columns if there are two components present
     &:deep(#toolbelt)+* {
-        grid-column: span 2;
+        grid-column: span 3;
     }
 
-    &> :nth-last-child(2) {
+    &> :nth-last-child(3) {
         grid-column: span 1 !important;
-    }
-}
-
-    width: 100vw;
-    height: 100%;
-    position: fixed;
-
-        nav {
-            grid-column: span 1;
-            grid-row: span 3;
-        }
-
-        &:deep(#toolbelt) {
-            grid-row: span 1;
-            grid-column: span 1 !important;
-        }
-
-        &:deep(#toolbelt)+* {
-            grid-column: span 1;
-            grid-row: span 2;
-        }
-
-        &> :nth-last-child(2):not(nav) {
-            grid-row: span 1 !important;
-        }
-    }
-}
-
-@include media-breakpoint-down(md) {
-    main {
-        grid-template-columns: 6.5rem 1fr;
-        grid-template-rows: 4rem 1fr 1fr;
-
-        nav {
-            grid-column: span 1;
-            grid-row: span 3;
-        }
-
-        &:deep(#toolbelt) {
-            grid-row: span 1;
-            grid-column: span 1 !important;
-        }
-
-        &:deep(#toolbelt)+* {
-            grid-column: span 1;
-            grid-row: span 2;
-        }
-
-        &> :nth-last-child(2):not(nav) {
-            grid-row: span 1 !important;
-        }
     }
 }
 
