@@ -6,27 +6,33 @@
             </button>
             <ToolbarPlaying class="ms-2 me-2"/>
             <ToolbarBreadcrumbs class="d-none d-lg-flex me-2"/>
-            <ul class="d-flex nav nav-pills">
-                <li v-if="user && user.info" class="nav-item cursor-pointer">
-                    <url class="nav-link text-nowrap p-2 me-3" @click="user.logout()">
-                        <span class="d-md-inline d-none me-3">{{ user.info.name }}</span>
-                        <i><fa-icon :icon="['fas', 'user']"></fa-icon></i>
-                    </url>
-                </li>
-                <li v-else class="nav-item cursor-pointer">
-                    <url class="nav-link text-nowrap p-2 me-3" @click="user?.login">
-                        <span class="me-3">Log in</span>
-                        <i><fa-icon :icon="['fas', 'user']"></fa-icon></i>
-                    </url>
-                </li>
-            </ul>
         </ClientOnly>
+        <ul class="d-flex nav nav-pills">
+            <li v-if="user && user.info" class="nav-item cursor-pointer">
+                <url class="nav-link text-nowrap p-2 me-3" @click="user.logout()">
+                    <span class="d-md-inline d-none me-3">{{ user.info.name }}</span>
+                    <i><fa-icon :icon="['fas', 'user']"></fa-icon></i>
+                </url>
+            </li>
+            <li v-else class="nav-item cursor-pointer">
+                <url class="nav-link text-nowrap p-2 me-3" @click="user?.login">
+                    <span class="me-3">Log in</span>
+                    <i><fa-icon :icon="['fas', 'user']"></fa-icon></i>
+                </url>
+            </li>
+            <ClientOnly v-if="playlists && playlists.editing">
+                <button class="navbar-toggler d-sm-none ms-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#edit">
+                    <span class="fs-4 me-3"><fa-icon :icon="['fas', 'wand-magic']"></fa-icon></span>
+                </button>
+            </ClientOnly>
+        </ul>
     </nav>
 </template>
 
 <script lang="ts">
 import { Vue } from 'vue-property-decorator';
 import BreadCrumbs from '~/stores/breadcrumbs';
+import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class Sidebar extends Vue {
@@ -34,12 +40,14 @@ export default class Sidebar extends Vue {
     breadcrumbs!: BreadCrumbs;
     RC = useRuntimeConfig();
     options: { name: string, icon: string[], click: any }[] = []
+    playlists!: Playlists;
 
     async created() {
         if (!process.client) return;
 
         this.user = new User();
         this.breadcrumbs = new BreadCrumbs();
+        this.playlists = new Playlists();
         const code = this.$route.query?.code;
 
         // If there is a code in the url, ask our server for tokens

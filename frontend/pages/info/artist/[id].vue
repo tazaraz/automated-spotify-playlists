@@ -36,17 +36,19 @@
                     <span v-if="!artist" class="placeholder rounded-1"></span>
                     <span v-else>{{ artist.genres.join(', ') || "No genres for this artist" }}</span>
                 </div>
-                <div class="col-xxl-2 col-lg-3 col-4 mb-2 multilayer" data-bs-toggle="tooltip"
-                    data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Artist.Popularity">
-                    <span>Popularity</span>
-                    <span v-if="!artist" class="placeholder rounded-1"></span>
-                    <span v-else>{{ artist!.popularity }}</span>
-                </div>
-                <div class="col-xxl-2 col-lg-3 col-4 mb-2 multilayer" data-bs-toggle="tooltip"
-                    data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Artist.Followers">
-                    <span>Followers</span>
-                    <span v-if="!artist" class="placeholder rounded-1"></span>
-                    <span v-else>{{ artist.followers.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</span>
+                <div class="d-flex">
+                    <div class="me-5 multilayer" data-bs-toggle="tooltip"
+                        data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Artist.Popularity">
+                        <span>Popularity</span>
+                        <span v-if="!artist" class="placeholder rounded-1"></span>
+                        <span v-else>{{ artist!.popularity }}</span>
+                    </div>
+                    <div class="multilayer" data-bs-toggle="tooltip"
+                        data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Artist.Followers">
+                        <span>Followers</span>
+                        <span v-if="!artist" class="placeholder rounded-1"></span>
+                        <span v-else>{{ artist.followers.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</span>
+                    </div>
                 </div>
             </div>
             <div class="accordion accordion-flush">
@@ -57,11 +59,11 @@
                 ]" :key="store.name">
                     <div class="accordion-item bg-transparent">
                         <h2 class="accordion-header pt-2">
-                            <button :class="`accordion-button shadow-none bg-transparent text-white p-2 ps-4${store.kind == 'track' ? '' : ' collapsed'}`" type="button" data-bs-toggle="collapse" :data-bs-target="`#artist-${store.kind}`">
+                            <button class="accordion-button shadow-none bg-transparent text-white p-2 ps-4 collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="`#artist-${store.kind}`">
                                 <h4>{{ store.name }}</h4>
                             </button>
                         </h2>
-                        <div :id="`artist-${store.kind}`" :class="`accordion-collapse collapse${store.kind == 'track' ? ' show' : ''}`">
+                        <div :id="`artist-${store.kind}`" class="accordion-collapse collapse">
                             <ol class="m-4 mt-0 d-flex nav row">
                                 <template v-if="!store.items">
                                     <li v-for="i in new Array(Math.ceil(Math.random() * 10))" class="col-12 p-2">
@@ -71,7 +73,7 @@
                                 </template>
 
                                 <li v-else v-for="item of store.items" class="col-xxl-4 col-12 p-2 d-flex">
-                                    <Image :source="item" :class="store.kind == 'track' ? '' : 'rounded-5'" style="width: 3rem; height: 3rem"/>
+                                    <Image :src="item" :class="store.kind == 'track' ? '' : 'rounded-5'" style="width: 3rem; height: 3rem"/>
                                     <span class="multilayer ms-3">
                                         <url :to="`/info/${store.kind}/${item.id}`" class="rounded-2 text-white">{{ item.name }}</url>
                                     </span>

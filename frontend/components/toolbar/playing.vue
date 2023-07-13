@@ -3,7 +3,7 @@
         <template v-if="user.info && player">
             <span class="now-playing">Now playing</span>
             <url @click="breadcrumbs.clear()" :to="`/info/track/${player.track.id}`" class="loading-container">
-                <Image :source="player"/>
+                <Image :src="player"/>
             </url>
             <span class="multilayer ms-3 pe-3">
                 <url @click="breadcrumbs.clear()" :to="`/info/track/${player.track.id}`" class="text-truncate text-white">{{ player.track.name }}</url>
@@ -32,7 +32,7 @@ import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
 import User from '~/stores/user';
 
-export default class Sidebar extends Vue {
+export default class ToolbarPlaying extends Vue {
     user!: User;
     breadcrumbs!: BreadCrumbs;
 
@@ -48,13 +48,16 @@ export default class Sidebar extends Vue {
         }[]
     } | null = null;
 
+    static interval: NodeJS.Timer | null = null;
+
     created() {
         this.user = new User();
         this.breadcrumbs = new BreadCrumbs();
+        if (ToolbarPlaying.interval) clearInterval(ToolbarPlaying.interval);
 
         // Try to update the player every 10 seconds
         this.updatePlayer();
-        setInterval(() => {
+        ToolbarPlaying.interval = setInterval(() => {
             if (this.user.dataExists()) {
                 this.updatePlayer();
             }

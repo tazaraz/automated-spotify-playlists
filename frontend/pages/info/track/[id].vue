@@ -31,7 +31,7 @@
                     <span class="placeholder rounded-2 ms-3" style="width: 7rem;"></span>
                 </li>
                 <li v-else v-for="artist of track.artists" class="col-auto p-2 d-flex">
-                    <Image :source="artist" class="border rounded-5" style="width: 3rem; height: 3rem" />
+                    <Image :src="artist" class="border rounded-5" style="width: 3rem; height: 3rem" />
                     <url :to="`/info/artist/${artist.id}`" class="rounded-2 ms-3 m-auto">{{ artist.name }}</url>
                 </li>
             </ol>

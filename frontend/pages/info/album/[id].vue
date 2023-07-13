@@ -20,7 +20,7 @@
                         <div class="mt-4 mb-3">
                             <span class="rounded-2">{{ new Date(album.release_date).getFullYear() }}</span>
                             &nbsp;&nbsp;━&nbsp;&nbsp;
-                            <span class="rounded-2">{{ album.total_tracks }} track{{ album.total_tracks == 1 ? 's' : '' }}</span>
+                            <span class="rounded-2">{{ album.total_tracks }} track{{ album.total_tracks == 1 ? '' : 's' }}</span>
                         </div>
                     </template>
                 </div>
@@ -32,7 +32,7 @@
                     <span class="placeholder rounded-2 ms-3" style="width: 7rem;"></span>
                 </li>
                 <li v-else v-for="artist, index of album.artists" class="col-auto p-2 d-flex">
-                    <Image :source="artist.image" class="rounded-5" style="width: 3rem; height: 3rem" />
+                    <Image :src="artist" class="rounded-5" style="width: 3rem; height: 3rem" />
                     <span class="multilayer ms-3">
                         <span>{{ index == 0 ? 'Artist' : 'Featuring' }}</span>
                         <url :to="`/info/artist/${artist.id}`" class="rounded-2">{{ artist.name }}</url>
@@ -79,7 +79,7 @@
             </div>
             <div class="text-white row">
                 <h4 v-if="album && tracks" class="col mt-3 ms-3 p-2 pb-0">Tracks</h4>
-                <h6 class="col-2 mt-3 ms-3 p-2 pb-0"
+                <h6 class="col-2 mt-3 ms-1 ps-3 p-2 pb-0 border-start"
                         data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
                         data-bs-title="In how many playlist the track appears">
                         Playlist count
@@ -92,7 +92,7 @@
                 <li v-else v-for="track of tracks" class="p-2">
                     <div class="row">
                         <url :to="`/info/track/${track.id}`" class="col rounded-2 ms-3 text-truncate">{{ track.name }}</url>
-                        <span class="ps-3 col-1" v-if="track.appearsIn.length > 0">{{ track.appearsIn.length }}</span>
+                        <span class="ps-4 col-1" v-if="track.appearsIn.length > 0">{{ track.appearsIn.length }}</span>
                     </div>
                 </li>
             </ol>
@@ -107,7 +107,7 @@ import { CAlbum, CArtist, CTrack } from "~/../backend/src/types/client";
 import { FilterDescription } from '~/../backend/src/types/descriptions';
 import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
-import Playlists, { Playlist } from '~/stores/playlists';
+import Playlists, { CPlaylist } from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class InfoAlbum extends Vue {

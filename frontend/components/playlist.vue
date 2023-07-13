@@ -19,9 +19,10 @@ export default class PlaylistDisplay extends Vue {
      * and instead will always load the given editingPlaylist */
     @Prop({ default: false }) editingPlaylist!: EditingPlaylist;
 
-    user: User = null;
-    playlists: Playlists = null;
-    breadcrumbs: BreadCrumbs = null
+    user: User = null as any;
+    playlists: Playlists = null as any;
+    breadcrumbs: BreadCrumbs = null as any;
+    layout: Layout = null as any;
 
     loading: boolean = true;
 

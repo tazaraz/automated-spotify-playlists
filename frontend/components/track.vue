@@ -5,25 +5,25 @@
                 <div class="container d-flex gap-3 align-items-center ps-0 placeholder-glow">
                     <span class="placeholder image flex-shrink-0"></span>
                     <div class="flex-grow-1 multilayer m-0 d-grid gap-1">
-                        <div class="text-truncate placeholder" :style="`width: ${randomBetween(6, 14)}rem`"></div>
+                        <div class="text-truncate placeholder rounded-1" :style="`width: ${randomBetween(6, 14)}rem`"></div>
                         <div class="text-truncate">
                             <template v-for="index in randomBetween(1, 3)">
                                 {{ index - 1 > 0 ? ", " : "" }}
-                                <div class="placeholder text-truncate" :style="`width: ${randomBetween(2, 5)}rem`"></div>
+                                <div class="placeholder rounded-1 text-truncate" :style="`width: ${randomBetween(2, 5)}rem`"></div>
                             </template>
                         </div>
                     </div>
                     <div class="text-truncate flex-shrink-0" style="width: 40%;"  data-main-class="normal-d-block small-d-none" >
-                        <span class="placeholder" :style="`width: ${randomBetween(2, 5)}rem`"></span>
+                        <span class="placeholder rounded-1" :style="`width: ${randomBetween(2, 5)}rem`"></span>
                     </div>
                     <div class="text-truncate flex-shrink-0" style="width: 10%;">
-                        <span class="placeholder ms-auto d-block" :style="`width: ${randomBetween(2, 3)}rem`"></span>
+                        <span class="placeholder rounded-1 ms-auto d-block" :style="`width: ${randomBetween(2, 3)}rem`"></span>
                     </div>
                 </div>
             </button>
             <button v-else class="accordion-button shadow-none collapsed" type="button" @click="getFeatures()" data-bs-toggle="collapse" :data-bs-target="`#track:${track.id}`">
                 <div class="container d-flex gap-3 align-items-center ps-0">
-                    <Image :source="track" class="flex-shrink-0" />
+                    <Image :src="track" />
                     <div class="flex-grow-1 multilayer m-0 gap-1">
                         <div class="text-truncate">
                             <url @click="follow" class="text-white" :to="`/info/track/${track.id}`">{{ track.name }}</url>
@@ -36,7 +36,7 @@
                         </div>
                     </div>
                     <div class="flex-shrink-0 text-truncate" data-main-class="normal-d-block small-d-none" style="width: 40%;">
-                        <url @click="follow" class="text-truncate d-block text-body" :to="`/info/album/${track.album!.id}`">{{ track.album!.name }}</url>
+                        <url @click="follow" class="text-truncate d-inline-block text-body" :to="`/info/album/${track.album!.id}`">{{ track.album!.name }}</url>
                     </div>
                     <div class="flex-shrink-0" style="width: 10%;">{{ track.duration }}</div>
                     <i v-if="deleteable" @click="$emit('delete', track)"><fa-icon style="color: rgb(155, 0, 0)"
