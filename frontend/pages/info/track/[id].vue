@@ -1,5 +1,6 @@
 <template>
     <article key="track" class="rounded-2 p-2 bg-dark-subtle overflow-hidden">
+        <SmallHeader :item="track"></SmallHeader>
         <div class="h-100 pe-1 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
             <Title v-if="!track">Loading track...</Title>
             <Title v-else>{{ track.name }}</Title>

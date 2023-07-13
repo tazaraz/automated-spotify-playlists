@@ -1,6 +1,7 @@
 <template>
     <Title>Search</Title>
     <article class="rounded-2 p-2 bg-dark-subtle overflow-hidden">
+        <SmallHeader :item="{name: 'Search', image: ['fas', 'search']}"></SmallHeader>
         <div class="pe-1 overflow-hidden overflow-y-auto h-100">
             <div v-if="error" class="alert alert-info" role="alert">
                 {{ error }}
