@@ -2,10 +2,8 @@
     <playlist ref="playlist" :id="$route.params.id">
         <template v-if="playlists && playlists.loaded">
             <template v-if="playlists.loaded.filters">
+                <button class="btn btn-primary" @click="setEditedPlaylist($route.params.id)">Edit</button>
 
-            </template>
-            <template v-else>
-                <button class="btn btn-primary" @click="setEditedPlaylist($route.params.id)">Convert</button>
             </template>
         </template>
     </playlist>
@@ -26,9 +24,9 @@ export default class PlaylistWrapper extends Vue {
         this.playlists.loadUserPlaylists();
     }
 
-    setEditedPlaylist(id: string) {
-        this.playlists.loadEditingPlaylist(id);
-        (this.$refs.playlist as any).shownTracks = "excluded";
+    async setEditedPlaylist(id: string) {
+        await this.playlists.loadEditingPlaylist(id);
+        (this.$refs.playlist as any).showTracks("matched");
     }
 }
 </script>
