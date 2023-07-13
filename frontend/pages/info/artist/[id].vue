@@ -91,7 +91,7 @@ import { CAlbum, CArtist, CTrack } from "~/../backend/src/types/client";
 import { FilterDescription } from '~/../backend/src/types/descriptions';
 import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
-import Playlists, { Playlist } from '~/stores/playlists';
+import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class InfoAlbum extends Vue {

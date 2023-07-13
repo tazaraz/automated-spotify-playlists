@@ -130,7 +130,7 @@ import { CArtist, CTrack, CTrackFeatures } from "~/../backend/src/types/client";
 import { FilterDescription } from '~/../backend/src/types/descriptions';
 import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
-import Playlists, { Playlist } from '~/stores/playlists';
+import Playlists, { CPlaylist } from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class InfoTrack extends Vue {
@@ -139,7 +139,7 @@ export default class InfoTrack extends Vue {
 
     track: CTrack | null = null;
     trackGenres!: string
-    appearsIn: Playlist[] = [];
+    appearsIn: CPlaylist[] = [];
 
     tooltipList: Tooltip[] = [];
     FilterDescription = FilterDescription;

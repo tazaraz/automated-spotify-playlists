@@ -115,7 +115,7 @@ export default class InfoAlbum extends Vue {
 
     album: CAlbum | null = null;
     tracks: ({
-        appearsIn: Playlist[]
+        appearsIn: CPlaylist[]
     } & CTrack)[] = [];
 
     tooltipList: Tooltip[] = [];

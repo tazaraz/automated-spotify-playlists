@@ -13,7 +13,7 @@
 
 <script lang="ts">
 import { Vue } from 'vue-property-decorator';
-import Playlists, { Playlist } from '~/stores/playlists';
+import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class PlaylistWrapper extends Vue {

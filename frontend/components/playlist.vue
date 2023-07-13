@@ -47,7 +47,7 @@
 import { Prop, Vue } from 'vue-property-decorator';
 import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
-import Playlists, { Playlist, EditingPlaylist } from '~/stores/playlists';
+import Playlists, { CPlaylist, EditingPlaylist } from '~/stores/playlists';
 import User from '~/stores/user';
 import { CTrack } from '../../backend/src/types/client';
 
@@ -87,7 +87,7 @@ export default class PlaylistDisplay extends Vue {
 
         // Load a random playlist the user stumbled upon
         else {
-            const playlist = (await Fetch.get<Playlist>(`spotify:/playlists/${this.id}`)).data;
+            const playlist = (await Fetch.get<CPlaylist>(`spotify:/playlists/${this.id}`)).data;
             playlist.image = Fetch.bestArtwork(playlist.images);
             this.loading = false;
 
