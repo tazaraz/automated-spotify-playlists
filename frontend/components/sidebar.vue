@@ -1,6 +1,6 @@
 <template>
     <nav class="d-flex flex-column text-white h-100">
-        <div class="mb-2 me-sm-2 p-3 rounded-3 bg-dark-subtle">
+        <div class="mb-2 p-3 rounded-3 bg-dark-subtle">
             <div class="d-flex align-items-center mb-3 text-white text-decoration-none" data-sidebar-class="normal-mb-0 normal-me-auto">
                 <h4 class="ms-3 mb-0" style="width: 3rem"><fa-icon :icon="['fas', 'gear']" style="width: 2rem"></fa-icon></h4>
                 <h4 class="d-block m-0" data-sidebar-class="small-d-none">
@@ -117,6 +117,11 @@ export default class Sidebar extends Vue {
         await this.playlists.createSmartPlaylist();
         await navigateTo('/playlist/unpublished');
         await this.playlists.loadEditingPlaylist('unpublished');
+        this.tryClose();
+    }
+
+    tryClose() {
+        document.getElementById('sidebarClose')?.click();
     }
 }
 </script>
