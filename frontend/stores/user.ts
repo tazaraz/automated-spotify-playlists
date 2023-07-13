@@ -120,9 +120,15 @@ export default class User extends Pinia {
         return true;
     }
 
+    setSpotifyToken(token: string, expiry: number) {
+        this.info!.spotify_token = token;
+        this.info!.spotify_token_expiry = expiry;
+        localStorage.setItem("p", JSON.stringify({p: token, e: expiry}));
+    }
+
     spotifyTokenExpired() {
         const p = JSON.parse(localStorage.getItem("p") || '{"e":0}' );
-        return p.e < Date.now();
+        return p.e < Date.now() + 5 * 60 * 1000;
     }
 
     serverTokenExpired() {

@@ -275,9 +275,7 @@ export default class Fetch {
                 const { spotify_token, spotify_token_expiry } = response.data;
 
                 // Store the new server token
-                Fetch.user.info!.spotify_token = spotify_token;
-                Fetch.user.info!.spotify_token_expiry = spotify_token_expiry;
-                localStorage.setItem("e", JSON.stringify({t: spotify_token, e: spotify_token_expiry}))
+                Fetch.user.setSpotifyToken(spotify_token, spotify_token_expiry);
 
                 // Resolve the promise
                 resolve(true);
