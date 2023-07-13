@@ -1,3 +1,5 @@
 <template>
-    test
+    <article>
+        test
+    </article>
 </template>
