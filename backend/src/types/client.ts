@@ -11,6 +11,14 @@ export interface CUser {
     server_token_expiry: number;
 }
 
+export interface CPlaylist extends Playlist{
+    owner: {
+        id: string;
+        display_name: string;
+        country: string;
+    }
+}
+
 export interface CTrack {
     // Disc number, default 1
     disc_number: number

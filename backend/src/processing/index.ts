@@ -2,11 +2,11 @@ import Metadata from "../stores/metadata";
 import Snapshots from "../stores/snapshots";
 import Database from "../tools/database";
 import Fetch from "../tools/fetch";
+import FilterParser from "./parser";
+import MusicSources from "./sources";
 import { LOG_DEBUG } from "../main";
 import { Playlist } from "../types/playlist";
 import { FilterItem, STrack, SUser } from "../types/server";
-import { FilterCombination } from "./matching";
-import { MusicSources } from "./sources";
 import FilterLog from "../stores/filterlog";
 
 export default class Filters {
@@ -109,7 +109,7 @@ export default class Filters {
         LOG_DEBUG(`0: spotify tracks: ${spotify_tracks.length}, old tracks: ${playlist_tracks.length}`)
 
         // 1. Match the tracks
-        const filter_tracks = await FilterCombination.process(
+        const filter_tracks = await FilterParser.process(
             playlist.filters,
             input,
             user,

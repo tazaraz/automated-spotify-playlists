@@ -5,7 +5,7 @@ export const SourceDescription = {
     "Artist's Albums": "Gets all the album tracks of the given artist",
     "Artist's Top Tracks": "Gets the top tracks of an artist based on the country of the user (configured in Spotify)",
     "Artist's Related Artists": "Artists who are determined to produce the same kind of music based on the analysis of Spotify community's listening history. Only the top 3 are used.",
-    "Recommendations": "Gets recommendations based on the given seeds (tracks, artists or genres). The seeds can be a combination of multiple types, as long as at least one seed is given. Keep in mind that a lot of obscure seeds, such as new artists, can result in no recommendations being found."
+    // "Recommendations": "Gets recommendations based on the given seeds (tracks, artists or genres). The seeds can be a combination of multiple types, as long as at least one seed is given. Keep in mind that a lot of obscure seeds, such as new artists, can result in no recommendations being found."
 }
 
 export const FilterDescription = {
@@ -37,4 +37,10 @@ export const FilterDescription = {
         "BPM": "The overall tempo of a track in beats per minute",
         "Positivity": "The musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry)."
     },
+}
+
+export const FilterParserOptions = {
+    "any": "If any of the following are true",
+    "all": "If all of the following are true",
+    "none": "If none of the following are true",
 }

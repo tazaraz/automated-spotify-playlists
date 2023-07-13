@@ -1,19 +1,14 @@
-import FilterLog from "../../stores/filterlog";
-import Fetch from "../../tools/fetch";
-import { Filters } from "../../types/filters";
-import { PlaylistCondition, PlaylistStatement } from "../../types/playlist";
-import { FilterItem, STrack, SUser } from "../../types/server";
-import { Track } from "../filters";
-import { FilterBoolean } from "./boolean";
+import FilterLog from "../stores/filterlog";
+import Fetch from "../tools/fetch";
+import { FilterParserOptions } from "../types/descriptions";
+import { Filters } from "../types/filters";
+import { PlaylistCondition, PlaylistStatement } from "../types/playlist";
+import { FilterItem, STrack, SUser } from "../types/server";
+import { Track } from "./filters";
+import { FilterBoolean } from "./matching/boolean";
 
-const FilterCombinationOptions = {
-    any: "If any of the following are true",
-    all: "If all of the following are true",
-    none: "If none of the following are true",
-}
-
-export class FilterCombination {
-    public static readonly mode = FilterCombinationOptions;
+export default class FilterParser {
+    public static readonly mode = FilterParserOptions;
 
     /**
      *                  Checks if input matches the set rules.
@@ -33,7 +28,7 @@ export class FilterCombination {
             result = input
             log.filters.push("No filters specified");
         } else {
-            result = await FilterCombination.checkStatement(statement, input, user, log, dryrun);
+            result = await FilterParser.checkStatement(statement, input, user, log, dryrun);
         }
 
         // Convert the FilterItems to STracks and flatten (FilterItem can always map to a STrack[])
@@ -59,7 +54,7 @@ export class FilterCombination {
                                         dryrun=false
     ): Promise<FilterItem[]>{
         // If the filter is not an object or does not have the required entries
-        if (!FilterCombination.isStatement(statement))
+        if (!FilterParser.isStatement(statement))
             throw Error("Invalid playlist statement")
 
         // Store the matches and original input
@@ -72,7 +67,7 @@ export class FilterCombination {
             // If the filter is an statement
             if ((f as PlaylistCondition).value === undefined){
                 // the loop again
-                const result = await FilterCombination.checkStatement(
+                const result = await FilterParser.checkStatement(
                     f as PlaylistStatement,
                     input,
                     user,
@@ -86,7 +81,7 @@ export class FilterCombination {
                 result.forEach(track => matches[track.id] = track);
             } else {
                 // Execute the filter
-                result = await FilterCombination.checkCondition(
+                result = await FilterParser.checkCondition(
                     f as PlaylistCondition,
                     input,
                     user,
@@ -149,7 +144,7 @@ export class FilterCombination {
                                         user: SUser,
                                         log: FilterLog,
                                         dryrun=false): Promise<FilterItem[] | undefined> {
-        if (!FilterCombination.isCondition(condition))
+        if (!FilterParser.isCondition(condition))
             throw Error("Invalid playlist condition")
 
         // Someone tried funky business with the condition

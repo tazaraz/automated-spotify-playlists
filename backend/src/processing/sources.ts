@@ -4,7 +4,7 @@ import { Sources } from "../types/filters";
 import { PlaylistSource } from "../types/playlist";
 import { FilterItem, SUser } from "../types/server";
 
-export class MusicSources {
+export default class MusicSources {
     public static readonly origin = Sources;
 
     public static async get(

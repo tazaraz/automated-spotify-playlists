@@ -27,10 +27,10 @@ export const Sources = {
         value: "Artist",
         description: SourceDescription["Artist's Related Artists"]
     },
-    "Recommendations": {
-        value: {"seed_tracks": [], "seed_artists": [], "seed_genres": []},
-        description: SourceDescription.Recommendations
-    }
+    // "Recommendations": {
+    //     value: { "seed_tracks": [] as string[], "seed_genres": [] as string[], "seed_artists": [] as string[] },
+    //     description: SourceDescription.Recommendations
+    // }
 }
 
 export const Filters = {

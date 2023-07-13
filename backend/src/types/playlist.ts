@@ -1,4 +1,5 @@
-import { FilterBoolean, FilterCombination, FilterString, FilterValue } from "../processing/matching";
+import { FilterBoolean, FilterString, FilterValue } from "../processing/matching";
+import FilterParser from "../processing/parser";
 import { Filters, Sources } from "./filters";
 
 export interface Playlist {
@@ -19,7 +20,7 @@ export interface Playlist {
 }
 
 export interface PlaylistStatement {
-    mode: keyof typeof FilterCombination.mode;
+    mode: keyof typeof FilterParser.mode;
     filters: (PlaylistCondition | PlaylistStatement)[];
 }
 
@@ -40,5 +41,5 @@ export interface PlaylistSource {
     // Source of the data
     origin: keyof typeof Sources;
     // Contains any extra data needed for the source
-    value: string | object;
+    value: string | typeof Sources['Recommendations']['value'];
 }

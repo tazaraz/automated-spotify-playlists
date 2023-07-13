@@ -4,10 +4,10 @@ import Fetch from './tools/fetch';
 import Filters from './processing';
 import Snapshots from './stores/snapshots';
 import Users from './stores/users';
-import { Playlist } from './types/playlist';
-import { FilterCombination } from './processing/matching';
-import { MusicSources } from './processing/sources';
+import MusicSources from './processing/sources';
+import FilterParser from './processing/parser';
 import FilterLog from './stores/filterlog';
+import { Playlist } from './types/playlist';
 import { CUser } from './types/client';
 import { LOG } from './main';
 
@@ -129,7 +129,7 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
 
     try {
         // Check if the filters supplied are valid
-        await FilterCombination.process(playlist.filters, [], user, log, true);
+        await FilterParser.process(playlist.filters, [], user, log, true);
         // Check if the sources supplied are valid
         await MusicSources.get(playlist.track_sources, user, log, true)
     } catch (error) {
