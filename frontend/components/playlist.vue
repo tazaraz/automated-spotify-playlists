@@ -1,6 +1,46 @@
 <template>
     <article class="rounded-2 p-2 bg-dark-subtle overflow-hidden">
+        <template v-if="playlists">
             <SmallHeader :item="playlists.loaded"></SmallHeader>
+            <div class="h-100 pe-1 overflow-y-auto" data-edit-class="full-d-none">
+                <Title v-if="!playlists.loaded">Loading playlist</Title>
+                <Title v-else>{{ playlists.loaded.name }}</Title>
+                <header class="p-4 pt-5 d-flex gap-4" data-main-class="small-flex-column small-align-items-center normal-flex-row normal-align-items-stretch">
+                    <Image :src="playlists.loaded" />
+                    <div class="flex-fill d-flex flex-column text-white">
+                        <template v-if="!playlists.loaded">
+                            <span class="mt-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>
+                            <div class="mt-5 mb-3">
+                                <span class="placeholder rounded-2" style="width: 5rem"></span>
+                                &nbsp;&nbsp;━&nbsp;&nbsp;
+                                <span class="placeholder rounded-2" style="width: 10rem"></span>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <h1 class="mt-auto">{{ playlists.loaded.name }}</h1>
+                            <div class="mt-3 d-flex align-items-center flex-wrap gap-2">
+                                <span class="rounded-2">{{ playlists.loaded.owner.display_name }}</span>
+                                &nbsp;&nbsp;━&nbsp;&nbsp;
+                                <template v-if="loading || !playlists.loaded || !playlists.loaded.matched_tracks">
+                                    <span class="d-inline-block loading-icon"></span>loading tracks
+                                </template>
+                                <span v-else >{{ playlists.loaded.matched_tracks.length }}
+                                    track{{ playlists.loaded.matched_tracks.length == 1 ? '' : 's'}}
+                                </span>
+                            </div>
+                            <div v-if="playlists.loaded.id != 'unpublished' && playlists.loaded.id != 'library'">ID: {{ playlists.loaded.id }}</div>
+                        </template>
+                    </div>
+                </header>
+                <slot></slot>
+                <div v-if="!loading && playlists.loaded && shownTracks" class="accordion rounded-5">
+                    <Track v-for="track of shownTracks" :track="track" />
+                </div>
+                <div v-else class="accordion rounded-5">
+                    <Track v-for="i of 10"/>
+                </div>
+            </div>
+        </template>
     </article>
 </template>
 
