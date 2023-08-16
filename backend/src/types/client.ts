@@ -11,7 +11,10 @@ export interface CUser {
     server_token_expiry: number;
 }
 
-export interface CPlaylist extends Playlist{
+export interface CPlaylist extends Playlist {
+    // Contains the tracks of the playlist in the order spotify returns them
+    all_tracks: string[];
+
     owner: {
         id: string;
         display_name: string;
