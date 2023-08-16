@@ -191,8 +191,16 @@ api.delete('/playlist', Users.verify_token, async (req, res) => {
         // Delete the playlist from the database
         Database.deletePlaylist(req.body.id, req.user.id)
         .then(() => {
-            res.status(200)
+            res.sendStatus(200)
         })
+    })
+
+    Database.deletePlaylist(req.body.id, req.user.id)
+    .then(() => {
+        res.sendStatus(200)
+    })
+    .catch(error => {
+        res.status(400).json({status: "Failed to delete smart playlist", error: error})
     })
 });
 
@@ -212,10 +220,10 @@ api.put(`/playlist/:playlistid/basic`, Users.verify_token, async (req, res) => {
         data: data
     }).then(response => {
         if (response.status !== 200)
-            res.status(response.status).json({status: "Spotify Error", error: response.statusText})
+            return res.status(response.status).json({status: "Spotify Error", error: response.statusText})
 
         Database.setSmartPlaylistBasic(req.params.playlistid, req.user.id, data.name, data.description);
-        res.status(200);
+        res.sendStatus(200);
     })
 })
 
@@ -246,9 +254,9 @@ api.delete(`/playlist/:playlistid/matched-tracks`, Users.verify_token, async (re
 
     // Move the tracks
     for (let trackid of req.body.removed)
-        Database.addToExcludedTracks(req.params.playlistid, req.user.id, trackid);
+        Database.addToExcludedTracks(req.user.id, req.params.playlistid, trackid);
 
-    res.status(200);
+    res.sendStatus(200);
 })
 
 /**
@@ -278,9 +286,9 @@ api.delete(`/playlist/:playlistid/excluded-tracks`, Users.verify_token, async (r
 
     // Move the tracks
     for (let trackid of req.body.removed)
-        Database.addToMatchedTracks(req.params.playlistid, req.user.id, trackid);
+        Database.addToMatchedTracks(req.user.id, req.params.playlistid, trackid);
 
-    res.status(200);
+    res.sendStatus(200);
 })
 
 /**
@@ -310,9 +318,9 @@ api.delete(`/playlist/:playlistid/included-tracks`, Users.verify_token, async (r
 
     // Remove the tracks
     for (let trackid of req.body.removed)
-        Database.removeFromIncludedTracks(req.params.playlistid, req.user.id, trackid);
+        Database.removeFromIncludedTracks(req.user.id, req.params.playlistid, trackid);
 
-    res.status(200);
+    res.sendStatus(200);
 })
 
 api.patch(`/playlist/:playlistid`, async (req, res) => {

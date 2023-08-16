@@ -1,6 +1,6 @@
 import FilterLog from "../stores/filterlog";
 import Fetch from "../tools/fetch";
-import { FilterParserOptions } from "../types/descriptions";
+import { FilterParserOptions } from "../types/filters";
 import { Filters } from "../types/filters";
 import { PlaylistCondition, PlaylistStatement } from "../types/playlist";
 import { FilterItem, STrack, SUser } from "../types/server";

@@ -94,7 +94,9 @@ export default class Filters {
         /**Get the playlist tracks from Spotify
          * First remove the url from the cache, preventing the cache from being used
          */
-        delete Metadata.url_cache.tracks[`/playlists/${playlist.id}/tracks`]
+        if (Metadata.url_cache && Metadata.url_cache.tracks)
+            delete Metadata.url_cache.tracks[`/playlists/${playlist.id}/tracks`]
+
         const spotify_tracks = dryrun ? [] :
             await Metadata.getMultipleTracks(`/playlists/${playlist.id}/tracks`,{
                 user,

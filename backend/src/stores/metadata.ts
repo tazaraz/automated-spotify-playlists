@@ -56,10 +56,6 @@ class Queue {
 }
 
 export default class Metadata {
-    /**This is the user that is used to fetch data from Spotify.
-     * Often overwritten when another user specific call is made */
-    static token: SUser;
-
     /**Contains known track information */
     static tracks: { [id: string]: STrack } = {};
     static albums: { [id: string]: SAlbum } = {};
@@ -239,7 +235,7 @@ export default class Metadata {
     }
 
     /**
-     * Gets data specific to the user, using the user token in the axios instance
+     * Gets data specific to the user
      * @param user_id  The id of the user
      * @param url      The url on which to perform the request
      * @param kind     The kind of data to request. Leave out or specify "any" to do a direct request without any caches
@@ -253,11 +249,6 @@ export default class Metadata {
         expires: number,
         options: FetchOptions,
     ): Promise<any[]> {
-        /**If the general token is about to expire, get a new one from a different user
-         * This spreads out the use of the api along multiple users */
-        if (Users.accessTokenExpired(Metadata.token.id))
-            Metadata.token = await Users.get(options.user.id)
-
         // If the user is not yet defined, create the object
         if (Metadata.user_cache[options.user.id] == undefined)
             Metadata.user_cache[options.user.id] = {};

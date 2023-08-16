@@ -153,8 +153,16 @@ export default class Fetch {
         try {
             response = await fetch(url, parameters);
         } catch (error) {
-            console.log(JSON.stringify(error));
-            throw new Error("Failed to fetch data");
+            // If the api.spotify.com lookup fails
+            switch (error.cause.code) {
+                case "EAI_AGAIN":
+                case "UND_ERR_CONNECT_TIMEOUT":
+                    return this.parseRequest(url, parameters, options);
+
+                default:
+                    console.log(JSON.stringify(error));
+                    throw new Error("Failed to fetch data");
+            }
         }
 
         switch (response.status) {
@@ -182,8 +190,10 @@ export default class Fetch {
             case 500:
             case 502:
             case 504:
-                // Set the default timeout to 5 seconds
-                const retry_after = 5000;
+                // Set the default timeout to 5 seconds. If "Retry-After" is set, use that instead
+                let retry_after = 5000;
+                if (response.headers.has("Retry-After"))
+                    retry_after = parseInt(response.headers.get("Retry-After")!) * 1000;
 
                 return await new Promise(resolve => {
                     setTimeout(async () => {
@@ -198,10 +208,12 @@ export default class Fetch {
                 break;
 
             default:
-                (response as any).data = await response.json();
+                // Parse the data. If it fails, there is no data
+                try {
+                    (response as any).data = await response.json();
+                } catch (_) {}
         }
 
-        // Parse the data. If it fails, there is no data. return null
         return response as FetchResponse<T>;
     }
 
