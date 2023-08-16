@@ -140,14 +140,14 @@ export default class Database {
      * @param id Playlist id
      * @param excluded_track Track to remove from the excluded tracks
      */
-    static async addToMatchedTracks(user_id: string, id: string, excluded_track: string) {
+    static async addToMatchedTracks(user_id: string, playlist_id: string, excluded_track: string) {
         const remove = await Database.client.query(
-            `UPDATE playlists SET excluded_tracks = array_remove(excluded_tracks, $1) WHERE id = $2 and user_id = $3`, [excluded_track, id, user_id]
+            `UPDATE playlists SET excluded_tracks = array_remove(excluded_tracks, $1) WHERE id = $2 and user_id = $3`, [excluded_track, playlist_id, user_id]
         );
 
         if (remove.rowCount > 0) {
             const add = await Database.client.query(
-                `UPDATE playlists SET matched_tracks = array_prepend($1, matched_tracks) WHERE id = $2 and user_id = $3`, [excluded_track, id, user_id]
+                `UPDATE playlists SET matched_tracks = array_prepend($1, matched_tracks) WHERE id = $2 and user_id = $3`, [excluded_track, playlist_id, user_id]
             );
 
             return add.rowCount > 0 ? true : false;
@@ -159,17 +159,17 @@ export default class Database {
     /**
      * Moves a track from matched tracks to excluded tracks
      * @param user_id User id
-     * @param id Playlist id
+     * @param playlist_id Playlist id
      * @param excluded_track Track to remove from the matched tracks
      */
-    static async addToExcludedTracks(user_id: string, id: string, excluded_track: string) {
+    static async addToExcludedTracks(user_id: string, playlist_id: string, excluded_track: string) {
         const remove = await Database.client.query(
-            `UPDATE playlists SET matched_tracks = array_remove(matched_tracks, $1) WHERE id = $2 and user_id = $3`, [excluded_track, id, user_id]
+            `UPDATE playlists SET matched_tracks = array_remove(matched_tracks, $1) WHERE id = $2 and user_id = $3`, [excluded_track, playlist_id, user_id]
         );
 
         if (remove.rowCount > 0) {
             const add = await Database.client.query(
-                `UPDATE playlists SET excluded_tracks = array_prepend($1, excluded_tracks) WHERE id = $2 and user_id = $3`, [excluded_track, id, user_id]
+                `UPDATE playlists SET excluded_tracks = array_prepend($1, excluded_tracks) WHERE id = $2 and user_id = $3`, [excluded_track, playlist_id, user_id]
             );
 
             return add.rowCount > 0 ? true : false;
@@ -178,17 +178,17 @@ export default class Database {
         }
     }
 
-    static async addToIncludedTracks(user_id: string, id: string, included_track: string) {
+    static async addToIncludedTracks(user_id: string, playlist_id: string, included_track: string) {
         const remove = await Database.client.query(
-            `UPDATE playlists SET included_tracks = array_remove(included_tracks, $1) WHERE id = $2 and user_id = $3`, [included_track, id, user_id]
+            `UPDATE playlists SET included_tracks = array_remove(included_tracks, $1) WHERE id = $2 and user_id = $3`, [included_track, playlist_id, user_id]
         );
 
         return remove.rowCount > 0 ? true : false;
     }
 
-    static async removeFromIncludedTracks(user_id: string, id: string, included_track: string) {
+    static async removeFromIncludedTracks(user_id: string, playlist_id: string, included_track: string) {
         const add = await Database.client.query(
-            `UPDATE playlists SET included_tracks = array_prepend($1, included_tracks) WHERE id = $2 and user_id = $3`, [included_track, id, user_id]
+            `UPDATE playlists SET included_tracks = array_prepend($1, included_tracks) WHERE id = $2 and user_id = $3`, [included_track, playlist_id, user_id]
         );
 
         return add.rowCount > 0 ? true : false;
