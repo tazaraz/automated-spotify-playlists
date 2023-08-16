@@ -1,5 +1,5 @@
 <template>
-    <div class="h-100 p-3 overflow-hidden flex-column align-items-center" data-edit-class="small-d-none normal-d-none large-d-none full-d-flex">
+    <div class="h-100 p-3 overflow-hidden flex-column align-items-center d-none" data-edit-class="tiny-d-none small-d-none normal-d-none large-d-none full-d-flex">
         <url class="d-flex fs-4" style="width: 3rem; cursor: pointer;" @click="layout.open('main')">
             <fa-icon class="m-auto" :icon="['fas', 'angles-right']" style="width: 2rem"></fa-icon>
         </url>
@@ -7,8 +7,8 @@
         <h4 v-if="Array.isArray(item?.image)" class="mb-3"><fa-icon :icon="item.image"></fa-icon></h4>
         <Image v-else :src="item" class="mt-2 mb-4 w-100 h-auto"></Image>
         <slot></slot>
-        <h4 class="text-nowrap m-0" style="writing-mode:vertical-rl; transform: rotate(180deg);">{{ item?.name }}</h4>
-        <span v-if="type" class="mt-auto">{{ type }}</span>
+        <h4 class="text-truncate m-0" style="writing-mode:vertical-rl; transform: rotate(180deg);">{{ item?.name }}</h4>
+        <span v-if="type" class="mt-auto pt-3">{{ type }}</span>
     </div>
 </template>
 
@@ -20,7 +20,7 @@ import Layout from '~/stores/layout';
 export default class SmallHeader extends Vue {
     @Prop({ required: true }) item!: CTrack | CAlbum | CArtist | CPlaylist
     layout!: Layout;
-    type: "Track" | "Album" | "Artist" | "Playlist" | null = null;
+    type: "Track" | "Album" | "Artist" | "Playlist" | "User" | null = null;
 
     mounted() {
         if (!process.client) return;
@@ -34,6 +34,8 @@ export default class SmallHeader extends Vue {
             this.type = "Artist";
         else if (this.$route.fullPath.includes('playlist'))
             this.type = "Playlist";
+        else if (this.$route.fullPath.includes('user'))
+            this.type = "User";
     }
 }
 </script>
