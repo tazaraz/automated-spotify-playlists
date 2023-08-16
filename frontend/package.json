@@ -9,23 +9,23 @@
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.4.0",
-    "@fortawesome/free-solid-svg-icons": "^6.4.0",
+    "@fortawesome/fontawesome-svg-core": "^6.4.2",
+    "@fortawesome/free-regular-svg-icons": "^6.4.2",
+    "@fortawesome/free-solid-svg-icons": "^6.4.2",
     "@fortawesome/vue-fontawesome": "^3.0.3",
-    "@pinia/nuxt": "^0.4.9",
+    "@nuxt/devtools": "latest",
+    "@pinia/nuxt": "^0.4.11",
     "@types/bootstrap": "^5.2.6",
-    "nuxt": "npm:nuxt3@latest",
+    "@types/node": "^18.17.3",
+    "nuxt": "^3.6.5",
+    "nuxt-tsconfig-relative-paths": "^1.0.6",
     "pinia-class-component": "^0.9.4",
-    "sass": "^1.53.0",
+    "sass": "^1.65.1",
+    "v-click-outside": "^3.2.0",
     "vue-class-component": "^8.0.0-rc.1",
     "vue-property-decorator": "^10.0.0-rc.3"
   },
   "dependencies": {
-    "bootstrap": "^5.3.0-alpha3",
-    "jsbarcode": "^3.11.5",
-    "quagga": "^0.12.1"
-  },
-  "overrides": {
-    "vue": "latest"
+    "bootstrap": "^5.3.1"
   }
 }
