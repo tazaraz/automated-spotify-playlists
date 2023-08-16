@@ -205,6 +205,28 @@ api.delete('/playlist', Users.verify_token, async (req, res) => {
 });
 
 /**
+ * Runs the filters for a given playlist
+ */
+api.patch(`/playlist/:playlistid`, Users.verify_token, async (req, res) => {
+    console.log(req.user)
+    const result = await Filters.execute(req.params.playlistid, await Users.get(req.user.id));
+
+    // If false, something went wrong
+    if (result === false) {
+        return res.sendStatus(404);
+    }
+    // True means the playlist is already running
+    else if (result === true) {
+        return res.status(304).json({
+            status: "Playlist is already running",
+            log: await FilterLog.get(req.params.playlistid).changed()
+        });
+    } else {
+        return res.json(result);
+    }
+})
+
+/**
  *                      Updates a playlists' basic data
  * @param name          Name of the playlist
  * @param description   Description of the playlist
@@ -323,22 +345,32 @@ api.delete(`/playlist/:playlistid/included-tracks`, Users.verify_token, async (r
     res.sendStatus(200);
 })
 
-api.patch(`/playlist/:playlistid`, async (req, res) => {
-    const result = await Filters.execute(req.params.playlistid, await Users.get(req.user.id));
+api.get('/spclient-tokens', Users.verify_token, async (req, res) => {
+    const client = await Fetch.get('https://open.spotify.com/get_access_token');
 
-    // If false, something went wrong
-    if (result === false) {
-        return res.status(404);
+    if (client.status !== 200) {
+        res.status(client.status).json({status: "Spotify Error", error: client.statusText})
+        return LOG(`Failed getting spotify access token. Error ${client.status}: ${client.statusText}`);
     }
-    // True means the playlist is already running
-    else if (result === true) {
-        return res.status(304).json({
-            status: "Playlist is already running",
-            log: await FilterLog.get(req.params.playlistid).changed()
-        });
-    } else {
-        return res.json(result);
+
+    const client_token = await Fetch.post('https://clienttoken.spotify.com/v1/clienttoken', {
+        data: {"client_data":{"client_id": client.data.clientId,"js_sdk_data":{}}},
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Host': 'clienttoken.spotify.com',
+        }
+    })
+
+    if (client_token.status !== 200) {
+        res.status(client_token.status).json({status: "Spotify Error", error: client_token.statusText})
+        return LOG(`Failed getting spotify client token. Error ${client_token.status}: ${client_token.statusText}`);
     }
+
+    res.json({
+        client_token: client_token.data.granted_token.token,
+        authorization: client.data.accessToken,
+    })
 })
 
 export default api;
