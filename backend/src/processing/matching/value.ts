@@ -1,11 +1,9 @@
 
 const FilterValueOptions = {
-    "is": "The result must be equal to the value specified",
-    "is not": "The result must not be equal to the value specified",
-    "is at least": "The search must be equal or larger than the value specified",
-    "is at most": "The search must be equal or smaller than the value specified",
-    "is in the range": "The search must be larger than the first value and smaller than the second",
-    "is outside the range": "The search must be smaller than the first value and larger than the second",
+    "is": "The result must be equal to the given value",
+    "is not": "The result must not be equal to the given value",
+    "is at least": "The search must be equal or larger than the given value",
+    "is at most": "The search must be equal or smaller than the given value",
 }
 
 export class FilterValue {
@@ -20,7 +18,7 @@ export class FilterValue {
      * @returns         Whether the rule is matched
      */
     public static matches(operation: keyof typeof FilterValue.operation,
-                          filter: number | [number, number],
+                          filter: number,
                           input: number): boolean{
         switch (operation) {
             case "is":
@@ -30,16 +28,10 @@ export class FilterValue {
                 return filter != input;
 
             case "is at least":
-                return input >= (filter as number);
+                return input >= filter;
 
             case "is at most":
-                return input <= (filter as number);
-
-            case "is in the range":
-                return input >= (filter as any)[0] && input <= (filter as any)[1];
-
-            case "is outside the range":
-                return input < (filter as any)[0] && input > (filter as any)[1];
+                return input <= filter;
 
             default:
                 throw Error(`Illegal Condition operation "${operation}"`);

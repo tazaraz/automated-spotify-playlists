@@ -1,11 +1,11 @@
 
 const FilterStringOptions = {
-    "contains": "The search contains the value specified. You can specify multiple values by separating them with a ','",
-    "does not contain": "The search does not contain the value specified. You can specify multiple values by separating them with a ','",
-    "is": "The search must match the value specified specified",
-    "is not": "The search must not match the value specified",
-    "begins with": "The search must begin with the given value specified",
-    "ends with": "The search must end with the given value specified"
+    "contains": "Input contains the value specified. You can specify multiple values by separating them with a ','. The matching is case insensitive, and if the input contains multiple values (separated by a ',') only one of them has to fullfill the condition.",
+    "does not contain": "Input does not contain the value specified. You can specify multiple values by separating them with a ','. The matching is case insensitive.",
+    "is": "The input must exactly match the given value. Case insensitive",
+    "is not": "The input must not match the given value",
+    "begins with": "The input must begin with the given value",
+    "ends with": "The input must end with the given value"
 }
 
 export class FilterString {

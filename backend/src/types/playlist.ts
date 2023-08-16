@@ -34,7 +34,7 @@ export interface PlaylistCondition {
                 keyof typeof FilterString.operation |
                 keyof typeof FilterBoolean.operation;
     // Value entered by the user
-    value:      string | [string, string];
+    value:      string;
 }
 
 export interface PlaylistSource {

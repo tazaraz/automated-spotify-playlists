@@ -25,17 +25,17 @@ export class TrackFeatures {
     }
 
     static async Acoustic(items: FilterItem[],
-                      operation: keyof typeof FilterBoolean.operation,
-                      filter: boolean,
+                      operation: keyof typeof FilterSlider.operation,
+                      filter: number,
                       dry_run=false){
         if (dry_run) {
-            FilterBoolean.matches(operation, true)
+            FilterSlider.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, TrackFeatures.convert, async item => {
             // 0.8 I just made up
-            if (FilterBoolean.matches(operation, (await item.features()).acousticness >= 0.8))
+            if (FilterSlider.matches(operation, filter, (await item.features()).acousticness * 100))
                 return item;
         })
     }
@@ -71,17 +71,17 @@ export class TrackFeatures {
         })
     }
 
-    static async Vocals(items: FilterItem[],
-                              operation: keyof typeof FilterBoolean.operation,
-                              filter: boolean,
+    static async Vocality(items: FilterItem[],
+                              operation: keyof typeof FilterSlider.operation,
+                              filter: number,
                               dry_run=false){
         if (dry_run) {
-            FilterBoolean.matches(operation, true)
+            FilterSlider.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, TrackFeatures.convert, async item => {
-            if (FilterBoolean.matches(operation, (await item.features()).instrumentalness < 0.5))
+            if (FilterSlider.matches(operation, filter, (await item.features()).instrumentalness * 100))
                 return item;
         })
     }
@@ -102,16 +102,16 @@ export class TrackFeatures {
     }
 
     static async Live(items: FilterItem[],
-                      operation: keyof typeof FilterBoolean.operation,
-                      filter: boolean,
+                      operation: keyof typeof FilterSlider.operation,
+                      filter: number,
                       dry_run=false){
         if (dry_run) {
-            FilterBoolean.matches(operation, true)
+            FilterSlider.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, TrackFeatures.convert, async item => {;
-            if (FilterBoolean.matches(operation, (await item.features()).liveness >= 0.8))
+            if (FilterSlider.matches(operation, filter, (await item.features()).liveness * 100))
                 return item;
         })
     }

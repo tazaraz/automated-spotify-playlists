@@ -12,11 +12,8 @@ export class FilterDate {
      * @returns         Whether the rule is matched
      */
     public static matches(operation: keyof typeof FilterDate.operation,
-                          filter: string | [string, string],
+                          filter: string,
                           input: string): boolean{
-        if (typeof filter === "string")
-            return FilterValue.matches(operation, new Date(filter).getTime(), new Date(input).getTime());
-        else
-            return FilterValue.matches(operation, [new Date(filter[0]).getTime(), new Date(filter[1]).getTime()], new Date(input).getTime());
+        return FilterValue.matches(operation, new Date(filter).getTime(), new Date(input).getTime());
     }
 }
