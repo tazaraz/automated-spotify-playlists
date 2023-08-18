@@ -1,31 +1,35 @@
 <template>
     <article key="album" class="rounded-2 p-2 bg-dark-subtle flex-grow-1 overflow-hidden">
-        <SmallHeader :item="album"></SmallHeader>
+        <SmallHeader :item="user"></SmallHeader>
         <div class="h-100 pe-1 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
-            <Title v-if="!album">Loading album...</Title>
-            <Title v-else>{{ album.name }}</Title>
+            <Title v-if="!user">Loading user...</Title>
+            <Title v-else>{{ user.name }}</Title>
             <header class="p-4 pt-5 d-flex gap-4" data-main-class="normal-flex-row normal-align-items-stretch tiny-flex-column tiny-align-items-center">
-                <Image :src="album"/>
+                <Image :src="user" style="font-size: 300%;"/>
                 <div class="flex-fill d-flex flex-column text-white">
-                    <template v-if="!album">
+                    <template v-if="!user">
                         <span class="mt-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>
                         <div class="mt-5 mb-3">
+                            <span class="placeholder rounded-2" style="width: 10rem"></span>
+                            &nbsp;&nbsp;━&nbsp;&nbsp;
                             <span class="placeholder rounded-2" style="width: 5rem"></span>
                             &nbsp;&nbsp;━&nbsp;&nbsp;
-                            <span class="placeholder rounded-2" style="width: 10rem"></span>
+                            <span class="placeholder rounded-2" style="width: 5rem"></span>
                         </div>
                     </template>
                     <template v-else>
-                        <h1 class="mt-auto rounded-2">{{ album.name }}</h1>
-                        <div class="mt-4 mb-3">
-                            <span class="rounded-2">{{ new Date(album.release_date).getFullYear() }}</span>
+                        <h1 class="mt-auto rounded-2">{{ user.name }}</h1>
+                        <div class="d-flex mt-4 mb-3">
+                            <span>{{ playlists.length }} playlist{{ playlists.length == 1 ? '' : 's' }}</span>
                             &nbsp;&nbsp;━&nbsp;&nbsp;
-                            <span class="rounded-2">{{ album.total_tracks }} track{{ album.total_tracks == 1 ? '' : 's' }}</span>
+                            <span>{{ followers.length }} follower{{ followers.length == 1 ? '' : 's' }}</span>
+                            &nbsp;&nbsp;━&nbsp;&nbsp;
+                            <InfoField description="Spotify does not allow us to view this information">? following</InfoField>
                         </div>
                     </template>
                 </div>
             </header>
-            <h4 v-if="album && album.artists" class="text-white mt-3 ms-3 p-2 pb-0">Artist{{ album.artists.length == 1 ? 's' : '' }}</h4>
+            <!-- <h4 v-if="album && album.artists" class="text-white mt-3 ms-3 p-2 pb-0">Artist{{ album.artists.length == 1 ? 's' : '' }}</h4>
             <ol class="m-4 mt-0 d-flex nav row">
                 <li v-if="!album || !album.artists" class="col-12">
                     <span class="placeholder rounded-5 bg-light" style="width: 3rem; height: 3rem"></span>
@@ -83,94 +87,93 @@
                         <span class="ps-4 col-1" v-if="track.appearsIn.length > 0">{{ track.appearsIn.length }}</span>
                     </div>
                 </li>
-            </ol>
+            </ol> -->
         </div>
     </article>
 </template>
-
 <script lang="ts">
-import { Tooltip } from 'bootstrap';
+import { createError } from 'nuxt/app';
 import { Vue } from 'vue-property-decorator';
-import { CAlbum, CArtist, CTrack } from "~/../backend/src/types/client";
-import { Filters } from '~/../backend/src/types/filters';
 import BreadCrumbs from '~/stores/breadcrumbs';
+import FetchError from '~/stores/error';
 import Fetch from '~/stores/fetch';
-import Playlists, { CPlaylist } from '~/stores/playlists';
-import User from '~/stores/user';
+import { CPlaylist } from '~/stores/playlists';
 
-export default class InfoAlbum extends Vue {
-    breadcrumbs!: BreadCrumbs
-    playlists!: Playlists
+interface User {
+    id: string;
+    name: string;
+    image: string | [string, string];
+    url: string;
+}
 
-    album: CAlbum = null as any;
-    tracks: ({
-        appearsIn: CPlaylist[]
-    } & CTrack)[] = [];
+export default class InfoUser extends Vue {
+    breadcrumbs!: BreadCrumbs;
 
-    tooltipList: Tooltip[] = [];
-    Filters = Filters;
+    playlists: CPlaylist[] = [];
+    followers: User[] = [];
+    following: User[] = [];
+
+    user: User = null as any;
 
     async created() {
         if (!process.client) return;
         this.breadcrumbs = new BreadCrumbs();
-        this.playlists = new Playlists();
-        this.playlists.setUser(new User())
-        await this.playlists.loadUserPlaylists();
+    }
 
-        // Get the album and the image
-        const response = await Fetch.get<CAlbum>(`spotify:/albums/${this.$route.params.id}`);
+    async mounted() {
+        let response = await Fetch.get(`spotify:/users/${this.$route.params.id}`);
         if (response.status !== 200)
             throw createError({ statusCode: 404, message: response.statusText, fatal: true })
 
-        this.album = response.data;
-        this.album.image = Fetch.bestImage(this.album.images);
+        this.user = this.formatUser(response.data);
 
-        // Get the artists and their images
-        Fetch.get<CArtist[]>(`spotify:/artists`, { ids: this.album.artists!.map(artist => artist.id) })
-        .then(response => {
-            this.album!.artists = response.data;
-            this.album!.artists?.forEach(artist => artist.image = Fetch.bestImage(artist.images))
+        Fetch.get(`spotify:/users/${this.$route.params.id}/playlists`)
 
-            // Get the tracks
-            Fetch.get<CTrack[]>(`spotify:/albums/${this.$route.params.id}/tracks`, { pagination: true })
-            .then(response => {
-                response.data.forEach(async track => {
-                    this.tracks.push({
-                        ...track,
-                        // Get the playlists the track appears in
-                        appearsIn: await this.playlists.trackAppearsIn(track.id)
-                    });
-                })
-            })
+        // this.playlists = res[1].data.items.map((playlist: any) => new CPlaylist(playlist));
+
+        response = await Fetch.get('server:/spclient-tokens')
+
+        if (response.status != 200) {
+            return FetchError.create({ status: response.status, message: `Failed to get permission keys from Spotify to load the people who follow ${this.user.name}` })
+        }
+
+        Fetch.get(`https://spclient.wg.spotify.com/user-profile-view/v3/profile/${this.$route.params.id}/followers`, {
+            user: false,
+            headers: {
+                'accept': 'application/json',
+                'app-platform': 'WebPlayer',
+                'authorization': 'Bearer ' + response.data.authorization,
+                'client-token': response.data.client_token,
+                'spotify-app-version': '1.2.19.72.ge5768733',
+            }
         })
-
-        this.breadcrumbs.add(`/info/album/${this.album.id}`, this.album.name)
+        .then(result => {
+            console.log(result.data.profiles)
+            for (const user of result.data.profiles) {
+                this.followers.push(this.formatUser(user))
+            }
+        })
+        .catch(err => {
+            console.error(err)
+        })
     }
 
-    mounted() {
-        // Initialize the tooltips
-        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-        this.tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new this.$bootstrap.Tooltip(tooltipTriggerEl))
-    }
-
-    beforeUnmount() {
-        this.tooltipList.forEach(tooltip => tooltip.disable());
+    formatUser(user: any): User {
+        return {
+            id: user.id || user.uri?.replace('spotify:user:', ''),
+            name: user.display_name || user.name,
+            url: user.external_urls?.spotify || user.uri?.replace('spotify:user:', 'https://open.spotify.com/user/'),
+            image: user.image_url || user.images?.length > 0 ? Fetch.bestImage(user.images) : ['far', 'user']
+        }
     }
 }
 </script>
-
 <style lang="scss" scoped>
 .image {
+    box-shadow: 0 4px 60px rgba(0, 0, 0, .8);
     width: 230px;
     height: 230px;
-    box-shadow: 0 4px 60px rgba(0,0,0,.8);
-}
-a {
-    color: $gray-500;
-    &:hover {
-        color: $white;
-        text-decoration: underline;
-    }
+    border-radius: 100%;
 }
 
 @include media-breakpoint-down(lg) {

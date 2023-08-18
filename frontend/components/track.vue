@@ -13,8 +13,8 @@
                             </template>
                         </div>
                     </div>
-                    <div class="text-truncate flex-shrink-0" style="width: 40%;"  data-main-class="normal-d-block small-d-none" >
-                        <span class="placeholder rounded-1" :style="`width: ${randomBetween(2, 5)}rem`"></span>
+                    <div class="text-truncate flex-shrink-0" style="width: 40%;"  data-main-class="normal-d-block tiny-d-none" >
+                        <span class="placeholder rounded-1" :style="`width: ${randomBetween(3, 15)}rem`"></span>
                     </div>
                     <div class="text-truncate flex-shrink-0" style="width: 10%;">
                         <span class="placeholder rounded-1 ms-auto d-block" :style="`width: ${randomBetween(2, 3)}rem`"></span>
@@ -35,12 +35,11 @@
                             </template>
                         </div>
                     </div>
-                    <div class="flex-shrink-0 text-truncate" data-main-class="normal-d-block small-d-none" style="width: 40%;">
+                    <div class="flex-shrink-0 text-truncate" data-main-class="normal-d-block tiny-d-none" style="width: 40%;">
                         <url @click="follow" class="text-truncate d-inline-block text-body" :to="`/info/album/${track.album!.id}`">{{ track.album!.name }}</url>
                     </div>
                     <div class="flex-shrink-0" style="width: 10%;">{{ track.duration }}</div>
-                    <i v-if="deleteable" @click="$emit('delete', track)"><fa-icon style="color: rgb(155, 0, 0)"
-                            :icon="['fas', 'trash-can']"></fa-icon></i>
+                    <i v-if="deleteable" @click="$emit('delete', track)" data-bs-toggle="collapse" data-bs-target=""><fa-icon style="color: rgb(155, 0, 0)" :icon="['fas', 'trash-can']"></fa-icon></i>
                 </div>
             </button>
         </h2>
@@ -53,58 +52,50 @@
                         <url v-else :to="`/info/album/${track.album!.id}`" class="text-decoration-underline">{{
                             track.album!.name }}</url>
                     </div>
-                    <div class="mb-2 multilayer" data-main-class="normal-col-6 small-col-9">
+                    <div class="mb-2 multilayer" data-main-class="normal-col-6 tiny-col-9">
                         <span>Genres</span>
                         <span v-if="!track.features" class="placeholder rounded-1"></span>
                         <span v-else>{{ trackGenres }} </span>
                     </div>
-                    <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3" data-bs-toggle="tooltip"
-                         data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Track.BPM">
-                        <span>BPM</span>
+                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                        <InfoField :description="Filters.Track.BPM.description">BPM</InfoField>
                         <span v-if="!track.features" class="placeholder rounded-1"></span>
                         <span v-else>{{ Math.round(track.features.tempo) }}</span>
                     </div>
-                    <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3" data-bs-toggle="tooltip"
-                         data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Track.Popularity">
-                        <span>Popularity</span>
+                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                        <InfoField :description="Filters.Track.Popularity.description">Popularity</InfoField>
                         <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ track.popularity }}</span>
+                        <span v-else>{{ track.popularity / 10 }} / 10</span>
                     </div>
-                    <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3" data-bs-toggle="tooltip"
-                         data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Track.Danceability">
-                        <span>Danceability</span>
+                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                        <InfoField :description="Filters.Track.Danceability.description">Danceability</InfoField>
                         <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ Math.round(track.features.danceability * 100) }}%</span>
+                        <span v-else>{{ Math.round(track.features.danceability * 100) / 10 }} / 10</span>
                     </div>
-                    <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3" data-bs-toggle="tooltip"
-                         data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Track.Positivity">
-                        <span>Positivity</span>
+                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                        <InfoField :description="Filters.Track.Positivity.description">Positivity</InfoField>
                         <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ Math.round(track.features.valence * 100) }}%</span>
+                        <span v-else>{{ Math.round(track.features.valence * 100) / 10 }} / 10</span>
                     </div>
-                    <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3" data-bs-toggle="tooltip"
-                         data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Track.Energy">
-                        <span>Energy</span>
+                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                        <InfoField :description="Filters.Track.Energy.description">Energy</InfoField>
                         <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ Math.round(track.features.energy * 100) }}%</span>
+                        <span v-else>{{ Math.round(track.features.energy * 100) / 10 }} / 10</span>
                     </div>
-                    <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3" data-bs-toggle="tooltip"
-                         data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Track['is Acoustic']">
-                        <span>Acoustic</span>
+                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                        <InfoField :description="Filters.Track.Accousticness.description">Acoustic</InfoField>
                         <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ track.features.acousticness > 0.5 ? "Yes" : "No" }}</span>
+                        <span v-else>{{ Math.round(track.features.acousticness * 100) / 10 }} / 10</span>
                     </div>
-                    <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3" data-bs-toggle="tooltip"
-                         data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Track['has Vocals']">
-                        <span>Vocals</span>
+                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                        <InfoField :description="Filters.Track.Vocality.description">Vocals</InfoField>
                         <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ track.features.instrumentalness > 0.5 ? "No" : "Yes" }}</span>
+                        <span v-else>{{ Math.round(track.features.instrumentalness * 100) / 10 }} / 10</span>
                     </div>
-                    <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3" data-bs-toggle="tooltip"
-                         data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Track['is Live']">
-                        <span>Live</span>
+                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                        <InfoField :description="Filters.Track.Liveness.description">Live</InfoField>
                         <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ track.features.liveness > 0.8 ? "Yes" : "No" }}</span>
+                    <span v-else>{{ Math.round(track.features.liveness * 100) / 10 }} / 10</span>
                     </div>
                 </div>
             </div>
@@ -116,35 +107,28 @@
 import { Tooltip } from 'bootstrap';
 import { Emit, Prop, Vue } from 'vue-property-decorator';
 import { CArtist, CTrack, CTrackFeatures } from '~/../backend/src/types/client';
-import { FilterDescription } from '~/../backend/src/types/descriptions';
+import { Filters } from '~/../backend/src/types/filters';
 import Fetch from '~/stores/fetch';
 
 @Emit('delete')
 export default class Track extends Vue {
     @Prop({ required: false }) track!: CTrack;
     @Prop({ default: false }) placeholder!: boolean;
+    @Prop({ default: false }) deleteable!: boolean;
 
     expanded = false;
     trackGenres = '';
-    deleteable = false;
 
-    FilterDescription = FilterDescription;
-    tooltipList: Tooltip[] = [];
+    Filters = Filters;
 
     async getFeatures(state: boolean | undefined = undefined) {
         this.trackGenres = (await Fetch.get<CArtist>(`spotify:/artists/${this.track.artists![0].id}`)).data.genres.join(', ') || "No genres have been found";
 
         if (!this.track.features) {
             this.track.features = (await Fetch.get<CTrackFeatures>(`spotify:/audio-features/${this.track.id}`)).data;
-            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-            this.tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new this.$bootstrap.Tooltip(tooltipTriggerEl))
         }
 
         this.expanded = state ?? !this.expanded;
-    }
-
-    beforeUnmount() {
-        this.tooltipList.forEach(tooltip => tooltip.disable());
     }
 
     /**

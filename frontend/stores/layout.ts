@@ -10,8 +10,8 @@ import { Store, Pinia } from "pinia-class-component";
  *  - complex: It resizes the sidebar and edit view
  *
  * I'll explain the complex one. Below there are 3 variables/views: main, sidebar and edit. These dictate the
- * breakpoints for each possible view. For example, if the sidebar is smaller than edit.small.max, the sidebar
- * should be small, otherwise it will be something else .
+ * breakpoints for each possible view. For example, if the sidebar is smaller than edit.tiny.max, the sidebar
+ * should be tiny, otherwise it will be something else .
  *
  * These breakpoints, recognizable by the 'CSS.' in the comments are used to set the state of these views using a
  * custom attribute containing the name of the view. Through this you can add a breakpoint using a simple syntax.
@@ -19,9 +19,10 @@ import { Store, Pinia } from "pinia-class-component";
  * Here 'view' refers to main, sidebar, or edit. 'CSS' refers to a breakpoint with a comment containing 'CSS.'
  * Syntax: <Element data-(view)-class="(CSS)-(classname)"></Element>
  *
- * Example: <Element data-sidebar-class="small-d-flex normal-d-none"></Element>
- * Will be when small: <Element class="d-flex" data-sidebar-class="small-d-flex normal-d-none"></Element>
- * Will be when normal: <Element class="d-none" data-sidebar-class="small-d-flex normal-d-none"></Element>
+ * Example: <Element data-sidebar-class="tiny-d-flex normal-d-none"></Element>
+ * Will be when tiny: <Element class="d-flex" data-sidebar-class="tiny-d-flex normal-d-none"></Element>
+ * Will be when normal: <Element class="d-none" data-sidebar-class="tiny-d-flex normal-d-none"></Element>
+ * Will be when large: <Element class="" data-sidebar-class="tiny-d-flex normal-d-none"></Element>
  */
 
 @Store
@@ -51,12 +52,16 @@ export default class Layout extends Pinia {
      * Attibute: data-main-class=""
     */
     main = {
+        /** Current state */
+        state: 'normal',
         /** The allowed size of the main view */
         size: { min: 460 },
         /** CSS. When the main view should try to be small */
-        small: { max: 40*16 },
-        /** CSS. If small is false this will be true */
-        normal: {},
+        tiny: { max: 40*16 },
+        /** CSS. If in between this range */
+        normal: { min: 40*16, max: 52*16 },
+        /** CSS. If neither of the above are true */
+        large: {}
     }
 
     /** Dictates the behavior of the sidebar container.
@@ -67,12 +72,14 @@ export default class Layout extends Pinia {
         user: 340,
         /** Actual width */
         width: 340,
+        /** Current state */
+        state: 'normal',
         /** Allowed size of the sidebar */
         size: { min: 6.5*16, max: 22*16 },
         /** Whether the sidebar view is being resized */
         dragging: false,
         /** CSS. Handle between these values, the sidebar should be small */
-        small: { min: 0, max: 17*16 },
+        tiny: { min: 0, max: 17*16 },
         /** CSS. Handle over this value, the sidebar should be normal */
         normal: { min: 17*16 },
     }
@@ -85,18 +92,22 @@ export default class Layout extends Pinia {
         user: 0,
         /** Actual width. 0 meaning it will be calculated upon opening */
         width: 0,
+        /** Current state */
+        state: 'normal',
         /** Whether the edit view is being resized */
         dragging: false,
+        /** Allowed size of the edit view */
         size: { min: 5*16 },
-
         /** CSS. Handle less than this, edit view should be full */
         full: { min: this.main.size.min },
-        /* CSS. Activated if not full or small and at least min. */
-        large: { min: 32*16 },
-        /* CSS. Activated if not full, large or small. */
-        normal: {},
+        /* CSS. */
+        large: { min: 50*16 },
+        /* CSS. */
+        normal: { min: 35*16 },
+        /* CSS. */
+        small: { },
         /** CSS. Seen from the right side. 0 meaning most right possible */
-        small: { min: 0, max: 23*16 },
+        tiny: { min: 0, max: 27*16 },
     }
 
     updateConfig({app, nextTick, playlistEditing}: {
@@ -113,10 +124,10 @@ export default class Layout extends Pinia {
         this.playlistEditing = playlistEditing ?? this.playlistEditing;
     }
 
-    async resize(user: TouchEvent | MouseEvent | number | null = null, force = false) {
+    async render(user: TouchEvent | MouseEvent | number | null = null, force = false) {
         /** If we are on mobile */
         if (window.innerWidth <= this.app.mobile) {
-            this.setGrid({ sidebarWidth: 0, editWidth: 0 })
+            this.setMobile();
         } else if (this.sidebar.dragging || this.edit.dragging || force) {
             await this.nextTick();
             let clientX: number | null = null;
@@ -128,7 +139,6 @@ export default class Layout extends Pinia {
                     clientX = ((user as any).touches ? (user as any).touches[0] : user).clientX;
                 } else {
                     clientX = user as number;
-                    user = null;
                 }
             }
 
@@ -138,7 +148,7 @@ export default class Layout extends Pinia {
             window.getSelection()?.removeAllRanges();
 
             /** Update the classes associated with the main view */
-            this.resizeMain(this.mainElement.clientWidth)
+            this.resizeMain(this.mainElement.clientWidth, force)
 
             /** If editing, check if we need to resize */
             if (this.playlistEditing) {
@@ -149,11 +159,22 @@ export default class Layout extends Pinia {
                     force
                 );
             } else {
-                /** Not editing, disable the edit view and wait for the DOM to update */
+                await this.resizeEdit(
+                    clientX ?? this.edit.user,
+                    this.mainElement.clientWidth,
+                    user != null,
+                    force
+                );
+                await this.nextTick();
+                /** Not editing, hide the edit view and wait for the DOM to update */
                 this.setGrid({ editWidth: 0 })
             }
 
             await this.nextTick();
+
+            if (this.sidebar.width == 0) {
+                this.sidebar.width = this.sidebar.user;
+            }
 
             /** Update the sidebar */
             this.resizeSidebar(
@@ -184,11 +205,11 @@ export default class Layout extends Pinia {
         } else {
             /** If the edit view is already open */
             if (this.edit.width > this.edit.size.min) return;
-            handle = this.app.width - this.edit.small.max - this.app.padding;
+            handle = this.app.width - this.edit.tiny.max - this.app.padding;
         }
 
         this.setDragging('edit', true);
-        this.resize(handle);
+        this.render(handle, true);
         this.setDragging('edit', false);
     }
 
@@ -196,20 +217,36 @@ export default class Layout extends Pinia {
      * Updates the main view and the data-main-class attribute
      * @param main The width of the main
      */
-    private resizeMain(main: number) {
-        const small = main <= this.main.small.max;
-        // console.log(`small: ${small}, main: ${main}`)
+    private resizeMain(main: number, force: boolean) {
+        const tiny   = main <= this.main.tiny.max;
+        const normal = main >= this.main.normal.min && main <= this.main.normal.max;
+        const large  = main > this.main.normal.max;
+        // console.log(`tiny: ${tiny}, main: ${main}`)
 
-        /** Query all elements that have a data-main-class attribute */
-        this.mainQueryList = document.querySelectorAll("[data-main-class]")
+        /** If the main view is already the correct size */
+        if ((tiny && this.main.state != 'tiny') ||
+            (normal && this.main.state != 'normal') ||
+            (large && this.main.state != 'large') ||
+            force) {
 
-        /** Update all CSS classes */
-        for (const element of this.mainQueryList) {
-            // Get the classes
-            const classes = element.getAttribute("data-main-class")?.split(" ") ?? [];
-            /** Remove all attribute classes */
-            this.clearClasses(element, classes, ['small', 'normal'])
-            this.addClasses(element, classes, small ? 'small' : 'normal')
+            this.main.state = tiny ? 'tiny' : normal ? 'normal' : 'large';
+
+            /** Query all elements that have a data-main-class attribute */
+            this.mainQueryList = document.querySelectorAll("[data-main-class]")
+
+            /** Update all CSS classes */
+            for (const element of this.mainQueryList) {
+                // Get the classes
+                const classes = element.getAttribute("data-main-class")?.split(" ") ?? [];
+                /** Remove all attribute classes */
+                this.clearClasses(element, classes, ['tiny', 'normal', 'large'])
+
+                switch (true) {
+                    case tiny:   this.addClasses(element, classes, 'tiny'); break;
+                    case normal: this.addClasses(element, classes, 'normal'); break;
+                    case large:  this.addClasses(element, classes, 'large'); break;
+                }
+            }
         }
     }
 
@@ -220,28 +257,28 @@ export default class Layout extends Pinia {
      * @param user Whether the user is resizing the sidebar
      * @param force Whether to force the resize, even if the user is not resizing
      */
-    private resizeSidebar(handle: number, main: number, user: boolean, force: boolean = false) {
+    private resizeSidebar(handle: number, main: number, user: boolean, force: boolean) {
         if (!this.sidebar.dragging && !force) return;
 
         /** Amount of space the sidebar has to grow (or shrink) */
         const grow_space = main - this.main.size.min;
         /** The size we would like the sidebar to be */
         const max_size = this.sidebar.width + grow_space;
-        /** Whether or not the sidebar should be small:
-         * If the handle is between the sidebar.small.min and sidebar.small.max,
+        /** Whether or not the sidebar should be tiny:
+         * If the handle is between the sidebar.tiny.min and sidebar.tiny.max,
          * or if the max_size is less than the sidebar.normal.min
          */
-        const small = (this.sidebar.small.min <= handle && handle <= this.sidebar.small.max) ||
+        const tiny = (this.sidebar.tiny.min <= handle && handle <= this.sidebar.tiny.max) ||
                       max_size <= this.sidebar.normal.min;
 
-        /** If the small sidebar would not result in the main view being large again, dont be small */
+        /** If the tiny sidebar would not result in the main view being large again, dont be tiny */
         if (!user &&
             max_size <= this.sidebar.normal.min &&
             (main + (this.sidebar.width - this.sidebar.size.min) <= this.main.size.min))
             return
 
-        // console.log(`resizeSidebar, handle: ${handle}, main: ${main}, user: ${user}, force: ${force}, small: ${small}, size: ${size}, this.sidebar.width: ${this.sidebar.width}, grow_space: ${grow_space}`)
-        if (small) {
+        // console.log(`resizeSidebar, handle: ${handle}, main: ${main}, user: ${user}, force: ${force}, tiny: ${tiny}, size: ${size}, this.sidebar.width: ${this.sidebar.width}, grow_space: ${grow_space}`)
+        if (tiny) {
             this.setGrid({ sidebarWidth: this.sidebar.size.min })
         } else {
             this.setGrid({ sidebarWidth: Math.min(handle - 1.25*16, max_size, this.sidebar.size.max) })
@@ -250,19 +287,28 @@ export default class Layout extends Pinia {
         /** Only save if the user make changes */
         if (user) this.sidebar.user = handle;
 
-        /** Query all elements that have a data-sidebar-class attribute */
-        this.sidebarQueryList = document.querySelectorAll("[data-sidebar-class]")
+        /** If the sidebar is not the correct size */
+        if ((tiny && this.sidebar.state != 'tiny') ||
+            (!tiny && this.sidebar.state != 'normal') ||
+            force) {
+            // Save the current state
+            this.sidebar.state = tiny ? 'tiny' : 'normal';
 
-        /** Update all CSS classes */
-        for (const element of this.sidebarQueryList) {
-            // Get the classes
-            const classes = element.getAttribute("data-sidebar-class")?.split(" ") ?? [];
-            /** Remove all attribute classes */
-            this.clearClasses(element, classes, ['small', 'normal'])
-            this.addClasses(element, classes, small ? 'small' : 'normal')
+            /** Query all elements that have a data-sidebar-class attribute */
+            this.sidebarQueryList = document.querySelectorAll("[data-sidebar-class]")
+
+            /** Update all CSS classes */
+            for (const element of this.sidebarQueryList) {
+                // Get the classes
+                const classes = element.getAttribute("data-sidebar-class")?.split(" ") ?? [];
+                /** Remove all attribute classes */
+                this.clearClasses(element, classes, ['tiny', 'normal'])
+                this.addClasses(element, classes, tiny ? 'tiny' : 'normal')
+            }
         }
 
-        this.resizeEdit(handle, main, user, false, true)
+        if (this.playlistEditing)
+            this.resizeEdit(handle, main, user, false, true)
     }
 
     /**
@@ -284,13 +330,13 @@ export default class Layout extends Pinia {
         let handleOffsetLeft = handle - this.sidebar.width - 1.25*16 - this.app.handle_size
 
         /** Get the available space between the minimum info view and edit view size */
-        let freeSpace = main - this.main.size.min - this.edit.small.max + this.edit.width;
+        let freeSpace = main - this.main.size.min - this.edit.tiny.max + this.edit.width;
 
         /** The user has never opened the edit view yet */
         if (this.edit.user == 0) {
             /** If there is some space, set the separator at 66% for the info view and 33% for the edit view */
             handleOffsetLeft = this.main.size.min + freeSpace * 0.66;
-            handleOffsetRight = this.edit.small.max + freeSpace * 0.33;
+            handleOffsetRight = this.edit.tiny.max + freeSpace * 0.33;
 
             /** Save the new position */
             handle = handleMax - handleOffsetRight + this.app.handle_size;
@@ -299,53 +345,113 @@ export default class Layout extends Pinia {
         }
 
         /** If there is not enough space left for the info view,
-         *  or we are opening the edit window and there is not enough space for both */
-        const full   = handleOffsetLeft < this.main.size.min;
-        /** If enough space for the info view and not crossing the minimum size for the edit window */
-        const normal = this.main.size.min <= handleOffsetLeft && handleOffsetRight >= this.edit.small.max;
-        /** If the window should be clipped small  */
-        const small  = handleOffsetRight < this.edit.small.max;
+         *  AND not mobile
+         */
+        let full   = handleOffsetLeft < this.main.size.min && this.appElement.clientWidth > this.app.mobile && this.playlistEditing;
+        /** If enough space for the info view and not crossing the minimum size for the edit window,
+         *  OR mobile
+         */
+        let normal = (this.main.size.min <= handleOffsetLeft && handleOffsetRight >= this.edit.tiny.max) ||
+                        this.appElement.clientWidth <= this.app.mobile;
+        /** If the window should be clipped tiny  */
+        let tiny  = handleOffsetRight < this.edit.tiny.max && !recursed;
 
-        // console.log(`editResize, editWidth: ${this.edit.width}, userWidth: ${this.edit.user}, view: ${view}, handle: ${handle}, sidebar: ${this.sidebar.width}, handleOffsetLeft: ${handleOffsetLeft}, handleOffsetRight: ${handleOffsetRight}, full: ${full}, normal: ${normal}, small: ${small}`)
+
+        // console.log(`editResize, editWidth: ${this.edit.width}, userWidth: ${this.edit.user}, main: ${main}, handle: ${handle}, sidebar: ${this.sidebar.width}, handleOffsetLeft: ${handleOffsetLeft}, handleOffsetRight: ${handleOffsetRight}, full: ${full}, large: ${large}, normal: ${normal}, tiny: ${tiny}`)
 
         /** Prefer both views to be normal */
         if (normal)     this.setGrid({ editWidth: handleOffsetRight })
-        /** Otherwise the edit view should be large */
         else if (full)  this.setGrid({ editWidth: handleMax - this.edit.size.min - this.sidebar.width - this.app.padding })
-        else if (small) this.setGrid({ editWidth: this.edit.size.min })
+        else if (tiny) this.setGrid({ editWidth: this.edit.size.min })
 
-        const large  = this.edit.width >= this.edit.large.min;
+        let large  = this.edit.width >= this.edit.large.min;
+            normal = this.edit.width >= this.edit.normal.min;
+        let small  = this.edit.width >= this.edit.tiny.max && this.edit.width < this.edit.normal.min;
 
         /** Only save if the user make changes */
         if (user) this.edit.user = handle;
 
+
         /** Query all elements that have a data-edit-class attribute */
         this.editQueryList = document.querySelectorAll("[data-edit-class]")
+
+        if ((tiny && this.edit.state != 'tiny') ||
+            (small && this.edit.state != 'small') ||
+            (normal && this.edit.state != 'normal') ||
+            (large && this.edit.state != 'large') ||
+            (full && this.edit.state != 'full') ||
+            force) {
+            // Save the current state
+            this.edit.state = tiny ? 'tiny' : full ? 'full' : large ? 'large' : normal ? 'normal' : 'small';
+
+            for (const element of this.editQueryList) {
+                // Get the classes
+                const classes = element.getAttribute("data-edit-class")?.split(" ") ?? [];
+
+                /** Remove all attribute classes */
+                this.clearClasses(element, classes, ['tiny', 'small', 'normal', 'large', 'full'])
+                /** Try to set the 'tiny' or 'full class'. If this does not do anything, we apply the
+                 * 'small', 'normal' or 'large' class none the less.
+                 */
+                if ((tiny && this.addClasses(element, classes, 'tiny')) ||
+                    (full && this.addClasses(element, classes, 'full'))) {
+                    continue;
+                }
+
+                switch (true) {
+                    case large:  this.addClasses(element, classes, 'large'); break;
+                    case normal: this.addClasses(element, classes, 'normal'); break;
+                    default:     this.addClasses(element, classes, 'small'); break;
+                }
+            }
+        }
+
+        /** If we both need to be tiny and full, we do not have enough space for both items.
+         * Try to minimize the sidebar. If there is not enough space for the main view to grow even after the sidebar
+         * would have shrunk, the sidebar itself will not minimize. This will cause an inifinte loop, hence we check
+         * for recursion */
+        if (tiny && full && !recursed) {
+            await this.nextTick();
+            this.resizeSidebar(handle, this.mainElement.clientWidth, false, true);
+            await this.nextTick();
+            this.resizeEdit(handle, this.mainElement.clientWidth, false, true, true);
+        }
+    }
+
+    async setMobile() {
+        this.setGrid({ sidebarWidth: 0, editWidth: -1 })
+        await this.nextTick();
+        this.resizeMain(this.mainElement.clientWidth, true);
+
+        this.sidebarQueryList = document.querySelectorAll("[data-sidebar-class]")
+        /** Update all CSS classes */
+        for (const element of this.sidebarQueryList) {
+            // Get the classes
+            const classes = element.getAttribute("data-sidebar-class")?.split(" ") ?? [];
+            /** Remove all attribute classes */
+            this.clearClasses(element, classes, ['tiny', 'normal'])
+            this.addClasses(element, classes, 'normal')
+        }
+
+        /** Query all elements that have a data-edit-class attribute */
+        this.editQueryList = document.querySelectorAll("[data-edit-class]")
+
+        let large  = this.mainElement.clientWidth >= this.edit.large.min;
+        let normal = this.mainElement.clientWidth >= this.edit.normal.min;
+        let small  = this.mainElement.clientWidth >= this.edit.tiny.max;
 
         for (const element of this.editQueryList) {
             // Get the classes
             const classes = element.getAttribute("data-edit-class")?.split(" ") ?? [];
 
             /** Remove all attribute classes */
-            this.clearClasses(element, classes, ['small', 'normal', 'large', 'full'])
-            /** Add the correct class */
+            this.clearClasses(element, classes, ['tiny', 'small', 'normal', 'large', 'full'])
+
             switch (true) {
-                case full:   this.addClasses(element, classes, 'full'); break;
                 case large:  this.addClasses(element, classes, 'large'); break;
                 case normal: this.addClasses(element, classes, 'normal'); break;
-                case small:  this.addClasses(element, classes, 'small'); break;
+                default:  this.addClasses(element, classes, 'small'); break;
             }
-        }
-
-        /** If we both need to be small and full, we do not have enough space for both items.
-         * Try to minimize the sidebar. If there is not enough space for the main view to grow even after the sidebar
-         * would have shrunk, the sidebar itself will not minimize. This will cause an inifinte loop, hence we check
-         * for recursion */
-        if (small && full && !recursed) {
-            await this.nextTick();
-            this.resizeSidebar(handle, this.mainElement.clientWidth, false, true);
-            await this.nextTick();
-            this.resizeEdit(handle, this.mainElement.clientWidth, false, true, true);
         }
     }
 
@@ -354,16 +460,17 @@ export default class Layout extends Pinia {
      * @param sidebarWidth Width of the newly set sidebar
      * @param editWidth
      */
-    private async setGrid({sidebarWidth, editWidth}: {sidebarWidth?: number, editWidth?: number}) {
+    private setGrid({sidebarWidth, editWidth}: {sidebarWidth?: number, editWidth?: number}) {
         const ssave = sidebarWidth != undefined, esave = editWidth != undefined;
 
         // Update the sidebar width. If undefined, use the current width
         sidebarWidth = sidebarWidth ?? this.sidebar.width;
-        let sidebar = sidebarWidth > 0 ? `${sidebarWidth/16}rem ${this.app.handle_size}px` : '';
+        let sidebar  = sidebarWidth > 0 ? `${sidebarWidth/16}rem ${this.app.handle_size}px` : '';
 
         // Update the edit width. If undefined, use the current width
         editWidth = editWidth ?? (this.playlistEditing ? this.edit.width : 0);
-        let edit = editWidth > 0 ? `${this.app.handle_size}px ${editWidth/16}rem` : '0 0';
+        let edit  = editWidth > 0 ? `${this.app.handle_size}px ${editWidth/16}rem` : '0 0';
+            edit  = editWidth == -1 ? '' : edit
 
         // Save the width if it wasn't undefined
         if (ssave) this.sidebar.width = sidebarWidth;
@@ -394,10 +501,14 @@ export default class Layout extends Pinia {
      * @param prefix The prefix indicating which classes should be added
      */
     private addClasses(element: Element, classes: string[], prefix: string) {
+        let added = false;
         classes.forEach(class_ => {
             if (class_.includes(prefix)) {
                 element.classList.add(class_.replace(`${prefix}-`, ''));
+                added = true;
             }
         })
+
+        return added;
     }
 }

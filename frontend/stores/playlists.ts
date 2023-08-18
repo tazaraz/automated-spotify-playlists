@@ -3,12 +3,15 @@ import { Store, Pinia } from "pinia-class-component";
 import User from "./user";
 import Fetch from "./fetch";
 import { CTrack, CArtist, CPlaylist } from "~/../backend/src/types/client";
+import FetchError from "./error";
 
 export type { CPlaylist };
 
-export interface EditingPlaylist extends CPlaylist {
+export interface LoadedPlaylist extends CPlaylist {
     index: number;
+    ownership: "user" | "following" | "none";
 
+    all_tracks: CTrack[];
     matched_tracks: CTrack[];
     included_tracks: CTrack[];
     excluded_tracks: CTrack[];
@@ -21,17 +24,18 @@ export default class Playlists extends Pinia {
     /** Contains all the playlists from the user */
     storage!: CPlaylist[];
     /** The playlist which is currently in view. Different functionality from the editing variable */
-    loaded!: CPlaylist;
+    loaded!: LoadedPlaylist;
     /** The smart playlist the user is currently editing */
-    editing!: EditingPlaylist;
+    editing!: LoadedPlaylist;
     /** If the user already has a smart playlist which is not yet pushed. Stored here for components to access */
     unpublished: CPlaylist | null = null;
 
     // If there are any smart playlists
     hasSmartPlaylists: boolean = false;
 
+    private loadingUserPlaylists: boolean | Promise<any> = false;
     // Whether all the playlist have their track ids loaded
-    private loadedPlaylistsTrackIds: boolean | Promise<any> = false;
+    private loadingPlaylistsTrackIds: boolean | Promise<any> = false;
     // What playlist is currently being loaded
     private loadingPlaylistID: string = "";
 
@@ -43,93 +47,78 @@ export default class Playlists extends Pinia {
      * Loads all the playlists the user has
      */
     async loadUserPlaylists(){
+        await this.loadingUserPlaylists;
+
         if (this.storage !== undefined)
-            return;
+            return true;
 
-        let playlists: CPlaylist[] = [];
+        this.loadingUserPlaylists = new Promise(async resolve => {
+            let playlists: CPlaylist[] = [];
+            this.storage = [];
 
-        // Get the user playlists from Spotify
-        (await Fetch.get<any[]>('spotify:/me/playlists', {pagination: true}))
-        .data.forEach(playlist => {
-            playlists.push({
-                id:         playlist.id,
-                user_id:    playlist.owner.id,
-                name:       playlist.name,
-                description: playlist.description,
-                image:      Fetch.bestArtwork(playlist.images),
-                owner:      { id: playlist.owner.id, display_name: playlist.owner.display_name },
-            } as CPlaylist)
-        });
-
-        // Get smart playlists
-        const smart = (await Fetch.get<CPlaylist[]>('server:/playlists')).data;
-        if (smart.length > 0) this.hasSmartPlaylists = true;
-
-        /**Overwrite the playlists with the smart playlists
-         * NOTE: Not all playlists are actually smart playlists, but for typing we treat them as if
-         *       Hence we check everywhere there is a distinction */
-        this.storage = playlists.map(playlist => {
-            const smartPlaylist = smart.find(smart => smart.id === playlist.id);
-            if (smartPlaylist) {
-                // Set some basic stuff
-                smartPlaylist.image = playlist.image;
-                smartPlaylist.owner = playlist.owner;
+            // Get the user playlists from Spotify
+            const res_p = await Fetch.get<any[]>('spotify:/me/playlists', {pagination: true});
+            if (res_p.status !== 200) {
+                FetchError.create({ status: res_p.status, message: "Asked Spotify too often for your (or someone else's) playlists. The playlists will be loaded once Spotify again allows the request. Please wait a little to before reloading the page.", duration: 0 });
+                return resolve(false);
             }
-            return smartPlaylist || playlist;
-        });
-    }
 
-    /**
-     * Returns the playlists in which the track appears
-     * @Param trackId The id of the track
-     */
-    async trackAppearsIn(trackId: string){
-        if (!this.loadedPlaylistsTrackIds) {
-            // Try to get all the track ids for each playlist
-            this.loadedPlaylistsTrackIds = Promise.all(this.storage.map(async playlist => {
-                // If the playlist is not a smart playlist, we need to load the track ids
-                if (playlist.filters === undefined) {
-                    const tracks = (await Fetch.get<any[]>(`spotify:/playlists/${playlist.id}/tracks`, {pagination: true})).data;
-                    playlist.matched_tracks = tracks.map(track => track.id);
+            res_p.data.forEach(playlist => {
+                playlists.push({
+                    id:         playlist.id,
+                    user_id:    playlist.owner.id,
+                    name:       playlist.name,
+                    description: playlist.description,
+                    image:      Fetch.bestImage(playlist.images),
+                    owner:      { id: playlist.owner.id, display_name: playlist.owner.display_name },
+                } as CPlaylist)
+            });
+
+            // Get smart playlists
+            const res_s = await Fetch.get<CPlaylist[]>('server:/playlists');
+            if (res_s.status !== 200) {
+                FetchError.create({ status: res_s.status, message: 'The server did not respond accordingly when retrieving your smart playlists' });
+                return resolve(false);
+            }
+
+            if (res_s.data.length > 0) this.hasSmartPlaylists = true;
+
+            /**Overwrite the playlists with the smart playlists
+             * NOTE: Not all playlists are actually smart playlists, but for typing we treat them as if
+             *       Hence we check everywhere there is a distinction */
+            this.storage = playlists.map(playlist => {
+                const smartPlaylist = res_s.data.find(smart => smart.id === playlist.id);
+                if (smartPlaylist) {
+                    // Set some basic stuff
+                    smartPlaylist.image = playlist.image;
+                    smartPlaylist.owner = playlist.owner;
                 }
-            }))
+                return smartPlaylist || playlist;
+            });
 
-            // Wait to complete
-            await this.loadedPlaylistsTrackIds;
-            this.loadedPlaylistsTrackIds = true;
-        }
-
-        // Wait for the track ids to be loaded
-        await this.loadedPlaylistsTrackIds;
-
-        // Return the playlists in which the track appears
-        return this.storage.filter(playlist => {
-            if (playlist.matched_tracks.find(t => t === trackId) ||
-                playlist.included_tracks?.find(t => t === trackId)) {
-                return playlist;
-            }
+            resolve({ status: 200 });
         })
+
+        return await this.loadingUserPlaylists;
     }
 
     /**
-     * Saves the old editingPlaylist and loads the requested playlist and sets it as the editingPlaylist
+     * Loads the requested playlist and sets it as the editingPlaylist
      * @param id ID of the playlist to load
      */
     async loadEditingPlaylist(id: string){
-        // As we are probably loading another playlist, first save the old one
-        if (this.editing !== undefined)
-            this.storage[this.editing.index] = this.convertToCPlaylist(this.editing)
-
         // Load the playlist
-        const status = await this.loadUserPlaylistByID(id);
-        if (!this.loaded || !status) return false;
+        const playlist = this.storage.find(p => p.id === id);
+        if (!playlist) return false;
 
-        const tracks = await this.loadPlaylistTracks(this.loaded);
+        const tracks = await this.loadPlaylistTracks(playlist);
 
-        // Set the editing this.loaded
+        // Set the editing playlist
         this.editing = {
-            ...this.loaded,
+            ...playlist,
             index: this.storage.findIndex(p => p.id === id),
+            ownership: this.playlistOwnership(playlist),
+            all_tracks: tracks.all,
             matched_tracks: tracks.matched,
             included_tracks: tracks.included,
             excluded_tracks: tracks.excluded,
@@ -149,18 +138,19 @@ export default class Playlists extends Pinia {
             name: "Library",
             image: "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png",
             index: -1,
+            ownership: "user",
             owner: { id: this.user.info!.id, display_name: this.user.info!.name },
-        } as any as CPlaylist;
+        } as any as LoadedPlaylist;
 
         // Load the library tracks
-        const matched_tracks: CTrack[] = [];
+        const all_tracks: CTrack[] = [];
         (await Fetch.get(`spotify:/me/tracks`, {pagination: true})).data
         .forEach((track: any) => {
-            matched_tracks.push(this.convertToCTrack(track))
+            all_tracks.push(this.convertToCTrack(track))
         })
 
         // We load the rest of the content later
-        this.loaded.matched_tracks = matched_tracks as any;
+        this.loaded.all_tracks = all_tracks as any;
     }
 
     /**
@@ -182,8 +172,9 @@ export default class Playlists extends Pinia {
         this.loaded = {
             ...this.copy(this.storage[index]),
             index: index,
+            ownership: this.playlistOwnership(this.storage[index]),
             owner: { id: this.storage[index].owner.id, display_name: this.storage[index].owner.display_name }
-        } as any as CPlaylist
+        } as any as LoadedPlaylist
 
         // Ensure the playlist exists
         index = Math.max(0, Math.min(index, this.storage.length - 1));
@@ -198,11 +189,13 @@ export default class Playlists extends Pinia {
         this.loaded = {
             ...this.copy(this.storage[index]),
             index: index,
+            ownership: this.loaded.ownership,
+            all_tracks: tracks.all,
             matched_tracks: tracks.matched,
             excluded_tracks: tracks.excluded,
             included_tracks: tracks.included,
             owner: { id: this.storage[index].owner.id, display_name: this.storage[index].owner.display_name }
-        } as any as CPlaylist;
+        } as any as LoadedPlaylist;
 
         return true;
     }
@@ -213,19 +206,20 @@ export default class Playlists extends Pinia {
      * @param url Url from which to receive tracks
      * @param playlist Optional smart playlist to sort the tracks into matched, excluded and included
      */
-    async loadPlaylistTracks(playlist: CPlaylist){
+    async loadPlaylistTracks(playlist: CPlaylist) {
+        let all: CTrack[] = [];
         let matched: CTrack[] = [];
         let included: CTrack[] = []
         let excluded: CTrack[] = [];
 
         if (playlist.id === "unpublished")
-            return { matched, included, excluded };
+            return { all, matched, included, excluded };
 
         // Get the matched (and included as spotify does not know the difference) tracks from spotify
         const url = `/playlists/${playlist.id}/tracks`;
         (await Fetch.get(`spotify:${url}`, {pagination: true})).data
         .forEach((track: any) => {
-            matched.push(this.convertToCTrack(track))
+            all.push(this.convertToCTrack(track))
         })
 
         // Get the excluded tracks from spotify
@@ -236,13 +230,13 @@ export default class Playlists extends Pinia {
             })
 
             // Get the included tracks from the matched tracks retrieved from spotify
-            included = matched.filter(mt => playlist.included_tracks.includes(mt.id));
+            included = all.filter(mt => playlist.included_tracks.includes(mt.id));
 
             // Remove the excluded and included tracks from the matched tracks
-            matched = matched.filter(mt => !included.some(st => st.id === mt.id))
+            matched = all.filter(mt => playlist.matched_tracks.includes(mt.id));
         }
 
-        return { matched, excluded, included }
+        return { all, matched, excluded, included }
     }
 
     /**
@@ -264,6 +258,7 @@ export default class Playlists extends Pinia {
                 mode: "all",
                 filters: []
             },
+            all_tracks: [],
             matched_tracks: [],
             excluded_tracks: [],
             included_tracks: [],
@@ -277,36 +272,38 @@ export default class Playlists extends Pinia {
     }
 
     /**
-     * Moves a track from excluded_tracks to matched_tracks
+     * Moves a track from matched_tracks to excluded_tracks
      * @param track Track to move
      */
     removeMatched(track: CTrack){
         // Remove the tracks from the from the origin
-        this.editing.excluded_tracks = this.editing.excluded_tracks.filter(t => t.id !== track.id)
+        this.loaded.matched_tracks = this.loaded.matched_tracks.filter(t => t.id !== track.id);
+        this.loaded.all_tracks     = this.loaded.all_tracks.filter(t => t.id !== track.id);
 
         // Add the tracks to the destination
-        this.editing.matched_tracks.push(track);
-        this.editing.matched_tracks.sort();
+        this.loaded.excluded_tracks = this.loaded.excluded_tracks.concat(track);
+        this.loaded.excluded_tracks.sort();
 
         // Let the server know the change
-        this.removeTracks(this.editing, 'matched', [track.id])
+        this.removeTracks(this.loaded, 'matched', [track.id])
     }
 
-
     /**
-     * Moves a track from matched_tracks to excluded_tracks
+     * Moves a track from excluded_tracks to matched_tracks
      * @param track Track to move
      */
     removeExcluded(track: CTrack){
         // Remove the tracks from the from the origin
-        this.editing.matched_tracks = this.editing.matched_tracks.filter(t => t.id !== track.id);
+        this.loaded.excluded_tracks = this.loaded.excluded_tracks.filter(t => t.id !== track.id)
 
         // Add the tracks to the destination
-        this.editing.excluded_tracks = this.editing.excluded_tracks.concat(track);
-        this.editing.excluded_tracks.sort();
+        this.loaded.matched_tracks.push(track);
+        this.loaded.matched_tracks.sort();
+        this.loaded.all_tracks.push(track);
+        this.loaded.all_tracks.sort();
 
         // Let the server know the change
-        this.removeTracks(this.editing, 'matched', [track.id])
+        this.removeTracks(this.loaded, 'excluded', [track.id])
     }
 
     /**
@@ -315,10 +312,11 @@ export default class Playlists extends Pinia {
      */
     removeIncluded(track: CTrack){
         // Remove the tracks from the from the origin
-        this.editing.included_tracks = this.editing.included_tracks.filter(t => t.id !== track.id)
+        this.loaded.included_tracks = this.loaded.included_tracks.filter(t => t.id !== track.id)
+        this.loaded.all_tracks      = this.loaded.all_tracks.filter(t => t.id !== track.id)
 
         // Let the server know the change
-        this.removeTracks(this.editing, 'included', [track.id])
+        this.removeTracks(this.loaded, 'included', [track.id])
     }
 
     /**
@@ -330,35 +328,81 @@ export default class Playlists extends Pinia {
     }
 
     /**
-     * Deletes a playlist
+     * Deletes a playlist on the server if smart and unfollows it on Spotify
      * @param playlist Playlist to delete
      */
-    async delete(playlist: EditingPlaylist | CPlaylist) {
-        if (!this.unpublished)
-            await Fetch.delete("server:/playlist", { data: { id: playlist.id } })
+    async delete(playlist: LoadedPlaylist) {
+        if (playlist.id !== "unpublished") {
+            let result = await Fetch.delete(`spotify:/playlists/${playlist.id}/followers`);
+
+            if (result.status !== 200)
+                return false;
+
+            result = await Fetch.delete("server:/playlist", { data: { id: playlist.id } })
+
+            // We failed to delete the playlist on the server, so we follow it again
+            if (result.status !== 200) {
+                await Fetch.put(`spotify:/playlists/${playlist.id}/followers`);
+                return false;
+            }
+        }
 
         // Remove the playlist from the list
         this.storage = this.storage.filter(item => item.id !== playlist.id);
 
         // If there are more smart playlists
         this.hasSmartPlaylists = this.storage.some(playlist => playlist.filters !== undefined);
+        return true;
+    }
+
+    /**
+     * Follows a playlist for the user
+     * @param playlist Playlist to follow
+     */
+    async follow(playlist: LoadedPlaylist) {
+        const result = await Fetch.put(`spotify:/playlists/${playlist.id}/followers`);
+
+        if (result.status !== 200)
+            return false;
+
+        this.storage.unshift(this.convertToCPlaylist(playlist));
+        return true;
+    }
+
+    /**
+     * Unfollows a playlist
+     * @param playlist Playlist to unfollow
+     */
+    async unfollow(playlist: LoadedPlaylist) {
+        const result = await Fetch.delete(`spotify:/playlists/${playlist.id}/followers`);
+
+        if (result.status !== 200)
+            return false;
+
+        this.storage = this.storage.filter(item => item.id !== playlist.id);
+        return true;
     }
 
     /**
      * Saves a playlist to the this.storage array
      * @param playlist Playlist to save
      */
-    async save(playlist: EditingPlaylist | CPlaylist) {
+    async save(playlist: LoadedPlaylist | CPlaylist) {
         // If it is the editing playlist, convert and save.
-        if ((playlist as EditingPlaylist).index !== undefined) {
-            this.storage[this.editing.index] = this.convertToCPlaylist((playlist as EditingPlaylist));
+        if ((playlist as LoadedPlaylist).index !== undefined) {
+            this.storage[(playlist as LoadedPlaylist).index] = this.convertToCPlaylist((playlist as LoadedPlaylist));
         } else {
             const index = this.storage.findIndex(p => p.id === playlist.id)
             this.storage[index] = (playlist as CPlaylist);
         }
     }
 
-    async execute(playlist: EditingPlaylist | CPlaylist){
+    /**
+     * Executes the filters of a playlist
+     * @param playlist Playlist filters to run
+     */
+    async execute(playlist: LoadedPlaylist | CPlaylist){
+        console.log(playlist)
         const response = await Fetch.patch(`server:/playlist/${playlist.id}`);
         if (response.status === 304) {
             return response.data.log as CPlaylist['log']
@@ -382,32 +426,28 @@ export default class Playlists extends Pinia {
      * Updates a playlist server-side and executes the given filters
      * @param playlist Playlist to be updated server-side
      */
-    async syncPlaylist(playlist: CPlaylist) {
-        let response = await Fetch.put("server:/playlist", { data: {
-            id: playlist.id,
-            user_id: playlist.user_id,
-            name: playlist.name,
-            description: playlist.description ?? "",
-            filters: playlist.filters,
-            track_sources: playlist.track_sources,
-        }})
+    async syncPlaylist(playlist: LoadedPlaylist | CPlaylist) {
+        console.log(playlist)
+        let response = await Fetch.put("server:/playlist", {
+            headers: { 'Content-Type': 'json' },
+            data: {
+                id: playlist.id,
+                user_id: playlist.user_id,
+                name: playlist.name,
+                description: playlist.description ?? "",
+                filters: playlist.filters,
+                track_sources: playlist.track_sources,
+            }
+        })
 
-        if (response.status === 400)
-            return response.data;
-
-        if (this.unpublished) {
-            this.unpublished.id = response.data.id;
-            this.unpublished = null;
-        }
-
-        return response.data
+        return response.data as string
     }
 
     /**
      * Updates the basic information of a playlist
      * @param playlist Playlist to sync
      */
-    async updateBasic(playlist: EditingPlaylist | CPlaylist) {
+    async updateBasic(playlist: LoadedPlaylist) {
         if (!this.unpublished) {
             this.save(playlist)
 
@@ -418,14 +458,57 @@ export default class Playlists extends Pinia {
         }
     }
 
+    /** Update whether the user:
+     * - is the owner of the playlist
+     * - liked the playlist
+     * - is info viewing the playlist
+     * @param playlist Ownership of the playlist
+     */
+    playlistOwnership(playlist: LoadedPlaylist): LoadedPlaylist['ownership'] {
+        const user = this.storage.find(p => p.id === playlist.id) !== undefined;
+        const owner = playlist.owner.id === this.user.info!.id;
+        return user && owner ? "user" : user && !owner ? "following" : "none";
+    }
+
+    /**
+     * Returns the playlists in which the track appears
+     * @Param trackId The id of the track
+     */
+    async trackAppearsIn(trackId: string){
+        if (!this.loadingPlaylistsTrackIds || this.storage[0].all_tracks === undefined) {
+            // Try to get all the track ids for each playlist
+            this.loadingPlaylistsTrackIds = Promise.all(this.storage.map(async (playlist, index) => {
+                // If the playlist is not a smart playlist, we need to load the track ids
+                if (playlist.filters === undefined) {
+                    const tracks = (await Fetch.get<any[]>(`spotify:/playlists/${playlist.id}/tracks`, {pagination: true})).data;
+                    this.storage[index].all_tracks = tracks.map(track => track.id);
+                }
+            }))
+
+            // Wait to complete
+            await this.loadingPlaylistsTrackIds;
+            this.loadingPlaylistsTrackIds = true;
+        }
+
+        // Wait for the track ids to be loaded
+        await this.loadingPlaylistsTrackIds;
+
+        // Return the playlists in which the track appears
+        return this.storage.filter(playlist => {
+            if (playlist.all_tracks.find(t => t === trackId)) {
+                return playlist;
+            }
+        })
+    }
+
     /**
      * Updates the tracks of a playlist
      * @param playlist Corresponding playlist
      * @param what What tracks should be updated
      * @param removed What was changed in the track list
      */
-    async removeTracks(
-        playlist: EditingPlaylist | CPlaylist,
+    private async removeTracks(
+        playlist: LoadedPlaylist,
         what: "matched" | "included" | "excluded",
         removed: string[],
     ) {
@@ -433,7 +516,7 @@ export default class Playlists extends Pinia {
         this.save(playlist)
 
         if (!this.unpublished) {
-            await Fetch.delete(`server:/playlist/${playlist!.id}/${what}-tracks`, { data: { removed } })
+            await Fetch.delete(`server:/playlist/${playlist!.id}/${what}-tracks`, { data: { removed: removed } })
         }
     }
 
@@ -450,7 +533,7 @@ export default class Playlists extends Pinia {
             duration:       this.formatDuration(track.duration_ms),
             disc_number:    track.disc_number,
             track_number:   track.track_number,
-            image:          Fetch.bestArtwork(track.album.images),
+            image:          Fetch.bestImage(track.album.images),
             artists:        track.artists.map((artist: CArtist) => { return {
                 name: artist.name,
                 id: artist.id,
@@ -462,21 +545,25 @@ export default class Playlists extends Pinia {
         } as CTrack
     }
 
+
     /**
-     * Creates a copy of the editingPlaylist and converts it to a normal playlist
-     * @param editingPlaylist editingPlaylist
+     * Creates a copy of the playlist and converts it to a normal playlist
+     * @param playlist playlist
      */
-    convertToCPlaylist(editingPlaylist: EditingPlaylist){
-        let splaylist = this.copy(editingPlaylist)
+    convertToCPlaylist(playlist: LoadedPlaylist): CPlaylist {
+        let splaylist = this.copy(playlist)
         // Remove the index
         delete splaylist.index
 
-        const playlist = splaylist as unknown as CPlaylist
-        playlist.matched_tracks = editingPlaylist.matched_tracks.map(track => track.id)
-        playlist.excluded_tracks = editingPlaylist.excluded_tracks.map(track => track.id)
-        playlist.included_tracks = editingPlaylist.included_tracks.map(track => track.id)
+        const cplaylist = splaylist as unknown as CPlaylist
+        cplaylist.all_tracks = playlist.all_tracks.map(track => track.id)
+        if (playlist.filters !== undefined) {
+            cplaylist.matched_tracks = playlist.matched_tracks.map(track => track.id)
+            cplaylist.excluded_tracks = playlist.excluded_tracks.map(track => track.id)
+            cplaylist.included_tracks = playlist.included_tracks.map(track => track.id)
+        }
 
-        return playlist
+        return cplaylist
     }
 
     formatDuration(duration: number){

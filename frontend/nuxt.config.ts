@@ -11,6 +11,7 @@ export default defineNuxtConfig({
 
     modules: [
         '@pinia/nuxt',
+        'nuxt-tsconfig-relative-paths',
     ],
 
     runtimeConfig: {

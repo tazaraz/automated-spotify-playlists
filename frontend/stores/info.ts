@@ -41,11 +41,11 @@ export default class Info extends Pinia {
     currentItem: InfoItem | null = null;
     searchConfig: SearchConfig | null = null;
 
-    searchResult: {[key in InfoItemType]: InfoItem[]} = {
-        tracks: [],
-        albums: [],
-        artists: [],
-        playlists: []
+    searchResult: {[key in InfoItemType]: InfoItem[] | null} = {
+        tracks: null,
+        albums: null,
+        artists: null,
+        playlists: null
     };
 
     constructor() {
@@ -71,6 +71,14 @@ export default class Info extends Pinia {
             query += config.advanced?.tag_hipster ? ` tag:hipster` : '';
         }
 
+        let type: string[] = [];
+        let searchResult: typeof this.searchResult = { tracks: null, albums: null, artists: null, playlists: null };
+
+        if (config.track)    { type.push('track');    searchResult.tracks = [];    }
+        if (config.album)    { type.push('album');    searchResult.albums = [];    }
+        if (config.artist)   { type.push('artist');   searchResult.artists = [];   }
+        if (config.playlist) { type.push('playlist'); searchResult.playlists = []; }
+
         const response = await Fetch.get<{[key in InfoItemType]: any}>(`spotify:/search`, { query: {
             q: query,
             type: [
@@ -79,13 +87,12 @@ export default class Info extends Pinia {
                 config.artist ? 'artist' : '',
                 config.playlist ? 'playlist' : ''
             ].filter(Boolean).join(','),
-            limit: config.track || config.album ? '10' : '5',
+            limit: config.track || config.album ? '12' : '6',
         }});
 
         if (response.status !== 200)
             return { error: response.statusText };
 
-        const searchResult: typeof this.searchResult = { tracks: [], albums: [], artists: [], playlists: [] };
         if (!config?.save) {
             // Clear the previous results
             this.searchResult = searchResult;
@@ -101,14 +108,14 @@ export default class Info extends Pinia {
             const items = Fetch.format(response.data[kind]);
 
             for (const item of items)
-                searchResult[kind].push(this.parseItem(item, kind));
+                searchResult[kind]!.push(this.parseItem(item, kind));
         }
 
         // Limit the amount of items in each result
-        searchResult[InfoItemType.artists] = searchResult[InfoItemType.artists].slice(0, 5);
-        searchResult[InfoItemType.playlists] = searchResult[InfoItemType.playlists].slice(0, 5);
-        searchResult[InfoItemType.tracks] = searchResult[InfoItemType.tracks].slice(0, 10);
-        searchResult[InfoItemType.albums] = searchResult[InfoItemType.albums].slice(0, 10);
+        searchResult[InfoItemType.artists] = searchResult[InfoItemType.artists]?.slice(0, 6) || null;
+        searchResult[InfoItemType.playlists] = searchResult[InfoItemType.playlists]?.slice(0, 6) || null;
+        searchResult[InfoItemType.tracks] = searchResult[InfoItemType.tracks]?.slice(0, 6) || null;
+        searchResult[InfoItemType.albums] = searchResult[InfoItemType.albums]?.slice(0, 6) || null;
 
         if (!config?.save)
             this.searchResult = searchResult;
@@ -123,51 +130,43 @@ export default class Info extends Pinia {
                 return {
                     id: item.id,
                     name: item.name,
-                    image: Fetch.bestArtwork(item.album!.images),
+                    image: Fetch.bestImage(item.album!.images),
                     description: item.artists.map(artist => ({
                         id: artist.id,
                         name: artist.name
                     }))
                 }
-                break;
             case InfoItemType.albums:
                 return {
                     id: item.id,
                     name: item.name,
-                    image: Fetch.bestArtwork(item.images),
+                    image: Fetch.bestImage(item.images),
                     description: item.artists.map(artist => ({
                         id: artist.id,
                         name: artist.name
                     }))
                 }
-                break;
             case InfoItemType.artists:
-                // Limit the amount of genres to display
-                const display = item.genres.slice(0, 3).join(', ').length > 27 ? 2 : 3;
-
                 return {
                     id: item.id,
                     name: item.name,
-                    image: Fetch.bestArtwork(item.images),
+                    image: Fetch.bestImage(item.images),
                     description: [{
                         id: '',
-                        name: item.genres.slice(0, display).join(', ') + (item.genres.length > display ? ', ...' : '')
+                        name: item.genres.join(', ')
                     }]
                 }
-                break;
             case InfoItemType.playlists:
                 return {
                     id: item.id,
                     name: item.name,
-                    image: Fetch.bestArtwork(item.images),
+                    image: Fetch.bestImage(item.images),
                     description: [{
                         id: item.owner.id,
                         name: item.owner.display_name,
                         description: item.description,
                     }],
-
                 }
-                break;
         }
     }
 }

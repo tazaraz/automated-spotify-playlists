@@ -1,31 +1,93 @@
 <template>
-    <article class="rounded-2 ms-xl-2 mt-xl-0 ms-0 mt-2 bg-dark-subtle overflow-hidden">
-        <div v-if="playlists" class="h-100 pe-1 overflow-y-auto">
-            <div class="input-group mb-3">
-                <input type="text" class="form-control" :value="playlists.editing.name" />
+    <article class="rounded-2 p-2 bg-dark-subtle overflow-hidden">
+        <template v-if="playlists && playlists.editing">
+            <div class="d-none h-100 p-3 overflow-hidden flex-column align-items-center" data-edit-class="tiny-d-flex small-d-none normal-d-none large-d-none full-d-none">
+                <h4 class="d-flex mb-4" style="width: 3rem"><fa-icon class="m-auto" :icon="['fas', 'wand-magic']" style="width: 2rem"></fa-icon></h4>
+                <url class="d-flex mb-2 fs-4" style="width: 3rem; cursor: pointer;" @click="layout.open('edit')">
+                    <fa-icon class="m-auto" :icon="['fas', 'angles-left']" style="width: 2rem"></fa-icon>
+                </url>
+                <hr class="w-100">
+                <Image :src="playlists.editing" class="image mt-2 mb-4 w-100"></Image>
+                <h4 class="text-nowrap" style="writing-mode:vertical-rl;">{{ playlists.editing.name }}</h4>
             </div>
-            <section id="sources" v-if="computedSources.length > 0">
-                <EditSource
-                    v-for="source, index in computedSources"
-                    ref="sources"
-                    :source="source"
-                    @change="updateSource(index, $event)"
-                    @delete="deleteSource(index)"></EditSource>
-            </section>
-            <section id="filters" v-if="computedFilters">
-
-            </section>
-        </div>
+            <div class="h-100 p-1 overflow-y-auto m-auto" data-edit-class="tiny-d-none" style="max-width: 50rem;">
+                <div class="d-flex align-items-center mb-3 mt-2 text-white text-decoration-none">
+                    <h4 class="ms-3 mb-0" style="width: 3rem"><fa-icon :icon="['fas', 'wand-magic']" style="width: 2rem"></fa-icon></h4>
+                    <h4 class="m-0">
+                        {{ playlists.editing.name }} Config
+                    </h4>
+                    <button type="button" id="editClose" class="d-block d-sm-none ms-auto me-3 btn-close" data-bs-dismiss="offcanvas"></button>
+                </div>
+                <hr>
+                <div id="basic" class="d-grid mb-3 p-2 ps-4 pe-4" data-edit-class="small-stacked normal-wide large-wide">
+                    <Image :src="playlists.editing" class="h-100 m-auto"></Image>
+                    <div class="form-floating">
+                        <input type="text" class="form-control" :value="playlists.editing.name">
+                        <label>Playlist name</label>
+                    </div>
+                    <div class="form-floating">
+                        <textarea class="form-control h-100 rounded-2" :value="playlists.editing.description"></textarea>
+                        <label>Description</label>
+                    </div>
+                </div>
+                <div class="d-flex">
+                    <h5 class="flex-grow-1">Sources</h5>
+                    <button class="btn action" @click="addSource"><fa-icon class="text-primary"
+                    :icon="['fas', 'plus']"></fa-icon></button>
+                </div>
+                <section v-if="computedSources.length > 0" id="sources" class="flex-center align-items-center column-gap-3 mb-3">
+                    <EditSource
+                        v-for="source, index in computedSources"
+                        ref="sources"
+                        :source="source"
+                        @delete="deleteSource(index)"></EditSource>
+                </section>
+                <div class="mt-4 d-flex">
+                    <h5 class="flex-grow-1">Filters</h5>
+                    <button class="btn action" @click="addFilter('condition')"><fa-icon class="text-primary" :icon="['fas', 'plus']"></fa-icon></button>
+                    <button class="btn action" @click="addFilter('statement')"><fa-icon class="text-primary" :icon="['fas', 'code-branch']"></fa-icon></button>
+                </div>
+                <section v-if="computedFilters" id="filters" class="overflow-x-auto mb-5" data-edit-class="small-small normal-normal large-large">
+                    <template v-for="entry in flattenedFilters">
+                        <EditStatement
+                            v-if="entry.content.mode"
+                            ref="filters"
+                            :indent="entry.indent"
+                            :statement="entry.content"
+                            @change="updateFilter($event, entry.index)"
+                            @event="eventFilter($event, entry.index)"></EditStatement>
+                        <EditCondition
+                            v-else
+                            ref="filters"
+                            :indent="entry.indent"
+                            :condition="entry.content"
+                            @change="updateFilter($event, entry.index)"
+                            @event="eventFilter($event, entry.index)"></EditCondition>
+                    </template>
+                </section>
+                <br>
+                <br>
+                <br>
+                <br>
+                <section class="d-flex">
+                    <button type="button" id="editSave" class="btn btn-primary me-3" data-bs-dismiss="offcanvas" @click="save">{{ saving ? "Running..." : "Save & run" }}</button>
+                    <Image v-if="saving" src=""></Image>
+                    <button type="button" id="editReset" class="btn btn-danger ms-auto" data-bs-dismiss="offcanvas" @click="reset">Reset</button>
+                    <button type="button" id="editDiscard" class="btn btn-danger ms-3" data-bs-dismiss="offcanvas" @click="(playlists.editing = undefined as any)">Discard changes</button>
+                </section>
+            </div>
+        </template>
     </article>
 </template>
 
 <script lang="ts">
-import { Vue, Options } from 'vue-property-decorator';
+import { Vue } from 'vue-property-decorator';
 import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 import { Playlist, PlaylistCondition, PlaylistSource, PlaylistStatement } from '../../../backend/src/types/playlist';
 import { CTrack } from '../../../backend/src/types/client';
-import { SourceDescription } from '../../../backend/src/types/descriptions';
+import { Sources } from '../../../backend/src/types/filters';
+import Layout from '~/stores/layout';
 
 interface PlaylistFilterEntry {
     indent: number;
@@ -35,18 +97,19 @@ interface PlaylistFilterEntry {
 
 export default class Edit extends Vue {
     playlists!: Playlists;
+    layout!: Layout;
 
     saving: boolean = false
     /** 0: no error, 1: Source error, 2: Filter error, 3: Source + Filter error */
     error: number = 0
-    executingLog: Playlist['log'] = null;
+    executingLog: Playlist['log'] = null as any;
 
     name: string = "";
     description: string = "";
 
-    globalFilter: PlaylistStatement["mode"] = null;
+    globalFilter: PlaylistStatement["mode"] = null as any;
     computedSources: PlaylistSource[] = [];
-    computedFilters: PlaylistStatement = null;
+    computedFilters: PlaylistStatement = null as any;
     flattenedFilters: PlaylistFilterEntry[] = [];
 
     /**If the playlist is converted to a smart playlist, upon saving, we need to move the tracks in the playlist
@@ -61,6 +124,7 @@ export default class Edit extends Vue {
 
     beforeMount() {
         if (!process.client) return;
+        this.layout = new Layout();
         this.reset();
     }
 
@@ -113,18 +177,9 @@ export default class Edit extends Vue {
         this[kind] = target.value
     }
 
-    /**
-     * Updates a source
-     * @param source The new source
-     * @param index Index of the source which has been updated
-     */
-    updateSource(index: number, source: PlaylistSource) {
-        this.computedSources[index] = source
-    }
-
     /** Adds a new source */
     addSource() {
-        this.computedSources.push({ origin: Object.keys(SourceDescription)[0] as any, value: '' })
+        this.computedSources.push({ origin: Object.values(Sources)[0].description as any, value: '' })
     }
 
     /** Deletes a source
@@ -278,7 +333,7 @@ export default class Edit extends Vue {
 
             // Sync with the server
             const old_id = this.playlists.editing.id
-            await this.playlists.syncPlaylist(this.playlists.convertToPlaylist(this.playlists.editing))
+            this.playlists.editing.id = await this.playlists.syncPlaylist(this.playlists.convertToCPlaylist(this.playlists.editing))
 
             /**Execute the playlist. While incomplete, this will yield a log */
             let status = await this.playlists.execute(this.playlists.editing)
@@ -306,7 +361,7 @@ export default class Edit extends Vue {
         await this.playlists.updateBasic(this.playlists.editing)
 
         this.saving = false;
-        this.close()
+        this.reset();
     }
 
     reset() {
@@ -328,21 +383,79 @@ export default class Edit extends Vue {
 
     delete(){
         this.playlists.delete(this.playlists.editing)
-        this.close()
-    }
-
-    close() {
-        this.playlists.editing = null;
     }
 }
 </script>
 
-<style lang="scss">
-#filters {
-    margin-top: 1rem;
+<style lang="scss" scoped>
+article{
+    overflow: auto;
+
+    button.action {
+        width: 2rem;
+        padding: 0.5rem;
+    }
+}
+.image {
+    box-shadow: 0 4px 60px rgba(0, 0, 0, .8);
+}
+
+#basic {
+    &.wide {
+        grid-template-rows: 60px calc(130px - 1rem);
+        grid-template-columns: 190px 1fr;
+        gap: 1rem 2rem;
+        max-width: 40rem;
+        margin: auto;
+
+        :first-child {
+            grid-row: span 2;
+        }
+    }
+    &.stacked {
+        grid-template-rows: 190px 60px calc(130px - 2rem);
+        grid-template-columns: 100%;
+        gap: 2rem;
+        max-width: 25rem;
+        margin: auto;
+    }
+}
+#sources {
     display: grid;
-    grid-template-columns: repeat(4, 0.25fr) 1fr 0.25fr 1fr 0.25fr 1fr 1fr repeat(3, 1.7rem);
-    min-height:2rem;
-    z-index: unset;
+    grid-template-columns: auto auto 5fr 2rem;
+    gap: 0.5rem;
+}
+
+#filters {
+    &.large .filter-item {
+        grid-template-columns: repeat(4, 1rem) max-content 1.5rem max-content 1.5rem 1fr repeat(3, 2rem);
+    }
+    &.normal .filter-item {
+        grid-template-columns: repeat(4, 1rem) max-content 1.5rem 1fr 0 0 repeat(3, 2rem);
+    }
+    &.small .filter-item {
+        grid-template-columns: repeat(4, 1rem) max-content 0 1fr 0 0 repeat(3, 2rem);
+    }
+}
+#filters .filter-item {
+    display: grid;
+    grid-auto-rows: 40px;
+
+    :deep(.grip) {
+        color: $gray-600;
+        display: flex;
+        width: 100%;
+        height: 100%;
+
+        > * {
+            margin: auto 0;
+            display: none;
+        }
+    }
+
+    &:hover :deep(.grip) > * {
+        cursor: pointer;
+        display: block;
+    }
 }
 </style>

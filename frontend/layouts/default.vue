@@ -2,9 +2,9 @@
     <Html data-bs-theme="dark"></Html>
     <main v-if="layout" class="bg-black overflow-hidden" ref="wrapper"
         @touchend="layout.setDragging('sidebar', false); layout.setDragging('edit', false)"
-        @touchmove="layout.resize($event)"
+        @touchmove="layout.render($event)"
         @mouseup="layout.setDragging('sidebar', false); layout.setDragging('edit', false)"
-        @mousemove="layout.resize($event)">
+        @mousemove="layout.render($event)">
         <div v-if="layout.app.width > 0 && layout.app.width < layout.app.mobile" class="offcanvas offcanvas-start bg-black d-sm-flex w-100 p-3"
             tabindex="-1" id="sidebar">
             <Sidebar></Sidebar>
@@ -17,12 +17,11 @@
         </template>
 
         <toolbar />
-        <slot v-if="user && user.info" open></slot>
 
-        <article v-else class="rounded-2 p-2 bg-dark-subtle overflow-hidden">
-            <Title>Smart playlists</Title>
-            <h2>Please log in first</h2>
-        </article>
+        <div class="d-flex flex-column overflow-auto">
+            <ErrorAlerts />
+            <slot></slot>
+        </div>
 
         <template v-if="user && user.info && playlists && playlists.editing">
             <div v-if="layout.app.width > 0 && layout.app.width < layout.app.mobile" class="offcanvas offcanvas-end bg-black d-sm-flex w-100 p-3"
@@ -73,19 +72,22 @@ export default class App extends Vue {
         await this.playlists.loadUserPlaylists();
     }
 
-    mounted() {
+    beforeMount() {
         this.layout.nextTick = this.$nextTick;
+    }
+
+    mounted() {
         this.layout.appElement = this.$refs.wrapper as HTMLElement;
         this.layout.mainElement = this.layout.appElement.getElementsByTagName('article')[0] as HTMLElement;
         this.layout.app.width = this.layout.appElement.clientWidth;
-        this.layout.playlistEditing = this.playlists.editing == null;
+        this.layout.playlistEditing = this.playlists.editing != null;
 
         const offcanvasElementList = document.querySelectorAll('.offcanvas')
         this.offcanvas = [...offcanvasElementList].map(offcanvasEl => new this.$bootstrap.Offcanvas(offcanvasEl))
 
         /** When the basic stuff is loaded */
         watch(() => [this.user.info, this.playlists?.storage], () => {
-            this.layout.resize(null, true)
+            this.layout.render(null, true)
         })
 
         /** Watch the url */
@@ -93,19 +95,22 @@ export default class App extends Vue {
             /** When the url changes, the info view changes. Update it */
             await this.$nextTick();
             this.layout.mainElement = this.layout.appElement.getElementsByTagName('article')[0] as HTMLElement;
-            this.layout.resize(null, true);
+            this.layout.render(null, true);
         })
 
         /** When we start/stop editing */
         watch(() => this.playlists?.editing, async () => {
-            this.layout.resize(null, true);
+            this.layout.playlistEditing = this.playlists.editing != null;
+            this.layout.render(null, true);
         })
 
         /** When the user resizes the window */
         addEventListener("resize", () => {
             this.layout.app.width = this.layout.appElement.clientWidth;
-            this.layout.resize(null, true)
+            this.layout.render(null, true)
         })
+
+        this.layout.render(null, true)
     }
 }
 </script>
@@ -161,13 +166,13 @@ main {
         grid-row: span 2;
     }
 
-    &:deep(#toolbelt) {
+    &:deep(#toolbar) {
         grid-row: span 1;
         grid-column: span 3 !important;
     }
 
     // This splits the app content into two columns if there are two components present
-    &:deep(#toolbelt)+* {
+    &:deep(#toolbar)+* {
         grid-column: span 3;
     }
 
@@ -186,7 +191,7 @@ main {
             grid-row-end: 3;
         }
 
-        &:deep(#toolbelt) {
+        &:deep(#toolbar) {
             grid-row: span 1;
         }
     }

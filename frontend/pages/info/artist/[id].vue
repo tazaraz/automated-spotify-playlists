@@ -1,10 +1,10 @@
 <template>
-    <article key="artist" class="rounded-2 p-2 bg-dark-subtle overflow-hidden">
+    <article key="artist" class="rounded-2 p-2 bg-dark-subtle flex-grow-1 overflow-hidden">
         <SmallHeader :item="artist"></SmallHeader>
         <div class="h-100 pe-1 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
             <Title v-if="!artist">Loading artist...</Title>
             <Title v-else>{{ artist.name }}</Title>
-            <header class="p-4 pt-5 d-flex gap-4" data-main-class="small-flex-column small-align-items-center normal-flex-row normal-align-items-stretch">
+            <header class="p-4 pt-5 d-flex gap-4" data-main-class="normal-flex-row normal-align-items-stretch tiny-flex-column tiny-align-items-center">
                 <Image :src="artist" />
                 <div class="flex-fill d-flex flex-column text-white">
                     <template v-if="!artist">
@@ -30,22 +30,19 @@
                     <span v-if="!artist" class="placeholder rounded-1"></span>
                     <span v-else>{{ artist.id }} </span>
                 </div>
-                <div class="col-12 mb-2 col-4 mb-2 multilayer" data-bs-toggle="tooltip"
-                    data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Artist.Genres">
-                    <span>Genres</span>
+                <div class="col-12 mb-2 col-4 mb-2 multilayer">
+                    <InfoField :description="Filters.Artist.Genres.description">Genres</InfoField>
                     <span v-if="!artist" class="placeholder rounded-1"></span>
                     <span v-else>{{ artist.genres.join(', ') || "No genres for this artist" }}</span>
                 </div>
                 <div class="d-flex">
-                    <div class="me-5 multilayer" data-bs-toggle="tooltip"
-                        data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Artist.Popularity">
-                        <span>Popularity</span>
+                    <div class="me-5 multilayer">
+                        <InfoField :description="Filters.Artist.Popularity.description">Popularity</InfoField>
                         <span v-if="!artist" class="placeholder rounded-1"></span>
-                        <span v-else>{{ artist!.popularity }}</span>
+                        <span v-else>{{ artist!.popularity / 10 }} / 10</span>
                     </div>
-                    <div class="multilayer" data-bs-toggle="tooltip"
-                        data-bs-delay='{"show":750,"hide":0}' :data-bs-title="FilterDescription.Artist.Followers">
-                        <span>Followers</span>
+                    <div class="multilayer">
+                        <InfoField :description="Filters.Artist.Followers.description">Followers</InfoField>
                         <span v-if="!artist" class="placeholder rounded-1"></span>
                         <span v-else>{{ artist.followers.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</span>
                     </div>
@@ -91,7 +88,7 @@
 import { Tooltip } from 'bootstrap';
 import { Vue } from 'vue-property-decorator';
 import { CAlbum, CArtist, CTrack } from "~/../backend/src/types/client";
-import { FilterDescription } from '~/../backend/src/types/descriptions';
+import { Filters } from '~/../backend/src/types/filters';
 import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
 import Playlists from '~/stores/playlists';
@@ -101,13 +98,13 @@ export default class InfoAlbum extends Vue {
     breadcrumbs!: BreadCrumbs
     playlists!: Playlists
 
-    artist: CArtist | null = null;
-    topTracks: CTrack[] | null = null;
-    albums: CAlbum[] | null = null;
-    relatedArtists: CArtist[] | null = null;
+    artist: CArtist = null as any;
+    topTracks: CTrack[] = null as any;
+    albums: CAlbum[] = null as any;
+    relatedArtists: CArtist[] = null as any;
 
     tooltipList: Tooltip[] = [];
-    FilterDescription = FilterDescription;
+    Filters = Filters;
 
     async created() {
         if (!process.client) return;
@@ -117,8 +114,12 @@ export default class InfoAlbum extends Vue {
         await this.playlists.loadUserPlaylists();
 
         // Get the artist and the image
-        this.artist = (await Fetch.get<CArtist>(`spotify:/artists/${this.$route.params.id}`)).data;
-        this.artist.image = Fetch.bestArtwork(this.artist.images);
+        const response = await Fetch.get<CArtist>(`spotify:/artists/${this.$route.params.id}`);
+        if (response.status !== 200)
+            throw createError({ statusCode: 404, message: response.statusText, fatal: true })
+
+        this.artist = response.data;
+        this.artist.image = Fetch.bestImage(this.artist.images);
 
         // Get the top tracks
         Fetch.get<CTrack[]>(`spotify:/artists/${this.$route.params.id}/top-tracks`, {
@@ -130,7 +131,7 @@ export default class InfoAlbum extends Vue {
             this.topTracks = Fetch.format(res.data);
             // Populate extra data
             this.topTracks.forEach(track => {
-                track.image = Fetch.bestArtwork(track.album!.images);
+                track.image = Fetch.bestImage(track.album!.images);
                 track.duration = this.playlists.formatDuration(track.duration_ms);
             });
         });
@@ -146,7 +147,7 @@ export default class InfoAlbum extends Vue {
             this.albums = Fetch.format(res.data);
             // Populate extra data
             this.albums.forEach(album => {
-                album.image = Fetch.bestArtwork(album.images);
+                album.image = Fetch.bestImage(album.images);
                 album.release_date = (new Date(album.release_date)).getFullYear();
             });
         });
@@ -159,7 +160,7 @@ export default class InfoAlbum extends Vue {
             this.relatedArtists = this.relatedArtists.slice(0, 5);
             // Populate extra data
             this.relatedArtists.forEach(artist => {
-                artist.image = Fetch.bestArtwork(artist.images);
+                artist.image = Fetch.bestImage(artist.images);
             });
         });
 

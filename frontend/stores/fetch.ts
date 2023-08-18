@@ -1,4 +1,5 @@
 import User from "./user";
+import FetchError from "./error";
 
 interface FetchResponse<T> extends Response {
     data: T
@@ -61,6 +62,7 @@ export default class Fetch {
         const pagination = options?.pagination ?? false;
         const data       = options?.data ?? undefined;
         const user       = options?.user ?? true;
+        const server     = url.startsWith("server:")
         options.headers  = options.headers ?? {}
 
         // If a user is provided, make sure the access token is valid
@@ -68,12 +70,12 @@ export default class Fetch {
             await Fetch.setAccessToken(url, options);
 
         // Set the base domain
-        if (url.startsWith("server:")) {
+        if (server) {
             url = url.replace("server:", `${useRuntimeConfig().public.DOMAIN}/api`);
         } else if (url.startsWith("spotify:")) {
             url = url.replace("spotify:", "https://api.spotify.com/v1");
         } else {
-            throw new Error("Invalid url. Must start with 'server:' or 'spotify:'");
+            // throw new Error("Invalid url. Must start with 'server:' or 'spotify:'");
         }
 
         // Fetch allows the use of an init object
@@ -111,10 +113,14 @@ export default class Fetch {
 
         if (pagination) {
             // Do the first request. This will also tell us how many items there will be in total
-            response = (await Fetch.parseRequest(`${url}${options.query ? '&' : '?'}limit=${limit}&offset=0`, parameters, options)).data;
+            response = (await Fetch.parseRequest(`${url}${options.query ? '&' : '?'}limit=${limit}&offset=0`, parameters, options));
 
-            const total = response.total;
-            const requests: any = [{data: response}];
+            if (response.status !== 200)
+                return response;
+
+            const data = response.data;
+            const total = data.total;
+            const requests: any = [{data: data}];
 
             // Do the rest of the requests in parallel
             for (let i = limit; i < total; i += limit) {
@@ -128,7 +134,8 @@ export default class Fetch {
             const responses = await Promise.all(requests);
             responses.map(response => result.push(...Fetch.format(response.data)));
 
-            return {data: result} as FetchResponse<T>;
+            response.data = result;
+            return response as FetchResponse<T>;
         }
 
         else if (ids) {
@@ -151,7 +158,7 @@ export default class Fetch {
 
         else {
             if (data) {
-                if (!parameters.headers['Content-Type']) {
+                if (!parameters.headers['Content-Type'] && !server) {
                     parameters['body'] = (new URLSearchParams(data as any)).toString();
                     parameters.headers['Content-Type'] = 'application/x-www-form-urlencoded';
                 } else {
@@ -186,19 +193,26 @@ export default class Fetch {
 
             /**Spotify had a hiccough, give it some time */
             case 429:
-                if (!options.retries || options.retries-- <= 0)
+                if ((!options.retries || options.retries-- <= 0) && !response.headers.has("Retry-After")) {
+                    FetchError.create({
+                        status: 429,
+                        message: "Too many requests",
+                        priority: 1
+                    });
+
                     break;
+                }
             case 500:
             case 502:
             case 504:
-                // Set the default timeout to 5 seconds
-                const retry_after = 5000;
+                // Set the default timeout to 5 seconds. If "Retry-After" is set, use that instead
+                let retry_after = 5000;
+                if (response.headers.has("Retry-After"))
+                    retry_after = parseInt(response.headers.get("Retry-After")!) * 1000;
 
                 return await new Promise(resolve => {
-                    setTimeout(async () => {
-                        // Retry the request
-                        resolve(await Fetch.parseRequest(url, parameters, options));
-                    }, retry_after)
+                    // Retry the request
+                    setTimeout(async () => resolve(await Fetch.parseRequest(url, parameters, options)), retry_after)
                 });
 
             /** No data */
@@ -207,7 +221,11 @@ export default class Fetch {
                 break;
 
             default:
-                (response as any).data = await response.json();
+                // Parse the data. If it fails, there is no data
+                (response as any).data = await response.text();
+                try {
+                    (response as any).data = JSON.parse(response.data);
+                } catch (_) {}
         }
 
         // Parse the data. If it fails, there is no data. return null
@@ -250,6 +268,7 @@ export default class Fetch {
         await Fetch.refreshingToken;
 
         // If the access token is expired, refresh it
+        console.log(url, Fetch.user.spotifyTokenExpired(), Fetch.user.serverTokenExpired(), Fetch.refreshingToken, Fetch.user)
         if (url !== "server:/user/refresh" && (Fetch.user.spotifyTokenExpired() || Fetch.user.serverTokenExpired())) {
             if (Fetch.user.serverTokenExpired()) {
                 Fetch.user.logout();
@@ -290,8 +309,8 @@ export default class Fetch {
         options.headers!['Authorization'] = token;
     }
 
-    static bestArtwork(artworks: any): string {
-        return artworks ? (artworks as any[]).reduce((a, b) => {
+    static bestImage(images: any): string {
+        return images ? (images as any[]).reduce((a, b) => {
             return Math.abs(500 - a.width) < Math.abs(500 - b.width) ? a : b;
         }, "").url : "/no-artwork.png";
     }

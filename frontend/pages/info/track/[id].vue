@@ -1,10 +1,10 @@
 <template>
-    <article key="track" class="rounded-2 p-2 bg-dark-subtle overflow-hidden">
+    <article key="track" class="rounded-2 p-2 bg-dark-subtle flex-grow-1 overflow-hidden">
         <SmallHeader :item="track"></SmallHeader>
         <div class="h-100 pe-1 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
             <Title v-if="!track">Loading track...</Title>
             <Title v-else>{{ track.name }}</Title>
-            <header class="p-4 pt-5 d-flex gap-4" data-main-class="small-flex-column small-align-items-center normal-flex-row normal-align-items-stretch">
+            <header class="p-4 pt-5 d-flex gap-4" data-main-class="normal-flex-row normal-align-items-stretch tiny-flex-column tiny-align-items-center">
                 <Image :src="track"/>
                 <div class="flex-fill d-flex flex-column text-white">
                     <span v-if="!track" class="mt-auto mb-auto placeholder rounded-2" style="width: 17rem; height: 2rem"></span>
@@ -35,7 +35,7 @@
                     <url :to="`/info/artist/${artist.id}`" class="rounded-2 ms-3 m-auto">{{ artist.name }}</url>
                 </li>
             </ol>
-            <div class="row placeholder-glow" style="max-width: 60rem;" data-main-class="normal-m-5 normal-mt-3 small-m-4 small-mt-3">
+            <div class="row placeholder-glow" style="max-width: 60rem;" data-main-class="large-m-5 large-mt-3 normal-m-5 normal-mt-3 tiny-m-4 tiny-mt-3">
                 <div class="col-12 mb-2 multilayer">
                     <span>
                         Track ID&nbsp;&nbsp;━&nbsp;&nbsp;
@@ -44,68 +44,50 @@
                     <span v-if="!track" class="placeholder rounded-1"></span>
                     <span v-else>{{ track.id }} </span>
                 </div>
-                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
-                        data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
-                        :data-bs-title="FilterDescription.Track.Popularity">
-                    <span>Popularity</span>
+                <div class="col-12 mb-2 multilayer">
+                    <span>Genres</span>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
-                    <span v-else>{{ track!.popularity }}</span>
+                    <span v-else>{{ trackGenres }} </span>
                 </div>
-                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
-                        data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
-                        :data-bs-title="FilterDescription.Track.Danceability">
-                    <span>Danceability</span>
-                    <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
-                    <span v-else>{{ Math.round(track.features.danceability * 100) }}%</span>
-                </div>
-                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
-                        data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
-                        :data-bs-title="FilterDescription.Track.Positivity">
-                    <span>Positivity</span>
-                    <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
-                    <span v-else>{{ Math.round(track.features.valence * 100) }}%</span>
-                </div>
-                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
-                        data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
-                        :data-bs-title="FilterDescription.Track.Energy">
-                    <span>Energy</span>
-                    <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
-                    <span v-else>{{ Math.round(track.features.energy * 100) }}%</span>
-                </div>
-                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
-                        data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
-                        :data-bs-title="FilterDescription.Track.Duration">
-                    <span>Duration</span>
-                    <span v-if="!track || !track" class="placeholder rounded-1"></span>
-                    <span v-else>{{ playlists.formatDuration(track.duration_ms) }}</span>
-                </div>
-                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
-                        data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
-                        :data-bs-title="FilterDescription.Track.BPM">
-                    <span>BPM</span>
+                <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                    <InfoField :description="Filters.Track.BPM.description">BPM</InfoField>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ Math.round(track.features.tempo) }}</span>
                 </div>
-                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
-                        data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
-                        :data-bs-title="FilterDescription.Track['is Acoustic']">
-                    <span>Acoustic</span>
+                <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                    <InfoField :description="Filters.Track.Popularity.description">Popularity</InfoField>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
-                    <span v-else>{{ track.features.acousticness > 0.5 ? "Yes" : "No" }}</span>
+                    <span v-else>{{ track.popularity / 10 }} / 10</span>
                 </div>
-                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
-                        data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
-                        :data-bs-title="FilterDescription.Track['has Vocals']">
-                    <span>Vocals</span>
+                <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                    <InfoField :description="Filters.Track.Danceability.description">Danceability</InfoField>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
-                    <span v-else>{{ track.features.instrumentalness > 0.5 ? "No" : "Yes" }}</span>
+                    <span v-else>{{ Math.round(track.features.danceability * 100) / 10 }} / 10</span>
                 </div>
-                <div class="mb-2 multilayer" data-main-class="normal-col-2 small-col-3"
-                        data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
-                        :data-bs-title="FilterDescription.Track['is Live']">
-                    <span>Live</span>
+                <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                    <InfoField :description="Filters.Track.Positivity.description">Positivity</InfoField>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
-                    <span v-else>{{ track.features.liveness > 0.8 ? "Yes" : "No" }}</span>
+                    <span v-else>{{ Math.round(track.features.valence * 100) / 10 }} / 10</span>
+                </div>
+                <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                    <InfoField :description="Filters.Track.Energy.description">Energy</InfoField>
+                    <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
+                    <span v-else>{{ Math.round(track.features.energy * 100) / 10 }} / 10</span>
+                </div>
+                <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                    <InfoField :description="Filters.Track.Accousticness.description">Acoustic</InfoField>
+                    <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
+                    <span v-else>{{ Math.round(track.features.acousticness * 100) / 10 }} / 10</span>
+                </div>
+                <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                    <InfoField :description="Filters.Track.Vocality.description">Vocals</InfoField>
+                    <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
+                    <span v-else>{{ Math.round(track.features.instrumentalness * 100) / 10 }} / 10</span>
+                </div>
+                <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                    <InfoField :description="Filters.Track.Liveness.description">Live</InfoField>
+                    <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
+                    <span v-else>{{ Math.round(track.features.liveness * 100) / 10 }} / 10</span>
                 </div>
             </div>
             <template v-if="appearsIn.length > 0">
@@ -128,7 +110,7 @@
 import { Tooltip } from 'bootstrap';
 import { Vue } from 'vue-property-decorator';
 import { CArtist, CTrack, CTrackFeatures } from "~/../backend/src/types/client";
-import { FilterDescription } from '~/../backend/src/types/descriptions';
+import { Filters } from '~/../backend/src/types/filters';
 import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
 import Layout from '~/stores/layout';
@@ -140,36 +122,40 @@ export default class InfoTrack extends Vue {
     playlists!: Playlists
     layout!: Layout
 
-    track: CTrack | null = null;
+    track: CTrack = null as any;
     trackGenres!: string
     appearsIn: CPlaylist[] = [];
 
     tooltipList: Tooltip[] = [];
-    FilterDescription = FilterDescription;
+    Filters = Filters;
 
     async created() {
         if (!process.client) return;
-        this.breadcrumbs = new BreadCrumbs();
         this.playlists = new Playlists();
         this.playlists.setUser(new User())
         await this.playlists.loadUserPlaylists();
+        this.breadcrumbs = new BreadCrumbs();
         this.layout = new Layout();
 
         // Get the track and the image
-        this.track = (await Fetch.get<CTrack>(`spotify:/tracks/${this.$route.params.id}`)).data;
-        this.track.image = Fetch.bestArtwork(this.track.album!.images);
+        const response = await Fetch.get<CTrack>(`spotify:/tracks/${this.$route.params.id}`);
+        if (response.status !== 200)
+            throw createError({ statusCode: 404, message: response.statusText, fatal: true })
+
+        this.track = response.data;
+        this.track.image = Fetch.bestImage(this.track.album!.images);
 
         // Store the breadcrumb
         this.breadcrumbs.add(`/info/track/${this.track.id}`, this.track.name)
 
         // Get the album image
-        this.track.album!.image = Fetch.bestArtwork(this.track.album!.images);
+        this.track.album!.image = Fetch.bestImage(this.track.album!.images);
 
         // Get the artists, their images, and calculate the genres
         Fetch.get<CArtist[]>(`spotify:/artists`, { ids: this.track.artists!.map(artist => artist.id) })
         .then(response => {
             this.track!.artists = response.data;
-            this.track!.artists?.forEach(artist => artist.image = Fetch.bestArtwork(artist.images))
+            this.track!.artists?.forEach(artist => artist.image = Fetch.bestImage(artist.images))
             this.trackGenres = response.data[0].genres.join(', ') || "No genres have been found";
 
             // Get the track features
@@ -178,7 +164,7 @@ export default class InfoTrack extends Vue {
             })
         })
 
-        this.appearsIn = await this.playlists.trackAppearsIn(this.track.id);
+        this.appearsIn = await this.playlists.trackAppearsIn(this.track!.id);
     }
 
     mounted() {

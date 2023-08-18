@@ -1,5 +1,5 @@
 <template>
-    <nav id="toolbelt" class="d-flex bg-dark-subtle justify-content-between align-items-center rounded-3 mb-2">
+    <nav id="toolbar" class="d-flex bg-dark-subtle justify-content-between align-items-center rounded-3 mb-2">
         <ClientOnly>
             <button class="navbar-toggler d-sm-none ms-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
                 <h2 class="m-0 me-2"><fa-icon :icon="['fas', 'bars']"></fa-icon></h2>
@@ -7,24 +7,24 @@
             <ToolbarPlaying class="ms-2 me-2"/>
             <ToolbarBreadcrumbs class="d-none d-lg-flex me-2"/>
         </ClientOnly>
-        <ul class="d-flex nav nav-pills">
+        <ul class="d-contents nav nav-pills overflow-hidden">
             <li v-if="user && user.info" class="nav-item cursor-pointer">
                 <url class="nav-link text-nowrap p-2 me-3" @click="user.logout()">
                     <span class="d-md-inline d-none me-3">{{ user.info.name }}</span>
                     <i><fa-icon :icon="['fas', 'user']"></fa-icon></i>
                 </url>
             </li>
-            <li v-else class="nav-item cursor-pointer">
-                <url class="nav-link text-nowrap p-2 me-3" @click="user?.login">
+            <li v-else class="nav-item cursor-pointer me-3">
+                <url class="nav-link text-nowrap p-2" @click="user?.login">
                     <span class="me-3">Log in</span>
-                    <i><fa-icon :icon="['fas', 'user']"></fa-icon></i>
+                    <i><fa-icon :icon="['far', 'user']"></fa-icon></i>
                 </url>
             </li>
-            <ClientOnly v-if="playlists && playlists.editing">
-                <button class="navbar-toggler d-sm-none ms-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#edit">
-                    <span class="fs-4 me-3"><fa-icon :icon="['fas', 'wand-magic']"></fa-icon></span>
+            <li v-if="playlists && playlists.editing" class="nav-item cursor-pointer">
+                <button class="navbar-toggler d-sm-none ms-3 h-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#edit">
+                    <span class="fs-5 me-4"><fa-icon :icon="['fas', 'wand-magic']"></fa-icon></span>
                 </button>
-            </ClientOnly>
+            </li>
         </ul>
     </nav>
 </template>
@@ -68,7 +68,7 @@ export default class Sidebar extends Vue {
 </script>
 
 <style lang="scss" scoped>
-#toolbelt {
+#toolbar {
     a {
         cursor: pointer;
     }

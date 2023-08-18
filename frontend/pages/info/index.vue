@@ -1,6 +1,6 @@
 <template>
     <Title>Search</Title>
-    <article class="rounded-2 p-2 bg-dark-subtle overflow-hidden">
+    <article class="rounded-2 p-2 bg-dark-subtle flex-grow-1 overflow-hidden">
         <SmallHeader :item="{name: 'Search', image: ['fas', 'search']}"></SmallHeader>
         <div class="pe-1 overflow-hidden overflow-y-auto h-100">
             <div v-if="error" class="alert alert-info" role="alert">
@@ -78,39 +78,19 @@
                 </div>
             </div>
             <div>
-                <template v-if="info.searchResult.playlists.length > 0">
-                    <h5 class="text-white mt-3 p-2 pb-0">Playlists</h5>
-                    <ol class="nav nav-pills flex-column ps-2">
-                        <li v-for="playlist of info.searchResult.playlists" class="nav-item cursor-pointer">
-                            <url :to="`/info/playlist/${playlist.id}`" class="ps-2 text-body d-flex nav-link">
-                                <img class="result-image rounded-1" :src="playlist.image">
-                                <div class="result-multilayer">
-                                    <span class="ms-3 text-truncate">{{ playlist.name }}</span>
-                                    <span class="ms-3 text-truncate">
-                                        {{ playlist.description![0].name }}
-                                        &nbsp;&nbsp;━&nbsp;&nbsp;
-                                        {{ playlist.description![0].description }}
-                                    </span>
-                                </div>
-                            </url>
-                        </li>
-                    </ol>
-                </template>
-                <template v-if="info.searchResult.artists.length > 0">
+                <template v-if="info.searchResult.artists">
                     <h5 class="text-white mt-3 p-2 pb-0">Artists</h5>
-                    <ol class="nav nav-pills flex-column ps-2">
-                        <li v-for="artist of info.searchResult.artists" class="nav-item cursor-pointer">
-                            <url :to="`/info/artist/${artist.id}`" class="ps-2 text-body d-flex nav-link">
-                                <img class="result-image rounded-1" :src="artist.image">
-                                <div class="multilayer">
-                                    <span class="ms-3 text-truncate">{{ artist.name }}</span>
-                                    <span class="ms-3 text-truncate">Genres: {{ artist.description![0].name || 'none known' }}</span>
-                                </div>
-                            </url>
-                        </li>
-                    </ol>
+                    <div class="d-flex overflow-auto gap-3 m-3 mt-4">
+                        <Card v-for="artist of info.searchResult.artists" :card="{image: artist.image, title: artist.name, url: `/info/artist/${artist.id}`}">
+                            <span>Genres</span>
+                            <span class="word-wrap text-body-secondary" style="font-size: 85%;">
+                                {{ artist.description![0].name || 'none known' }}
+                            </span>
+                        </Card>
+                    </div>
+                    <h6 v-if="info.searchResult.artists.length == 0">Artisn't. Can't find any artist matching your artistic search</h6>
                 </template>
-                <template v-if="info.searchResult.tracks.length > 0">
+                <template v-if="info.searchResult.tracks">
                     <h5 class="text-white mt-3 p-2 pb-0">Tracks</h5>
                     <ol class="nav nav-pills flex-column ps-2">
                         <li v-for="track of info.searchResult.tracks" class="nav-item cursor-pointer">
@@ -122,21 +102,30 @@
                                 </div>
                             </url>
                         </li>
-                    </ol>
-                </template>
-                <template v-if="info.searchResult.albums.length > 0">
-                    <h5 class="text-white mt-3 p-2 pb-0">Albums</h5>
-                    <ol class="nav nav-pills flex-column ps-2">
-                        <li v-for="album of info.searchResult.albums" class="nav-item cursor-pointer">
-                            <url :to="`/info/album/${album.id}`" class="ps-2 text-body d-flex nav-link">
-                                <img class="result-image rounded-1" :src="album.image">
-                                <div class="multilayer">
-                                    <span class="ms-3 text-truncate">{{ album.name }}</span>
-                                    <span class="ms-3 text-truncate">{{ album.description?.map(a => a.name).join(', ') }}</span>
-                                </div>
-                            </url>
+                        <li v-if="info.searchResult.tracks.length == 0">
+                            <h6>Spotify didn't find anything, you must have brought it off track </h6>
                         </li>
                     </ol>
+                </template>
+                <template v-if="info.searchResult.albums">
+                    <h5 class="text-white mt-3 p-2 pb-0">Albums</h5>
+                    <div class="d-flex overflow-auto gap-3 m-3 mt-4">
+                        <Card v-for="album of info.searchResult.albums" :card="{image: album.image, title: album.name, url: `/info/album/${album.id}`}">
+                            <span class="word-wrap text-body-secondary">{{ album.description?.map(a => a.name).join(', ') }}</span>
+                        </Card>
+                    </div>
+                    <h6 v-if="info.searchResult.albums.length == 0">Spotify says no</h6>
+                </template>
+                <template v-if="info.searchResult.playlists">
+                    <h5 class="text-white mt-3 p-2 pb-0">Playlists</h5>
+                    <div class="d-flex overflow-auto gap-3 m-3 mt-4">
+                        <Card v-for="playlist of info.searchResult.playlists" :card="{image: playlist.image, title: playlist.name, url: `/info/playlist/${playlist.id}`}">
+                            <span class="word-wrap text-body-secondary" style="font-size: 85%;">
+                                {{ playlist.description![0].name }}
+                            </span>
+                        </Card>
+                    </div>
+                    <h6 v-if="info.searchResult.playlists.length == 0">It does not seem to exist...</h6>
                 </template>
             </div>
         </div>
@@ -222,8 +211,5 @@ export default class InfoSearch extends Vue {
 .result-image {
     width: 3rem;
     height: 3rem;
-    object-position: 50% 50%;
-    object-fit: cover;
 }
-
 </style>

@@ -75,7 +75,7 @@ export default class ToolbarPlaying extends Vue {
             else if (this.player.track.id === response.data.item.id) return;
 
             const track = response.data.item;
-            this.player!.image = Fetch.bestArtwork(track.album.images);
+            this.player!.image = Fetch.bestImage(track.album.images);
             this.player!.track = {
                 name: track.name,
                 id: track.id

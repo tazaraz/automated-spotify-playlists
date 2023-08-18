@@ -1,58 +1,169 @@
 <template>
-    <select ref="source" class="form-select form-select-sm" aria-label=".form-select-sm example">
-        <option v-for="source in Object.keys(SourceDescription)" :value="source">{{ source }}</option>
+    <select ref="source" id="source-select" class="form-select form-select-md" @change="sourceChange">
+        <option v-for="s in SourceDescription" :value="s" :selected="source.origin == s">{{ s }}</option>
     </select>
-    <template v-if="!isLibrary">
-        <span>from</span>
-        <div class="input-group">
-            <input ref="input" type="text" class="form-control" placeholder="Type a query or an ID" />
-        </div>
-        <select ref="source" class="form-select form-select-sm" aria-label=".form-select-sm example">
-            <template v-if="results.length > 0">
-                <option v-for="source in Object.keys(SourceDescription)" :value="source">{{ source }}</option>
-            </template>
-            <option>Try the advanced search and input the ID</option>
-        </select>
+    <template v-if="kind == 'library'">
+        <span>Tracks you liked</span>
+        <span></span>
+        <button class="border-0 bg-transparent p-2" @click="$emit('delete')"><fa-icon style="color: rgb(155, 0, 0)"
+                :icon="['fas', 'trash-can']"></fa-icon></button>
     </template>
-        <!-- <dropdown v-if="results" ref="search" @click="updateSource" @close="updateSource">
-            <template v-if="results.length > 0">
-                <li v-for="result in results"
-                    :data-id="result.id">
-                    {{ result.name }}
-                </li>
-            </template>
-            <template v-else>
-                <li>Spotify came back empty handed...</li>
-            </template>
-        </dropdown> -->
-    <!-- </span> -->
-    <!-- <span v-if="!isLibrary"></span> -->
-    <span class="pe-text" style="grid-column: span 7;">Tracks you liked</span>
-    <Button class="delete-icon" @click="$emit('event', 'delete')"></Button>
+    <template v-else-if="kind == 'multiple' && (typeof source.value !== 'string')">
+        <span style="grid-column: span 2"></span>
+        <button class="border-0 bg-transparent p-2" @click="$emit('delete')"><fa-icon style="color: rgb(155, 0, 0)"
+            :icon="['fas', 'trash-can']"></fa-icon></button>
+        <template v-for="kind in ['track', 'artist', 'genre']">
+            <h6 class="text-capitalize ms-5 mt-1" style="grid-column: span 4">{{ kind }}s</h6>
+            <EditInput v-for="artist, index of source.value[`seed_${kind}s`]"
+                    :key="artist"
+                    :kind="kind"
+                    :value="artist"
+                    :removable="index < source.value[`seed_${kind}s`].length - 1"
+                    @update="updateInput($event, `seed_${kind}s`, index)"
+                    @remove="removeInput(`seed_${kind}s`, index)"
+                    class="ms-5 mb-2"
+                    style="grid-column: span 4"></EditInput>
+        </template>
+    </template>
+    <template v-else>
+        <span data-edit-class="small-two-layer">from</span>
+        <EditInput data-edit-class="small-d-none large-d-block" :value="source.value" :kind="kind" @update="updateInput"></EditInput>
+        <button class="border-0 bg-transparent p-2" @click="$emit('delete')"><fa-icon style="color: rgb(155, 0, 0)"
+            :icon="['fas', 'trash-can']"></fa-icon></button>
+        <EditInput data-edit-class="small-two-layer small-d-block normal-d-none large-d-none" :value="source.value" :kind="kind" @update="updateInput"></EditInput>
+    </template>
 </template>
 
 <script lang="ts">
 import { Vue, Prop } from 'vue-property-decorator';
 import { PlaylistSource } from '../../../backend/src/types/playlist';
-import { SourceDescription } from '../../../backend/src/types/descriptions';
-import Info, { InfoItem } from '~/stores/info';
+import { Sources } from '../../../backend/src/types/filters';
+import Info from '~/stores/info';
+import EditInput from './input.vue';
+import Layout from '~/stores/layout';
 
-
-export default class EditSoutce extends Vue {
-    @Prop({required: true}) source!: PlaylistSource
+export default class EditSource extends Vue {
+    @Prop({ required: true }) source!: PlaylistSource
 
     info!: Info;
+    SourceDescription = Object.keys(Sources);
+    layout!: Layout;
 
-    SourceDescription = SourceDescription;
-
-    isLibrary = false;
-    results: InfoItem[] = [];
+    kind: "album" | "artist" | "playlist" | "library" | "multiple" = "library"
 
     created() {
         this.info = new Info();
+    }
+
+    mounted() {
+        this.layout = new Layout();
+        this.layout.render(null, true);
+        this.getKind();
+    }
+
+    /**
+     * Used externally to check if all the required fields are filled
+     */
+    isValid() {
+        if (this.kind == 'multiple') {
+            return this.source.value !== null && typeof this.source.value !== 'string' &&
+                (this.source.value['seed_tracks'].length > 0
+                    || this.source.value['seed_genres'].length > 0
+                    || this.source.value['seed_artists'].length > 0);
+        } else {
+            return this.source.value !== null &&
+                (this.source.value !== '' || this.source.origin == "Library");
+        }
+    }
+
+    /**
+     * Changes the source origin itself, but might result in an incomplete value
+     * @param event The selected new source
+     */
+    async sourceChange(event: Event) {
+        this.source.origin = (event.target! as HTMLSelectElement).value as any;
+
+        // If it is the library, we want to hide the input
+        this.getKind();
+        if (this.kind == 'multiple') {
+            this.source.value = { 'seed_tracks': [''], 'seed_genres': [''], 'seed_artists': [''] }
+        } else {
+            this.source.value = '';
+        }
+
+        this.layout.render(null, true);
+    }
+
+    /**
+     * Updates an input value
+     * @param input The input component
+     * @param kind  The kind of input to update. Null if it is the single input.
+     * @param index The index of the kind of input to update. -1 if it is the single input.
+     */
+    async updateInput(input: EditInput, kind: any = null, index: number = -1) {
+        // 1v5bOzXbhrQ57qSvRwGA6s
+        // 6jJ0s89eD6GaHleKKya26X
+        if (kind == null) {
+            this.source.value = input.id;
+        } else {
+            /** If this ID is already present */
+            if (input.id !== '' && (this.source.value as any)[kind].includes(input.id) && index != (this.source.value as any)[kind].indexOf(input.id)) {
+                input.isValid = false;
+                input.error = "This ID is already present"
+                input.name = input.id;
+                return;
+            }
+
+            (this.source.value as any)[kind][index] = input.id;
+            await this.$nextTick();
+
+            /** If the user is allowed to id more inputs (max of 5) */
+            if (input.id !== '' && index + 1 < 5 && (this.source.value as any)[kind][index + 1] === undefined) {
+                (this.source.value as any)[kind].push('');
+            }
+        }
+    }
+
+    removeInput(kind: string, index: number = -1) {
+        if (index >= 0) {
+            (this.source.value as any)[kind].splice(index, 1);
+        }
+    }
+
+    getKind() {
+        switch (this.source.origin) {
+            case "Library":
+                this.kind = "library";
+                break;
+
+            case "Artist's Albums":
+            case "Artist's Related Artists":
+            case "Artist's Top Tracks":
+            case "Artist's Tracks":
+                this.kind = "artist";
+                break;
+
+            case "Playlist tracks":
+                this.kind = "playlist";
+                break;
+
+            case "Recommendations":
+                this.kind = "multiple";
+                break;
+        }
     }
 }
 </script>
 
 <style lang="scss" scoped>
+#source-select {
+    height: fit-content;
+}
+span.two-layer {
+    grid-column: span 2;
+}
+div.two-layer {
+    grid-column: span 4;
+    margin: 0 3rem;
+}
 </style>
