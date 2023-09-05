@@ -29,65 +29,22 @@
                     </template>
                 </div>
             </header>
-            <!-- <h4 v-if="album && album.artists" class="text-white mt-3 ms-3 p-2 pb-0">Artist{{ album.artists.length == 1 ? 's' : '' }}</h4>
-            <ol class="m-4 mt-0 d-flex nav row">
-                <li v-if="!album || !album.artists" class="col-12">
-                    <span class="placeholder rounded-5 bg-light" style="width: 3rem; height: 3rem"></span>
-                    <span class="placeholder rounded-2 ms-3" style="width: 7rem;"></span>
-                </li>
-                <li v-else v-for="artist, index of album.artists" class="col-auto p-2 d-flex">
-                    <Image :src="artist" class="rounded-5" style="width: 3rem; height: 3rem" />
-                    <span class="multilayer ms-3">
-                        <span>{{ index == 0 ? 'Artist' : 'Featuring' }}</span>
-                        <url :to="`/info/artist/${artist.id}`" class="rounded-2">{{ artist.name }}</url>
-                    </span>
-                </li>
-            </ol>
-            <div class="m-lg-5 mt-lg-3 m-4 mt-3 row placeholder-glow">
-                <div class="col-12 mb-2 multilayer">
-                    <span>
-                        Album ID&nbsp;&nbsp;━&nbsp;&nbsp;
-                        <url v-if="album" :to="`https://open.spotify.com/album/${album.id}`" :direct="true" target="_blank" class="text-primary">Spotify</url>
-                    </span>
-                    <span v-if="!album" class="placeholder rounded-1"></span>
-                    <span v-else>{{ album.id }} </span>
+
+            <div>
+                <h5 class="text-white mt-3 p-2 pb-0">Playlists</h5>
+                <div class="d-flex overflow-auto gap-3 m-3 mt-4">
+                    <Card v-for="playlist of playlists" :card="{image: playlist.image, title: playlist.name, url: `/info/playlist/${playlist.id}`}" :fallback="['far', 'user']">
+                        <span class="word-wrap text-body-secondary">{{ playlist.name }}</span>
+                    </Card>
                 </div>
-                <div class="col-12 mb-2 multilayer">
-                    <InfoField :description="Filters.Album.Genres.description">Genres</InfoField>
-                    <span v-if="!album" class="placeholder rounded-1"></span>
-                    <span v-else>{{ album.genres.join(', ') || "No genres. Try an artist." }}</span>
-                </div>
-                <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                    <InfoField :description="Filters.Album['Release date'].description">Release date</InfoField>
-                    <span v-if="!album" class="placeholder rounded-1"></span>
-                    <span v-else>{{ (new Date(album?.release_date)).getFullYear() }} </span>
-                </div>
-                <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                    <InfoField :description="Filters.Album.Popularity.description">Popularity</InfoField>
-                    <span v-if="!album" class="placeholder rounded-1"></span>
-                    <span v-else>{{ album.popularity }} / 10</span>
-                </div>
-                <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                    <InfoField :description="Filters.Album['Track count'].description">Total tracks</InfoField>
-                    <span v-if="!album" class="placeholder rounded-1"></span>
-                    <span v-else>{{ album.total_tracks }}</span>
+
+                <h5 class="text-white mt-3 p-2 pb-0">Followers</h5>
+                <div class="d-flex overflow-auto gap-3 m-3 mt-4">
+                    <Card v-for="user of followers" :card="{image: user.image, title: user.name, url: `/info/user/${user.id}`}" :fallback="['far', 'user']">
+                        <span class="word-wrap text-body-secondary">{{ user.name }}</span>
+                    </Card>
                 </div>
             </div>
-            <div class="text-white row flex-row m-2 mb-0">
-                <h4 v-if="album && tracks" class="m-0 w-auto me-auto">Tracks</h4>
-                <InfoField description="In how many playlist the track appears" class="col-3 border-start">Playlist count</InfoField>
-            </div>
-            <ol v-if="tracks" class="m-lg-5 mt-lg-3 m-3 mt-3 placeholder-glow">
-                <li v-if="!tracks">
-                    <span class="placeholder rounded-2 ms-3" style="width: 7rem;"></span>
-                </li>
-                <li v-else v-for="track of tracks" class="p-2">
-                    <div class="row">
-                        <url :to="`/info/track/${track.id}`" class="col rounded-2 ms-3 text-truncate">{{ track.name }}</url>
-                        <span class="ps-4 col-1" v-if="track.appearsIn.length > 0">{{ track.appearsIn.length }}</span>
-                    </div>
-                </li>
-            </ol> -->
         </div>
     </article>
 </template>
@@ -128,6 +85,17 @@ export default class InfoUser extends Vue {
         this.user = this.formatUser(response.data);
 
         Fetch.get(`spotify:/users/${this.$route.params.id}/playlists`)
+        .then(response => {
+            if (response.status !== 200)
+                return FetchError.create({ status: response.status, message: response.statusText })
+
+            this.playlists = response.data.items.map((playlist: any) => { return {
+                id: playlist.id,
+                name: playlist.name,
+                image: Fetch.bestImage(playlist.images),
+                url: playlist.external_urls.spotify
+            }});
+        })
 
         // this.playlists = res[1].data.items.map((playlist: any) => new CPlaylist(playlist));
 
@@ -148,7 +116,6 @@ export default class InfoUser extends Vue {
             }
         })
         .then(result => {
-            console.log(result.data.profiles)
             for (const user of result.data.profiles) {
                 this.followers.push(this.formatUser(user))
             }
@@ -162,8 +129,8 @@ export default class InfoUser extends Vue {
         return {
             id: user.id || user.uri?.replace('spotify:user:', ''),
             name: user.display_name || user.name,
-            url: user.external_urls?.spotify || user.uri?.replace('spotify:user:', 'https://open.spotify.com/user/'),
-            image: user.image_url || user.images?.length > 0 ? Fetch.bestImage(user.images) : ['far', 'user']
+            url: user.external_urls?.spotify || (user.uri?.replace('spotify:user:', 'https://open.spotify.com/user/')),
+            image: user.image_url || (user.images?.length > 0 ? Fetch.bestImage(user.images) : ['far', 'user'])
         }
     }
 }

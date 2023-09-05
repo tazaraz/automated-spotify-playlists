@@ -1,7 +1,7 @@
 <template>
     <url :to="card.url" class="w-25 mb-3">
         <div class="card h-100 p-3 border-0">
-            <Image :src="card" class="rounded-2"/>
+            <Image :src="card" class="rounded-2" :fallback="fallback" />
             <div class="card-body d-flex flex-column pt-3 p-0">
                 <h6 class="card-title d-block text-truncate">{{ card.title }}</h6>
                 <slot></slot>
@@ -21,6 +21,7 @@ interface Card {
 
 export default class InfoSearch extends Vue {
     @Prop({ required: true }) card!: Card;
+    @Prop({ default: ['fas', 'question']}) fallback!: [string, string];
 }
 </script>
 
