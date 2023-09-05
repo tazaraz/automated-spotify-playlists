@@ -4,18 +4,30 @@ import Database from "../tools/database";
 import Fetch from "../tools/fetch";
 import FilterParser from "./parser";
 import MusicSources from "./sources";
-import { LOG_DEBUG } from "../main";
+import { LOG, LOG_DEBUG } from "../main";
 import { Playlist } from "../types/playlist";
 import { FilterItem, STrack, SUser } from "../types/server";
 import FilterLog from "../stores/filterlog";
 
+interface FilterResult {
+    message: string;
+    status: number;
+    playlist?: Playlist;
+}
+
 export default class Filters {
+    static retry_after: Date | undefined;
+
     /**
      *                          Runs one filters for a playlist
      * @param playlist   Either a Playlist or a playlist_id
      * @param user_id           The user_id of the user
      */
-    static async execute(playlist: Playlist | string, user: SUser) {
+    static async execute(playlist: Playlist | string, user: SUser): Promise<FilterResult> {
+        // If we are rate limited, wait until we are not
+        if (Filters.retry_after !== undefined && Filters.retry_after > new Date())
+            return { message: `Retry after:${Filters.retry_after.toLocaleString()}`, status: 429 };
+
         // Get the playlist if only an id is given
         if (typeof playlist === "string") {
             // Get the specific smart playlist
@@ -23,19 +35,29 @@ export default class Filters {
 
             // If it does not exist, return
             if (playlist === undefined)
-                return false;
+                return { message: `Playlist ${playlist} does not exist`, status: 404 };
         } else
             playlist = playlist;
 
         if (FilterLog.exists(playlist.id))
-            return true;
+            return { message: `Playlist ${playlist.id} is already being processed`, status: 409 };
 
         const log = new FilterLog(playlist.id);
 
         // Update the playlist information. Spotify is probably correct
         const response = await Fetch.get(`/playlists/${playlist.id}`, { user })
-        if (response.status === 404) return false;
-        if (response.status !== 200) throw new Error(`Executing failed: ${response.status} ${response.statusText}`);
+        if (response.status !== 200) {
+            LOG(`Executing failed: ${response.status} ${response.statusText}`);
+
+            // If we are rate limited, set the retry_after date
+            if (response.headers.get("retry-after") !== null) {
+                Filters.retry_after = new Date(Date.now() + parseInt(response.headers.get("retry-after")) * 1000);
+                LOG(`Retry after:${Filters.retry_after.toLocaleString()}`);
+                return { message: `Retry after:${Filters.retry_after.toLocaleString()}`, status: 429 };
+            } else {
+                return { message: `Failed to get playlist ${playlist.id}`, status: response.status }
+            }
+        }
 
         const spotify_playlist = response.data;
         playlist.name = (spotify_playlist as Playlist).name;
@@ -60,10 +82,12 @@ export default class Filters {
         resulting_playlist.log = log.finalize();
 
         // Update the database
-        if (!(await Database.setPlaylist(user.id, resulting_playlist)))
-            throw new Error("Failed to save a newly calculated playlist in database");
+        if (!(await Database.setPlaylist(user.id, resulting_playlist))) {
+            LOG(`Failed to save a newly calculated playlist in database`);
+            return { message: `Failed to save a newly calculated playlist in database`, status: 500 };
+        }
 
-        return resulting_playlist;
+        return { message: `Successfully executed playlist ${playlist.id}`, status: 200, playlist: resulting_playlist };
     }
 
 
@@ -240,7 +264,7 @@ export default class Filters {
                     }
                 }).then(response => {
                     if (response.status === 201)
-                        Snapshots.set(playlist_id, user.id, response.data.snapshot_id);
+                        Snapshots.set(user.id, playlist_id, response.data.snapshot_id);
 
                     if (retries > 0) {
                         // We don't want to add duplicate tracks, so first, remove them if they exist
@@ -275,7 +299,7 @@ export default class Filters {
                     )}
                 }).catch(response => {
                     if (response.status === 201)
-                        Snapshots.set(playlist_id, user.id, response.data.snapshot_id);
+                        Snapshots.set(user.id, playlist_id, response.data.snapshot_id);
 
                     if (retries > 0)
                         return setTimeout(async () => await Filters.removeTracksFromSpotify(user, playlist_id, tracks, retries - 1), 1000);
