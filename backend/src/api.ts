@@ -139,8 +139,8 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
     // Delete the log
     log.finalize();
 
-    /**We now update or create the playlist */
-    const dbplaylist = await Database.getPlaylist(playlist.id, req.user.id);
+    /** We now update or create the playlist */
+    const dbplaylist = await Database.getPlaylist(req.user.id, playlist.id);
     if (dbplaylist) {
         // If something changed, update the playlist
         if ((playlist.description !== dbplaylist.description && playlist.description !== "") ||
@@ -189,18 +189,13 @@ api.delete('/playlist', Users.verify_token, async (req, res) => {
             return res.status(result.status).json({status: "Spotify Error", error: result.statusText})
 
         // Delete the playlist from the database
-        Database.deletePlaylist(req.body.id, req.user.id)
+        Database.deletePlaylist(req.user.id, req.body.id)
         .then(() => {
             res.sendStatus(200)
         })
-    })
-
-    Database.deletePlaylist(req.body.id, req.user.id)
-    .then(() => {
-        res.sendStatus(200)
-    })
-    .catch(error => {
-        res.status(400).json({status: "Failed to delete smart playlist", error: error})
+        .catch(error => {
+            res.status(400).json({status: "Failed to delete smart playlist", error: error})
+        })
     })
 });
 
@@ -208,20 +203,19 @@ api.delete('/playlist', Users.verify_token, async (req, res) => {
  * Runs the filters for a given playlist
  */
 api.patch(`/playlist/:playlistid`, Users.verify_token, async (req, res) => {
-    console.log(req.user)
     const result = await Filters.execute(req.params.playlistid, await Users.get(req.user.id));
 
     // If false, something went wrong
-    if (result === false) {
-        return res.sendStatus(404);
-    }
-    // True means the playlist is already running
-    else if (result === true) {
+    if (result.playlist) {
+        return res.json(result.playlist);
+    } else if (result.status === 409) {
         return res.status(304).json({
             status: "Playlist is already running",
             log: await FilterLog.get(req.params.playlistid).changed()
         });
-    } else {
+    }
+    // True means the playlist is already running
+    else  {
         return res.json(result);
     }
 })
@@ -244,7 +238,7 @@ api.put(`/playlist/:playlistid/basic`, Users.verify_token, async (req, res) => {
         if (response.status !== 200)
             return res.status(response.status).json({status: "Spotify Error", error: response.statusText})
 
-        Database.setSmartPlaylistBasic(req.params.playlistid, req.user.id, data.name, data.description);
+        Database.setSmartPlaylistBasic(req.user.id, req.params.playlistid, data.name, data.description);
         res.sendStatus(200);
     })
 })
