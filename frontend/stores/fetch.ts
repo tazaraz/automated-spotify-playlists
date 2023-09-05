@@ -268,7 +268,6 @@ export default class Fetch {
         await Fetch.refreshingToken;
 
         // If the access token is expired, refresh it
-        console.log(url, Fetch.user.spotifyTokenExpired(), Fetch.user.serverTokenExpired(), Fetch.refreshingToken, Fetch.user)
         if (url !== "server:/user/refresh" && (Fetch.user.spotifyTokenExpired() || Fetch.user.serverTokenExpired())) {
             if (Fetch.user.serverTokenExpired()) {
                 Fetch.user.logout();

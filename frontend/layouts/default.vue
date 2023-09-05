@@ -1,9 +1,9 @@
 <template>
     <Html data-bs-theme="dark"></Html>
     <main v-if="layout" class="bg-black overflow-hidden" ref="wrapper"
-        @touchend="layout.setDragging('sidebar', false); layout.setDragging('edit', false)"
+        @touchend="layout.setResizing('sidebar', false); layout.setResizing('edit', false)"
+        @mouseup="layout.setResizing('sidebar', false); layout.setResizing('edit', false)"
         @touchmove="layout.render($event)"
-        @mouseup="layout.setDragging('sidebar', false); layout.setDragging('edit', false)"
         @mousemove="layout.render($event)">
         <div v-if="layout.app.width > 0 && layout.app.width < layout.app.mobile" class="offcanvas offcanvas-start bg-black d-sm-flex w-100 p-3"
             tabindex="-1" id="sidebar">
@@ -12,8 +12,8 @@
         <template v-else>
             <Sidebar></Sidebar>
             <span class="resize-handle d-sm-flex d-none" style="grid-row: span 2; grid-column: span 1"
-                @touchstart="layout.setDragging('sidebar', true)"
-                @mousedown="layout.setDragging('sidebar', true)"><i class="rounded-5"></i></span>
+                @touchstart="layout.setResizing('sidebar', true)"
+                @mousedown="layout.setResizing('sidebar', true)"><i class="rounded-5"></i></span>
         </template>
 
         <toolbar />
@@ -30,8 +30,8 @@
             </div>
             <template v-else>
                 <span class="resize-handle d-sm-flex d-none" style="grid-row: span 2; grid-column: span 1"
-                    @touchstart="layout.setDragging('edit', true)"
-                    @mousedown="layout.setDragging('edit', true)"><i class="rounded-5"></i></span>
+                    @touchstart="layout.setResizing('edit', true)"
+                    @mousedown="layout.setResizing('edit', true)"><i class="rounded-5"></i></span>
                 <Edit @open="layout.open('edit')" />
             </template>
         </template>

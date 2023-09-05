@@ -77,7 +77,7 @@ export default class Layout extends Pinia {
         /** Allowed size of the sidebar */
         size: { min: 6.5*16, max: 22*16 },
         /** Whether the sidebar view is being resized */
-        dragging: false,
+        resizing: false,
         /** CSS. Handle between these values, the sidebar should be small */
         tiny: { min: 0, max: 17*16 },
         /** CSS. Handle over this value, the sidebar should be normal */
@@ -95,7 +95,7 @@ export default class Layout extends Pinia {
         /** Current state */
         state: 'normal',
         /** Whether the edit view is being resized */
-        dragging: false,
+        resizing: false,
         /** Allowed size of the edit view */
         size: { min: 5*16 },
         /** CSS. Handle less than this, edit view should be full */
@@ -128,7 +128,7 @@ export default class Layout extends Pinia {
         /** If we are on mobile */
         if (window.innerWidth <= this.app.mobile) {
             this.setMobile();
-        } else if (this.sidebar.dragging || this.edit.dragging || force) {
+        } else if (this.sidebar.resizing || this.edit.resizing || force) {
             await this.nextTick();
             let clientX: number | null = null;
 
@@ -189,11 +189,11 @@ export default class Layout extends Pinia {
     /**
      * Updates whether the user is resizing the sidebar or edit container
      * @param kind Sidebar or Edit
-     * @param value Whether the user is dragging
+     * @param value Whether the user is resizing
      */
-    setDragging(kind: "sidebar" | "edit", value: boolean) {
+    setResizing(kind: "sidebar" | "edit", value: boolean) {
         document.body.style.cursor = value ? 'col-resize' : '';
-        this[kind].dragging = value;
+        this[kind].resizing = value;
     }
 
     open(what: "main" | "edit") {
@@ -208,9 +208,9 @@ export default class Layout extends Pinia {
             handle = this.app.width - this.edit.tiny.max - this.app.padding;
         }
 
-        this.setDragging('edit', true);
+        this.setResizing('edit', true);
         this.render(handle, true);
-        this.setDragging('edit', false);
+        this.setResizing('edit', false);
     }
 
     /**
@@ -258,7 +258,7 @@ export default class Layout extends Pinia {
      * @param force Whether to force the resize, even if the user is not resizing
      */
     private resizeSidebar(handle: number, main: number, user: boolean, force: boolean) {
-        if (!this.sidebar.dragging && !force) return;
+        if (!this.sidebar.resizing && !force) return;
 
         /** Amount of space the sidebar has to grow (or shrink) */
         const grow_space = main - this.main.size.min;
@@ -320,7 +320,7 @@ export default class Layout extends Pinia {
      * @param recursed Whether this function has been called recursively. Used when trying to minimize the sidebar
      */
     private async resizeEdit(handle: number, main: number, user: boolean, force = false, recursed = false) {
-        if (!this.edit.dragging && !force) return false;
+        if (!this.edit.resizing && !force) return false;
 
         /** Utmost right in the app view */
         const handleMax = this.appElement.clientWidth - this.app.padding;

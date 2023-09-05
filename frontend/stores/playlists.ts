@@ -402,7 +402,6 @@ export default class Playlists extends Pinia {
      * @param playlist Playlist filters to run
      */
     async execute(playlist: LoadedPlaylist | CPlaylist){
-        console.log(playlist)
         const response = await Fetch.patch(`server:/playlist/${playlist.id}`);
         if (response.status === 304) {
             return response.data.log as CPlaylist['log']
@@ -427,7 +426,6 @@ export default class Playlists extends Pinia {
      * @param playlist Playlist to be updated server-side
      */
     async syncPlaylist(playlist: LoadedPlaylist | CPlaylist) {
-        console.log(playlist)
         let response = await Fetch.put("server:/playlist", {
             headers: { 'Content-Type': 'json' },
             data: {
