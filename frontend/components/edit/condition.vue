@@ -1,35 +1,35 @@
 <template>
     <div class="filter-item">
-        <span class="grip"><fa-icon :icon="['fas', 'grip-vertical']"></fa-icon></span>
         <template v-for="i in indent">
             <span v-if="i < indent - 1" class="tree indent"><i></i></span>
             <span v-if="i == indent - 1" class="tree branch"><i></i><i></i></span>
-            {{ condition.category }} - {{ condition.filter }}
             <span v-if="i == indent" :class="`center filter ps-1 f${i - 1}`">
                 <select class="ms-2 form-select form-select-sm w-auto">
                     <option
                         v-for="category in Object.keys(MainFilters)"
+                        @click="filterChange($event, 'category')"
                         :value="category"
                         :selected="condition.category == category">{{ category }}</option>
                 </select>
-                {{ SubFilters }} - {{ condition.filter }}
-                <!-- <InfoField :description="SubFilters[condition.filter].description">
+                <InfoField :description="SubFilters[condition.filter].description">
                     <select class="ms-2 form-select form-select-sm w-auto">
                         <option
                             v-for="filter in Object.keys(SubFilters)"
+                            @click="filterChange($event, 'filter')"
                             :value="filter"
                             :selected="condition.filter == filter">{{ filter }}</option>
                     </select>
-                </InfoField> -->
+                </InfoField>
                 <i></i>
             </span>
         </template>
 
         <span class="center operation" data-edit-class="small-d-none">
             <InfoField :description="Operations[condition.operation]">
-                <select class="form-select form-select-sm w-auto" @change="operationChange">
+                <select class="form-select form-select-sm w-auto">
                     <option
                         v-for="op in Object.keys(Operations)"
+                        @click="filterChange($event, 'operation')"
                         :value="op"
                         :selected="condition.operation == op">{{ op }}</option>
                 </select>
@@ -70,14 +70,14 @@
 
         <template v-for="i in indent"
             v-if="layout && layout.edit.width <= layout.edit.normal.min">
-            <span v-if="i == 1"></span>
             <span v-if="i < indent" class="tree indent"><i></i></span>
             <template v-else>
                 <span class="center stacked-operation">
                     <InfoField :description="Operations[condition.operation]">
-                        <select class="form-select form-select-sm w-auto ms-4" @change="operationChange">
+                        <select class="form-select form-select-sm w-auto ms-4">
                             <option
                                 v-for="op in Object.keys(Operations)"
+                                @click="filterChange($event, 'operation')"
                                 :value="op"
                                 :selected="condition.operation == op">{{ op }}</option>
                         </select>
@@ -89,7 +89,6 @@
         <template v-for="i in indent"
             v-if="layout && layout.edit.width < layout.edit.large.min &&
                 inputType != inputTypes.boolean">
-            <span v-if="i == 1"></span>
             <span v-if="i < indent" class="tree indent"><i></i></span>
             <template v-else>
                 <span v-if="inputType == inputTypes.value" class="center stacked-input input-group input-group-sm ps-4">
@@ -115,7 +114,7 @@
 </template>
 
 <script lang="ts">
-import { Vue, Prop } from 'vue-property-decorator';
+import { Vue, Prop, Emit } from 'vue-property-decorator';
 import { PlaylistCondition } from '../../../backend/src/types/playlist';
 import { Filters } from '../../../backend/src/types/filters';
 import Layout from '~/stores/layout';
@@ -129,6 +128,8 @@ enum inputTypes {
     boolean
 }
 
+@Emit('event')
+@Emit('change')
 export default class EditCondition extends Vue {
     @Prop({required: true}) condition!: PlaylistCondition
     @Prop({required: true}) indent!: number
@@ -146,6 +147,7 @@ export default class EditCondition extends Vue {
     duration: [string, string] = ["0", "00"];
 
     created() {
+        this.MainFilters = Filters;
         this.update();
     }
 
@@ -154,12 +156,35 @@ export default class EditCondition extends Vue {
         this.layout.render(null, true);
     }
 
-    filterChange(event: Event, kind: "category" | "filter") {
+    isValid() {
+        if (// Check the fields
+            this.condition.category !== undefined &&
+            this.condition.filter !== undefined &&
+            this.condition.operation !== undefined &&
+            // Check the filters
+            this.MainFilters &&
+            this.MainFilters[this.condition.category] !== undefined &&
+            this.MainFilters[this.condition.category][this.condition.filter] !== undefined &&
+            Object.keys(this.MainFilters[this.condition.category][this.condition.filter].type.operation).includes(this.condition.operation) &&
+            // Check if the value is not empty OR if it is a boolean (which can be empty)
+            (this.condition.value !== "" || (this.MainFilters[this.condition.category][this.condition.filter].type == FilterBoolean && this.condition.value == ""))
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    filterChange(event: Event, kind: "category" | "filter" | "operation") {
         if (kind == "category") {
             this.condition.category = (event.target! as HTMLSelectElement).value as any;
-        } else {
+        } else if (kind == "filter") {
             this.condition.filter = (event.target! as HTMLSelectElement).value as any;
+        } else if (kind == "operation") {
+            this.condition.operation = (event.target! as HTMLSelectElement).value as any;
         }
+
+        this.condition.value = "";
 
         this.update();
         this.$forceUpdate();
@@ -167,7 +192,6 @@ export default class EditCondition extends Vue {
     }
 
     update() {
-        this.MainFilters = Filters;
         this.SubFilters  = Filters[this.condition.category];
 
         // If we switch to a category that doesn't have the current filter, switch to the first filter
@@ -177,6 +201,11 @@ export default class EditCondition extends Vue {
 
         // Update the available operations
         this.Operations  = Filters[this.condition.category][this.condition.filter].type.operation;
+
+        // If we switch to a filter that doesn't have the current option, switch to the first option of the filters
+        if (this.Operations[this.condition.operation] == undefined) {
+            this.condition.operation = Object.keys(Filters[this.condition.category][this.condition.filter].type.operation)[0];
+        }
 
         switch (Filters[this.condition.category][this.condition.filter].type) {
             case FilterDate:
@@ -277,19 +306,19 @@ export default class EditCondition extends Vue {
     align-items: center;
 }
 
-.f0 { grid-column: 2 / 6; }
-.f1 { grid-column: 3 / 6; }
-.f2 { grid-column: 4 / 6; }
-.f3 { grid-column: 5 / 6; }
+.f0 { grid-column: 1 / 5; }
+.f1 { grid-column: 2 / 5; }
+.f2 { grid-column: 3 / 5; }
+.f3 { grid-column: 4 / 5; }
 
-.operation { grid-column: 7 / 7; }
-.stacked-operation { grid-column: 5 / -1; }
+.operation { grid-column: 6 / 6; }
+.stacked-operation { grid-column: 4 / -1; }
 
-.input { grid-column: 9 / 9; }
+.input { grid-column: 8 / 8; }
 .stacked-input {
     width: 75%;
     min-width: min(100%, 20rem);
-    grid-column: 5 / -1;
+    grid-column: 4 / -1;
 }
 .input.duration,
 .stacked-input.duration {

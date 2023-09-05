@@ -35,21 +35,27 @@
 </template>
 
 <script lang="ts">
-import { Vue, Prop } from 'vue-property-decorator';
+import { Vue, Prop, Emit } from 'vue-property-decorator';
 import { PlaylistSource } from '../../../backend/src/types/playlist';
 import { Sources } from '../../../backend/src/types/filters';
 import Info from '~/stores/info';
 import EditInput from './input.vue';
 import Layout from '~/stores/layout';
+import Playlists from '~/stores/playlists';
+import User from '~/stores/user';
 
+@Emit('delete')
 export default class EditSource extends Vue {
     @Prop({ required: true }) source!: PlaylistSource
 
+    playlists!: Playlists;
     info!: Info;
     SourceDescription = Object.keys(Sources);
     layout!: Layout;
 
+    /** Multiple is not yet supported */
     kind: "album" | "artist" | "playlist" | "library" | "multiple" = "library"
+    invalid = false;
 
     created() {
         this.info = new Info();
@@ -58,6 +64,8 @@ export default class EditSource extends Vue {
     mounted() {
         this.layout = new Layout();
         this.layout.render(null, true);
+        this.playlists = new Playlists();
+        this.playlists.setUser(new User());
         this.getKind();
     }
 
@@ -71,8 +79,9 @@ export default class EditSource extends Vue {
                     || this.source.value['seed_genres'].length > 0
                     || this.source.value['seed_artists'].length > 0);
         } else {
-            return this.source.value !== null &&
-                (this.source.value !== '' || this.source.origin == "Library");
+            return !this.invalid && this.source.value !== null &&
+                (this.source.origin == "Library" ||
+                 (this.source.value !== '' && this.source.value !== this.playlists.editing.id));
         }
     }
 
@@ -101,9 +110,16 @@ export default class EditSource extends Vue {
      * @param index The index of the kind of input to update. -1 if it is the single input.
      */
     async updateInput(input: EditInput, kind: any = null, index: number = -1) {
-        // 1v5bOzXbhrQ57qSvRwGA6s
-        // 6jJ0s89eD6GaHleKKya26X
         if (kind == null) {
+            if (input.id == this.playlists.editing.id) {
+                input.isValid = false;
+                input.error = "You can't use the playlist you are editing as a source"
+                input.name = input.id;
+                this.invalid = true;
+                return;
+            }
+
+            this.invalid = false;
             this.source.value = input.id;
         } else {
             /** If this ID is already present */
@@ -111,9 +127,11 @@ export default class EditSource extends Vue {
                 input.isValid = false;
                 input.error = "This ID is already present"
                 input.name = input.id;
+                this.invalid = true;
                 return;
             }
 
+            this.invalid = false;
             (this.source.value as any)[kind][index] = input.id;
             await this.$nextTick();
 

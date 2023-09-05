@@ -7,22 +7,22 @@
             <ToolbarPlaying class="ms-2 me-2"/>
             <ToolbarBreadcrumbs class="d-none d-lg-flex me-2"/>
         </ClientOnly>
-        <ul class="d-contents nav nav-pills overflow-hidden">
+        <ul class="nav flex-shrink-0 nav-pills overflow-hidden me-3">
             <li v-if="user && user.info" class="nav-item cursor-pointer">
-                <url class="nav-link text-nowrap p-2 me-3" @click="user.logout()">
+                <url class="nav-link p-2 me-2" @click="user.logout()">
                     <span class="d-md-inline d-none me-3">{{ user.info.name }}</span>
                     <i><fa-icon :icon="['fas', 'user']"></fa-icon></i>
                 </url>
             </li>
-            <li v-else class="nav-item cursor-pointer me-3">
-                <url class="nav-link text-nowrap p-2" @click="user?.login">
+            <li v-else class="nav-item cursor-pointer me-2">
+                <url class="nav-link p-2" @click="user?.login">
                     <span class="me-3">Log in</span>
                     <i><fa-icon :icon="['far', 'user']"></fa-icon></i>
                 </url>
             </li>
             <li v-if="playlists && playlists.editing" class="nav-item cursor-pointer">
-                <button class="navbar-toggler d-sm-none ms-3 h-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#edit">
-                    <span class="fs-5 me-4"><fa-icon :icon="['fas', 'wand-magic']"></fa-icon></span>
+                <button class="navbar-toggler d-sm-none h-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#edit">
+                    <span class="fs-5 ms-1"><fa-icon :icon="['fas', 'wand-magic']"></fa-icon></span>
                 </button>
             </li>
         </ul>

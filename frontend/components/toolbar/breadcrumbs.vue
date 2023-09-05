@@ -36,7 +36,6 @@ export default class Breadcrumbs extends Vue {
 
         const route = useRoute();
         watch(() => route.fullPath, () => this.$nextTick(() => {
-            console.log("redirect to:", route.fullPath, this.playlists.editing?.name, this.info.currentItem?.name)
             if (route.fullPath.startsWith('/playlist'))
                 this.breadcrumbs.add(route.fullPath, this.playlists.editing?.name)
 

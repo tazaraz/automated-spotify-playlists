@@ -1,6 +1,5 @@
 <template>
     <div class="filter-item">
-        <span class="grip"><fa-icon :icon="['fas', 'grip-vertical']"></fa-icon></span>
         <template v-for="i in indent">
             <span v-if="i > 1 && i < indent" class="tree indent"><i></i></span>
             <span v-if="i > 1 && i == indent" class="tree branch"><i></i><i></i></span>
@@ -80,7 +79,7 @@ export default class EditStatement extends Vue {
     }
 }
 
-.s0 { grid-column: 2 / 10; }
-.s1 { grid-column: 3 / 10; }
-.s2 { grid-column: 4 / 11; }
+.s0 { grid-column: 1 / 9; }
+.s1 { grid-column: 2 / 9; }
+.s2 { grid-column: 3 / 10; }
 </style>

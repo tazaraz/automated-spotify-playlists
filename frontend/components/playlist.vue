@@ -18,7 +18,7 @@
                         </template>
                         <template v-else>
                             <h1 class="mt-auto">{{ playlists.loaded.name }}</h1>
-                            <span v-if="!playlists.loaded.filters">Smart playlist</span>
+                            <span>{{ playlists.loaded.description }}</span>
                             <div class="mt-3 d-flex align-items-center flex-wrap gap-2">
                                 <url :to="`/info/user/${playlists.loaded.owner.id}`" class="rounded-2">{{ playlists.loaded.owner.display_name }}</url>
                                 &nbsp;&nbsp;━&nbsp;&nbsp;
@@ -30,6 +30,7 @@
                                 </span>
                             </div>
                             <span v-if="playlists.loaded.id != 'unpublished' && playlists.loaded.id != 'library'">ID: {{ playlists.loaded.id }}</span>
+                            <span v-if="playlists.loaded.filters">Smart playlist</span>
                         </template>
                     </div>
                 </header>
@@ -50,13 +51,15 @@
                                 <h1 class="modal-title fs-5" id="exampleModalLabel">Delete</h1>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
-                            <div class="modal-body">
-                                This will delete the smart playlist and remove it in spotify. Are you sure?
+                            <div v-if="playlists.loaded.filters" class="modal-body">
+                                This will delete the smart playlist and remove it in spotify. People following the playlist will still have it, however it will not be updated anymore.
+                            </div>
+                            <div v-else class="modal-body">
+                                This will remove the playlist from spotify. People following the playlist will still have it.
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-                                <button type="button" class="btn btn-danger">Yes</button>
-                                <!-- <button type="button" class="btn btn-primary" @click="remove">Confirm</button> -->
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="remove">Delete</button>
                             </div>
                         </Modal>
 
@@ -229,7 +232,8 @@ export default class PlaylistDisplay extends Vue {
         await this.playlists.loadEditingPlaylist(id);
         this.showTracks("all");
         // Click the edit button to try and open the offcanvas edit view
-        document.getElementById("toolbar")?.lastChild?.lastChild?.click();
+        await this.$nextTick();
+        document.getElementById("toolbar")?.lastChild?.lastChild?.lastChild?.click();
         this.layout.render(null, true)
     }
 
