@@ -2,7 +2,6 @@ import express from 'express';
 import Database from './tools/database';
 import Fetch from './tools/fetch';
 import Filters from './processing';
-import Snapshots from './stores/snapshots';
 import Users from './stores/users';
 import MusicSources from './processing/sources';
 import FilterParser from './processing/parser';
@@ -262,8 +261,6 @@ api.delete(`/playlist/:playlistid/matched-tracks`, Users.verify_token, async (re
             if (response.status !== 200 && response.status !== 201) {
                 res.status(response.status).json({status: "Spotify Error", error: response.statusText})
                 return LOG({task: "Move matched tracks", status: "Spotify Error", error: response.statusText});
-            } else {
-                Snapshots.set(req.params.playlistid, req.user.id, response.data.snapshot_id)
             }
         });
     }
@@ -294,8 +291,6 @@ api.delete(`/playlist/:playlistid/excluded-tracks`, Users.verify_token, async (r
             if (response.status !== 200 && response.status !== 201) {
                 res.status(response.status).json({status: "Spotify Error", error: response.statusText})
                 return LOG({task: "Move excluded tracks", status: "Spotify Error", error: response.statusText});
-            } else {
-                Snapshots.set(req.params.playlistid, req.user.id, response.data.snapshot_id)
             }
         });
     }
@@ -326,8 +321,6 @@ api.delete(`/playlist/:playlistid/included-tracks`, Users.verify_token, async (r
             if (response.status !== 200 && response.status !== 201) {
                 res.status(response.status).json({status: "Spotify Error", error: response.statusText})
                 return LOG({task: "Delete included tracks", status: "Spotify Error", error: response.statusText});
-            } else {
-                Snapshots.set(req.params.playlistid, req.user.id, response.data.snapshot_id)
             }
         });
     }

@@ -6,7 +6,7 @@ import api from './api';
 import Users from './stores/users';
 import Database from './tools/database';
 import Fetch from './tools/fetch';
-import Snapshots from './stores/snapshots';
+import Updater from './stores/updater';
 
 const logfile = fs.createWriteStream('output.log', { flags: 'w+' });
 
@@ -30,7 +30,6 @@ const app       = express();
 const database  = new Database();
 const fetch     = new Fetch();
 const users     = new Users();
-const snapshots = new Snapshots();
 
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
@@ -42,8 +41,8 @@ app.use('/', api);
 (async () => {
     LOG_DEBUG('Connecting to db...');
     await Database.connect();
-    LOG_DEBUG('Starting snapshot watcher...');
-    await Snapshots.watch();
+    LOG_DEBUG('Starting updater...');
+    Updater.schedule();
     LOG_DEBUG('Starting server...');
     app.listen(3000, () => {
         LOG_DEBUG('API listening on port 3000');

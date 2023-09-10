@@ -1,5 +1,4 @@
 import Metadata from "../stores/metadata";
-import Snapshots from "../stores/snapshots";
 import Database from "../tools/database";
 import Fetch from "../tools/fetch";
 import FilterParser from "./parser";
@@ -263,9 +262,6 @@ export default class Filters {
                         position: 0
                     }
                 }).then(response => {
-                    if (response.status === 201)
-                        Snapshots.set(user.id, playlist_id, response.data.snapshot_id);
-
                     if (retries > 0) {
                         // We don't want to add duplicate tracks, so first, remove them if they exist
                         Filters.removeTracksFromSpotify(user, playlist_id, tracks);
@@ -298,9 +294,6 @@ export default class Filters {
                         return {uri: `spotify:track:${track}`}}
                     )}
                 }).catch(response => {
-                    if (response.status === 201)
-                        Snapshots.set(user.id, playlist_id, response.data.snapshot_id);
-
                     if (retries > 0)
                         return setTimeout(async () => await Filters.removeTracksFromSpotify(user, playlist_id, tracks, retries - 1), 1000);
                 })
