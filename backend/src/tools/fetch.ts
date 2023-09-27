@@ -47,7 +47,7 @@ export default class Fetch {
 
     protected static async build<T>(url: string, options: FetchOptions = {}) {
         const limit      = options?.limit ?? 50;
-        const ids        = options?.ids ?? undefined;
+        const ids        = options?.ids?.sort() ?? undefined;
         const pagination = options?.pagination ?? false;
         const data       = options?.data ?? undefined;
         options.headers  = options.headers ?? {}
@@ -156,12 +156,14 @@ export default class Fetch {
             // If the api.spotify.com lookup fails
             switch (error.cause.code) {
                 case "EAI_AGAIN":
+                /* Random timeout */
                 case "UND_ERR_CONNECT_TIMEOUT":
-                    return this.parseRequest(url, parameters, options);
-
+                /* Socket closed randomly */
+                case "UND_ERR_SOCKET":
                 default:
+                    /** Log the error and try again */
                     console.log(JSON.stringify(error));
-                    throw new Error("Failed to fetch data");
+                    return this.parseRequest(url, parameters, options);
             }
         }
 
