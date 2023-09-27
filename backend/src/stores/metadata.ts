@@ -261,13 +261,13 @@ export default class Metadata {
         let items;
         switch (kind) {
             case "track":
-                items = Metadata.getMultiple<STrack>(url, Metadata.tracks, options);
+                items = await Metadata.getMultiple<STrack>(url, Metadata.tracks, options);
                 break;
             case "album":
-                items = Metadata.getMultiple<SAlbum>(url, Metadata.albums, options);
+                items = await Metadata.getMultiple<SAlbum>(url, Metadata.albums, options);
                 break;
             case "artist":
-                items = Metadata.getMultiple<SArtist>(url, Metadata.artists, options);
+                items = await Metadata.getMultiple<SArtist>(url, Metadata.artists, options);
                 break;
         }
 
