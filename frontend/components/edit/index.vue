@@ -69,20 +69,20 @@
                             @event="editstate.eventFilter($event, entry.index)"></EditCondition>
                     </template>
                 </section>
-                <br>
-                <br>
                 <div v-if="editstate.error > 0" class="alert alert-primary" role="alert">
                     Some {{ editstate.error == 1 ? 'sources' : editstate.error == 2 ? 'filters' : 'filters and sources'}} are not filled in correctly
                 </div>
                 <hr>
+                <small v-if="playlists.editing.id == 'example'" class="text-body-secondary">
+                    'Save' and 'Run' are disabled for the example smart playlist configuration
+                </small>
                 <section class="d-flex flex-wrap">
-                    <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" data-bs-dismiss="offcanvas" @click="save">
+                    <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" data-bs-dismiss="offcanvas" @click="save" :disabled="playlists.editing.id == 'example'">
                         <span>{{ saveState == 0 ? "Save" : saveState == 1 ? "Saving" : "Saved" }}</span>
                         <Image v-if="editstate.saving && editstate.error == 0 && saveState == 1" class="d-inline shadow-none ms-2" style="width: 1.5rem" src=""></Image>
                     </button>
-                    <!-- <Image v-if="editstate.saving && editstate.error == 0" src=""></Image> -->
 
-                    <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" data-bs-dismiss="offcanvas" @click="execute">
+                    <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" data-bs-dismiss="offcanvas" @click="execute" :disabled="playlists.editing.id == 'example'">
                         <span>{{ executeState == 0 ? "Run" : executeState == 1 ? "Running" : "Done" }}</span>
                         <Image class="d-inline shadow-none ms-2" style="width: 1.5rem" v-if="executeState == 1" src=""></Image>
                     </button>

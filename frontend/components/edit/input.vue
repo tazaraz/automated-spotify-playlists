@@ -45,11 +45,13 @@ export default class EditInput extends Vue {
     async created() {
         this.id = this.value;
 
-        const request = await Fetch.get<{genres: string[]}>(`spotify:/recommendations/available-genre-seeds`);
-        if (request.status == 200)
-            this.genres = ["Select genre", ...request.data.genres];
-        else
-            this.genres = ["Could not fetch genres"];
+        try {
+            const request = await Fetch.get<{genres: string[]}>(`spotify:/recommendations/available-genre-seeds`);
+            if (request.status == 200)
+                this.genres = ["Select genre", ...request.data.genres];
+            else
+                this.genres = ["Could not fetch genres"];
+        } catch {}
 
         // Try and fix the input
         await this.findId();
@@ -77,17 +79,24 @@ export default class EditInput extends Vue {
             else
                 this.isValid = true;
         } else {
-            const request = await Fetch.get<CTrack>(`spotify:/${this.kind}s/${this.id}`);
+            try {
+                const request = await Fetch.get<CTrack>(`spotify:/${this.kind}s/${this.id}`);
 
-            // Check if the request was successful
-            if (request.status == 200) {
-                this.name    = request.data.name;
-                this.error   = ""
-                this.isValid = true;
-            } else {
-                this.error   = `Could not find ${this.kind} with ID '${this.id}'`;
+                // Check if the request was successful
+                if (request.status == 200) {
+                    this.name    = request.data.name;
+                    this.error   = ""
+                    this.isValid = true;
+                } else {
+                    this.error   = `Could not find ${this.kind} with ID '${this.id}'`;
+                    this.name    = this.id;
+                    this.isValid = false;
+                }
+            } catch {
+                this.error   = `Failed to look up ${this.kind} with ID '${this.id}'`;
                 this.name    = this.id;
                 this.isValid = false;
+                return;
             }
         }
     }

@@ -1,7 +1,7 @@
 <template>
-    <button :style="`${buttonStyle}`" @click="openModal" class="d-flex border-0 bg-transparent p-2">
-        {{ title }}
-        <fa-icon v-if="button" :icon="button"></fa-icon>
+    <button @click="openModal" :class="`d-flex border-0 ${buttonClass}`">
+        <h5 v-if="buttonIcon" class="m-auto me-5"><fa-icon :icon="buttonIcon"></fa-icon></h5>
+        {{ buttonText }}
     </button>
     <div class="modal fade" :id="`modal-${id}`" tabindex="-1">
         <div class="modal-dialog">
@@ -20,9 +20,9 @@ import { Prop, Vue } from  'vue-property-decorator';
  * An easy wrapper for the bootstrap model
  */
 export default class Modal extends Vue {
-    @Prop({ default: null }) title!: string;
-    @Prop({ default: null }) button!: [string, string];
-    @Prop({ default: null }) buttonStyle!: string;
+    @Prop({ default: null }) buttonText!: string;
+    @Prop({ default: null }) buttonIcon!: [string, string];
+    @Prop({ default: "" }) buttonClass!: string;
 
     id = Math.random().toString(36).substring(2, 15);
     modal!: bsModal

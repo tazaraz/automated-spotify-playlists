@@ -250,7 +250,7 @@ export default class EditState extends Pinia {
             if (old_id === 'unpublished') {
                 this.playlists.unpublished = null;
                 // Update the URL, but prevent a dom rerender
-                history.pushState({}, '', '/dashboard/playlist/' + this.playlists.editing.id)
+                history.pushState({}, '', '/playlist/' + this.playlists.editing.id)
                 await this.execute();
             }
         }
