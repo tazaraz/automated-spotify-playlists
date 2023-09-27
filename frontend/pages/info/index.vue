@@ -41,16 +41,14 @@
                         :value="info.searchConfig?.advanced?.year">
                 </div>
                 <div class="d-flex gap-3 ms-3">
-                    <div class="form-check" data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
-                        data-bs-title="This tag will return albums released in the past two weeks">
-                        <input ref="t:N" class="form-check-input" type="checkbox">
-                        <label class="form-check-label" for="flexCheckDefault">tag:new</label>
-                    </div>
-                    <div class="form-check" data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}'
-                        data-bs-title="This tag will return only albums with the lowest 10% popularity">
-                        <input ref="t:H" class="form-check-input" type="checkbox">
-                        <label class="form-check-label" for="flexCheckDefault">tag:hipster</label>
-                    </div>
+                    <InfoField description="This tag will return albums released in the past two weeks">
+                        <input id="advancedSearchNew" ref="t:N" class="form-check-input" type="checkbox">
+                        <label class="form-check-label" for="advancedSearchNew">tag:new</label>
+                    </InfoField>
+                    <InfoField description="This tag will return only albums with the lowest 10% popularity">
+                        <input id="advancedSearchHipster" ref="t:H" class="form-check-input" type="checkbox">
+                        <label class="form-check-label" for="advancedSearchHipster">tag:hipster</label>
+                    </InfoField>
                 </div>
                 <hr>
             </div>
@@ -84,7 +82,7 @@
                         <Card v-for="artist of info.searchResult.artists" :card="{image: artist.image, title: artist.name, url: `/info/artist/${artist.id}`}">
                             <span>Genres</span>
                             <span class="word-wrap text-body-secondary" style="font-size: 85%;">
-                                {{ artist.description![0].name || 'none known' }}
+                                {{ artist.description![0].name || 'No known genres' }}
                             </span>
                         </Card>
                     </div>
@@ -133,15 +131,12 @@
 </template>
 
 <script lang="ts">
-import { Tooltip } from 'bootstrap';
 import { Emit, Vue } from 'vue-property-decorator';
 import Info, { SearchConfig } from '~/stores/info';
 
 @Emit('delete')
 export default class InfoSearch extends Vue {
     info!: Info;
-
-    tooltipList: Tooltip[] = [];
     error: string | null = null;
 
     created() {
@@ -150,15 +145,9 @@ export default class InfoSearch extends Vue {
         if (this.info.searchConfig) this.info.search(this.info.searchConfig);
     }
 
-    async mounted() {
-        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-        this.tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new this.$bootstrap.Tooltip(tooltipTriggerEl))
-    }
-
-    beforeUnmount() {
-        this.tooltipList.forEach(tooltip => tooltip.disable());
-    }
-
+    /**
+     * Executes a search
+     */
     async search() {
         const advanced: SearchConfig['advanced'] = {
             tracks: (this.$refs['fTrs'] as HTMLInputElement).value.split(',').map(s => s.trim()).filter(Boolean),
@@ -176,6 +165,7 @@ export default class InfoSearch extends Vue {
         if (advanced_is_open && !this.isAdvanced(advanced))
             (this.$refs['advancedTrigger'] as HTMLLabelElement).click();
 
+        // Create the search config
         const config: SearchConfig = {
             query: (this.$refs['query'] as HTMLInputElement).value.trim(),
             track: (this.$refs['s:Tr'] as HTMLInputElement).checked,
@@ -198,6 +188,10 @@ export default class InfoSearch extends Vue {
         await this.info.search(config)
     }
 
+    /**
+     * Checks if the input actually contains advanced search data
+     * @param advanced Advanced search config
+     */
     isAdvanced(advanced: SearchConfig['advanced']) {
         return advanced !== undefined &&
             (advanced.tracks.length > 0 || advanced.albums.length > 0 ||

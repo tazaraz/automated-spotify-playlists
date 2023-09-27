@@ -2,7 +2,7 @@
     <div class="accordion-item border-0 border-bottom">
         <h2 class="accordion-header">
             <button v-if="!track || placeholder" class="accordion-button shadow-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="undefined">
-                <div class="container d-flex gap-3 align-items-center ps-0 placeholder-glow">
+                <div class="container ms-0 d-flex gap-3 align-items-center ps-0 placeholder-glow">
                     <span class="placeholder image flex-shrink-0"></span>
                     <div class="flex-grow-1 multilayer m-0 d-grid gap-1">
                         <div class="text-truncate placeholder rounded-1" :style="`width: ${randomBetween(6, 14)}rem`"></div>
@@ -22,7 +22,7 @@
                 </div>
             </button>
             <button v-else class="accordion-button shadow-none collapsed" type="button" @click="getFeatures()" data-bs-toggle="collapse" :data-bs-target="`#track:${track.id}`">
-                <div class="container d-flex gap-3 align-items-center ps-0">
+                <div class="container ms-0 d-flex gap-3 align-items-center ps-0">
                     <Image :src="track" />
                     <div class="flex-grow-1 multilayer m-0 gap-1">
                         <div class="text-truncate">
@@ -120,6 +120,10 @@ export default class Track extends Vue {
 
     Filters = Filters;
 
+    /**
+     * Gets the features of the track and toggles the accordion
+     * @param state State of the accordion. If undefined, it will be toggled
+     */
     async getFeatures(state: boolean | undefined = undefined) {
         this.trackGenres = (await Fetch.get<CArtist>(`spotify:/artists/${this.track.artists![0].id}`)).data.genres.join(', ') || "No genres have been found";
 

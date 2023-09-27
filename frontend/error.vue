@@ -1,10 +1,11 @@
 <template>
     <nuxt-layout>
-        <div>
-            <article class="rounded-2 p-5 pt-4 bg-dark-subtle overflow-hidden">
+        <article key="album" class="rounded-2 p-2 bg-dark-subtle flex-grow-1 overflow-hidden">
+        <SmallHeader :item="album"></SmallHeader>
+            <div class="h-100 p-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
                 <template v-if="error.statusCode == 404">
                     <Title>I'm lost</Title>
-                    <h2 class="mt-3 mb-4">Come again?</h2>
+                    <h2 class="mb-4">Come again?</h2>
                     <span>Error 404. You've requested something which does not exist :/</span>
                 </template>
                 <template v-else-if="error.statusCode >= 500">
@@ -16,11 +17,8 @@
                     <br><br>
                     <span v-html="error.stack"></span>
                 </template>
-                {{ error.statusCode }}
-
-            </article>
-            <!-- <nuxt-page /> -->
-        </div>
+            </div>
+        </article>
     </nuxt-layout>
 </template>
 
