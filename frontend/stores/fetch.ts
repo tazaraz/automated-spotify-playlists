@@ -16,7 +16,10 @@ export interface FetchOptions {
     /** If the response contains a next url. You may need to specify limit as well,
      * indicating how many items per API call may be requested */
     pagination?: boolean;
-    // If ids are provided or pagination is true, limit indicates how many items per API call may be requested
+    /** Offset position if applicable. */
+    offset?: number;
+    /** If ids are provided, offset is set or pagination is true,
+     * the limit indicates how many items per API call may be requested */
     limit?: number;
     /** The query parameters to add to the url */
     query?: {[key: string]: string | string[]};
@@ -62,8 +65,9 @@ export default class Fetch {
     }
 
     protected static async build<T>(url: string, options: FetchOptions = {}) {
+        const offset     = options?.offset ?? undefined;
         const limit      = options?.limit ?? 50;
-        const ids        = options?.ids ?? undefined;
+        const ids        = options?.ids?.sort() ?? undefined;
         const pagination = options?.pagination ?? false;
         const data       = options?.data ?? undefined;
         const user       = options?.user ?? true;
@@ -116,19 +120,29 @@ export default class Fetch {
         let result: any = [];
         let response: any;
 
-        if (pagination) {
+        if (pagination || offset != undefined) {
             // Do the first request. This will also tell us how many items there will be in total
-            response = (await Fetch.parseRequest(`${url}${options.query ? '&' : '?'}limit=${limit}&offset=0`, parameters, options));
+            response = await Fetch.parseRequest(
+                `${url}${options.query ? '&' : '?'}limit=${limit}&offset=${offset ?? 0}`,
+                parameters,
+                options
+            );
 
             if (response.status !== 200)
-                return response;
+                return response as FetchResponse<T>;
+
+            // If pagination was not set, simply return the data
+            if (!pagination) {
+                response.data = Fetch.format(response.data);
+                return response as FetchResponse<T>;
+            }
 
             const data = response.data;
             const total = data.total;
             const requests: any = [{data: data}];
 
             // Do the rest of the requests in parallel
-            for (let i = limit; i < total; i += limit) {
+            for (let i = (offset ?? 0) + limit; i < total; i += limit) {
                 requests.push(Fetch.parseRequest(
                     `${url}${options.query ? '&' : '?'}limit=${limit}&offset=${i}`,
                     parameters, options
