@@ -46,9 +46,12 @@ export async function filter_async<T>(
     const tasks = [];
 
     for (const input_item of input_items) {
+        // Create a new promise for each item
         tasks.push(new Promise(async resolve => {
+            // Execute the specified way how to get the items itself
             const filter_items = await getter(input_item)
 
+            // Apply the filter and check if it should be appended
             for (const filter_item of filter_items) {
                 const result = await filter(filter_item);
 
@@ -60,6 +63,7 @@ export async function filter_async<T>(
         }));
     }
 
+    // Wait for all promises to be resolved
     await Promise.all(tasks);
     return matches;
 }

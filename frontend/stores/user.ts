@@ -3,6 +3,9 @@ import { CUser } from "~/../backend/src/types/client";
 import Fetch from "./fetch";
 
 @Store
+/**
+ * Stores information about the user
+ */
 export default class User extends Pinia {
     info: CUser | undefined;
 

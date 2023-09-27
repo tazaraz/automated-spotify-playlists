@@ -1,8 +1,7 @@
 import { LOG } from "../main";
 import Filters from "../processing";
 import Database from "../tools/database";
-import Fetch from "../tools/fetch";
-import Users from "./users";
+import Users from "../stores/users";
 
 export default class Updater {
     /** Interval for checking for changes */

@@ -19,8 +19,12 @@ interface Card {
     image: string;
 }
 
-export default class InfoSearch extends Vue {
-    @Prop({ required: true }) card!: Card;
+/**
+ * This component is used to display a card with an image, title and description.
+ * Used in the info pages.
+ */
+export default class InfoCard extends Vue {
+@Prop({ required: true }) card!: Card;
     @Prop({ default: ['fas', 'question']}) fallback!: [string, string];
 }
 </script>

@@ -9,6 +9,9 @@ interface Error {
     priority?: 1 | 2 | 3;
 }
 
+/**
+ * Stores errors and displays them to the user
+ */
 export default class FetchError {
     static handler: (error: Error) => void;
 

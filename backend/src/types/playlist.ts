@@ -10,11 +10,11 @@ export interface Playlist {
     image?: string;
     track_sources:      PlaylistSource[];
     filters:            PlaylistStatement;
-    // Tracks which are matched and not manually excluded or included
+    // Track IDs which are matched and not manually excluded or included
     matched_tracks:     string[];
-    // Tracks which are excluded from the smart playlists manually
+    // Track IDs which are excluded from the smart playlists manually
     excluded_tracks:    string[];
-    // Tracks which are included from the smart playlists manually
+    // Track IDs which are included from the smart playlists manually
     included_tracks:    string[];
     log: { sources: string[], filters: string[] };
 }

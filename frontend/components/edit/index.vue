@@ -104,7 +104,6 @@ import Layout from '~/stores/layout';
 import EditCondition from './condition.vue';
 import EditStatement from './statement.vue';
 import EditState from '~/stores/editstate';
-import { client } from 'process';
 
 export default class Edit extends Vue {
     playlists!: Playlists;

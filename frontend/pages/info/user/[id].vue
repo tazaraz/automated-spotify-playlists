@@ -78,12 +78,15 @@ export default class InfoUser extends Vue {
     }
 
     async mounted() {
+        // Get the user
         let response = await Fetch.get(`spotify:/users/${this.$route.params.id}`);
         if (response.status !== 200)
             throw createError({ statusCode: 404, message: response.statusText, fatal: true })
 
+        // Format the response
         this.user = this.formatUser(response.data);
 
+        // Get the users' playlists
         Fetch.get(`spotify:/users/${this.$route.params.id}/playlists`)
         .then(response => {
             if (response.status !== 200)
@@ -97,10 +100,9 @@ export default class InfoUser extends Vue {
             }});
         })
 
-        // this.playlists = res[1].data.items.map((playlist: any) => new CPlaylist(playlist));
-
+        /* Get the users' followers
+         * Hacky method which gets a tiny bit more priviliged Spotify token */
         response = await Fetch.get('server:/spclient-tokens')
-
         if (response.status != 200) {
             return FetchError.create({ status: response.status, message: `Failed to get permission keys from Spotify to load the people who follow ${this.user.name}` })
         }
@@ -125,6 +127,10 @@ export default class InfoUser extends Vue {
         })
     }
 
+    /**
+     * Formats a Spotify user object to a more usable object
+     * @param user Spotify user object
+     */
     formatUser(user: any): User {
         return {
             id: user.id || user.uri?.replace('spotify:user:', ''),

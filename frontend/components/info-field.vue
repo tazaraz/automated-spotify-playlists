@@ -15,9 +15,11 @@
 import { Tooltip } from 'bootstrap';
 import { Vue, Prop } from 'vue-property-decorator';
 
+/**
+ * An easy wrapper for the bootstrap tooltip
+ */
 export default class InfoField extends Vue {
     @Prop({ required: true }) description!: string
-
     tooltip!: Tooltip;
 
     mounted() {

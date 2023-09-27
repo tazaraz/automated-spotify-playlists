@@ -6,7 +6,7 @@ import api from './api';
 import Users from './stores/users';
 import Database from './tools/database';
 import Fetch from './tools/fetch';
-import Updater from './stores/updater';
+import Updater from './tools/updater';
 
 const logfile = fs.createWriteStream('output.log', { flags: 'w+' });
 

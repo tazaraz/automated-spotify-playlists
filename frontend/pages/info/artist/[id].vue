@@ -85,7 +85,6 @@
 </template>
 
 <script lang="ts">
-import { Tooltip } from 'bootstrap';
 import { Vue } from 'vue-property-decorator';
 import { CAlbum, CArtist, CTrack } from "~/../backend/src/types/client";
 import { Filters } from '~/../backend/src/types/filters';
@@ -103,7 +102,6 @@ export default class InfoAlbum extends Vue {
     albums: CAlbum[] = null as any;
     relatedArtists: CArtist[] = null as any;
 
-    tooltipList: Tooltip[] = [];
     Filters = Filters;
 
     async created() {
@@ -165,16 +163,6 @@ export default class InfoAlbum extends Vue {
         });
 
         this.breadcrumbs.add(`/info/artist/${this.artist.id}`, this.artist.name)
-    }
-
-    mounted() {
-        // Initialize the tooltips
-        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-        this.tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new this.$bootstrap.Tooltip(tooltipTriggerEl))
-    }
-
-    beforeUnmount() {
-        this.tooltipList.forEach(tooltip => tooltip.disable());
     }
 }
 </script>

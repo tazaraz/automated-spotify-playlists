@@ -107,7 +107,6 @@
 </template>
 
 <script lang="ts">
-import { Tooltip } from 'bootstrap';
 import { Vue } from 'vue-property-decorator';
 import { CArtist, CTrack, CTrackFeatures } from "~/../backend/src/types/client";
 import { Filters } from '~/../backend/src/types/filters';
@@ -126,7 +125,6 @@ export default class InfoTrack extends Vue {
     trackGenres!: string
     appearsIn: CPlaylist[] = [];
 
-    tooltipList: Tooltip[] = [];
     Filters = Filters;
 
     async created() {
@@ -165,16 +163,6 @@ export default class InfoTrack extends Vue {
         })
 
         this.appearsIn = await this.playlists.trackAppearsIn(this.track!.id);
-    }
-
-    mounted() {
-        // Initialize the tooltips
-        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
-        this.tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new this.$bootstrap.Tooltip(tooltipTriggerEl))
-    }
-
-    beforeUnmount() {
-        this.tooltipList.forEach(tooltip => tooltip.disable());
     }
 }
 </script>

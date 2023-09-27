@@ -6,6 +6,9 @@ interface BreadCrumbItem {
 }
 
 @Store
+/**
+ * Maintains a history of the pages the user has visited
+ */
 export default class BreadCrumbs extends Pinia {
     history: BreadCrumbItem[] = []
 

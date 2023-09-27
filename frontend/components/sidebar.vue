@@ -83,7 +83,6 @@
 <script lang="ts">
 import { Vue } from 'vue-property-decorator';
 import BreadCrumbs from '~/stores/breadcrumbs';
-import FetchError from '~/stores/error';
 import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 

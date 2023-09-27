@@ -16,6 +16,9 @@
 import { Modal as bsModal } from 'bootstrap';
 import { Prop, Vue } from  'vue-property-decorator';
 
+/**
+ * An easy wrapper for the bootstrap model
+ */
 export default class Modal extends Vue {
     @Prop({ default: null }) title!: string;
     @Prop({ default: null }) button!: [string, string];

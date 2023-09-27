@@ -50,7 +50,6 @@ export default class App extends Vue {
     user!: User;
     playlists!: Playlists;
     layout!: Layout;
-
     offcanvas!: Offcanvas[];
 
     async created() {
@@ -73,10 +72,12 @@ export default class App extends Vue {
     }
 
     beforeMount() {
+        // The layout needs access to the nextTick function
         this.layout.nextTick = this.$nextTick;
     }
 
     mounted() {
+        // Initialize some variables
         this.layout.appElement = this.$refs.wrapper as HTMLElement;
         this.layout.mainElement = this.layout.appElement.getElementsByTagName('article')[0] as HTMLElement;
         this.layout.app.width = this.layout.appElement.clientWidth;

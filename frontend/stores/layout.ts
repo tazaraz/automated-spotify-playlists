@@ -27,6 +27,7 @@ import { Store, Pinia } from "pinia-class-component";
 
 @Store
 export default class Layout extends Pinia {
+    /* Supplied in default.vue layout */
     nextTick!: () => Promise<void>;
     mainElement!: HTMLElement;
     appElement!: HTMLElement;
@@ -36,6 +37,9 @@ export default class Layout extends Pinia {
     private sidebarQueryList!: NodeListOf<Element>;
     private editQueryList!: NodeListOf<Element>;
 
+    /**
+     * Definitions of the views
+     */
 
     app = {
         /** Between these values the app should behave like a mobile app */
@@ -108,20 +112,6 @@ export default class Layout extends Pinia {
         small: { },
         /** CSS. Seen from the right side. 0 meaning most right possible */
         tiny: { min: 0, max: 27*16 },
-    }
-
-    updateConfig({app, nextTick, playlistEditing}: {
-        app?: HTMLElement,
-        nextTick?: (() => Promise<void>),
-        playlistEditing?: boolean,
-    }) {
-        this.appElement = app ?? this.appElement;
-        this.app.width = this.appElement?.clientWidth ?? this.app.width;
-
-        this.mainElement = this.appElement.getElementsByTagName('article')[0] as HTMLElement;
-
-        this.nextTick = nextTick ?? this.nextTick;
-        this.playlistEditing = playlistEditing ?? this.playlistEditing;
     }
 
     async render(user: TouchEvent | MouseEvent | number | null = null, force = false) {

@@ -14,10 +14,12 @@
     </span>
 </template>
 
-
 <script lang="ts">
 import { Prop, Vue } from  'vue-property-decorator';
 
+/**
+ * This component is used to display an image with a fallback icon if the image fails to load.
+ */
 export default class Image extends Vue {
     @Prop({ required: true }) src!: { image: string | [string, string] };
     @Prop({ default: ['fas', 'question']}) fallback!: [string, string];

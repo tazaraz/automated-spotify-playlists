@@ -18,6 +18,13 @@ export interface LoadedPlaylist extends CPlaylist {
 }
 
 @Store
+/**
+ * Stores the playlists of the user:
+ * - The playlists the user has
+ * - The playlist the user is currently viewing
+ * - The playlist the user is currently editing
+ * This store also handles the loading, saving and editing of the playlists and syncing them to the server
+ */
 export default class Playlists extends Pinia {
     user!: User;
 
@@ -272,8 +279,8 @@ export default class Playlists extends Pinia {
     }
 
     /**
-     * Moves a track from matched_tracks to excluded_tracks
-     * @param track Track to move
+     * Moves tracks from matched_tracks to excluded_tracks
+     * @param tracks Track to move
      */
     removeMatched(track: CTrack){
         // Remove the tracks from the from the origin
@@ -289,8 +296,8 @@ export default class Playlists extends Pinia {
     }
 
     /**
-     * Moves a track from excluded_tracks to matched_tracks
-     * @param track Track to move
+     * Moves tracks from excluded_tracks to matched_tracks
+     * @param tracks Tracks to move
      */
     removeExcluded(track: CTrack){
         // Remove the tracks from the from the origin
@@ -307,8 +314,8 @@ export default class Playlists extends Pinia {
     }
 
     /**
-     * Moves a track from excluded_tracks to matched_tracks
-     * @param track Track to move
+     * Moves tracks from excluded_tracks to matched_tracks
+     * @param tracks Tracks to move
      */
     removeIncluded(track: CTrack){
         // Remove the tracks from the from the origin

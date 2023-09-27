@@ -37,6 +37,9 @@ export interface InfoItem {
 }
 
 @Store
+/**
+ * The search store
+ */
 export default class Info extends Pinia {
     currentItem: InfoItem | null = null;
     searchConfig: SearchConfig | null = null;

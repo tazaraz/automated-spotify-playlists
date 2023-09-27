@@ -104,7 +104,6 @@
 </template>
 
 <script lang="ts">
-import { Tooltip } from 'bootstrap';
 import { Emit, Prop, Vue } from 'vue-property-decorator';
 import { CArtist, CTrack, CTrackFeatures } from '~/../backend/src/types/client';
 import { Filters } from '~/../backend/src/types/filters';

@@ -6,28 +6,33 @@ interface FetchResponse<T> extends Response {
 }
 
 export interface FetchOptions {
-    // Whether to try to use a user. Defaults to true
+    /** Whether to try to use a user. Defaults to true */
     user?: boolean;
-    // The maximum amount of retries
+    /** The maximum amount of retries */
     retries?: number;
-    /**The ids of the items to fetch. You may need to specify limit as well,
+    /** The ids of the items to fetch. You may need to specify limit as well,
      * indicating how many items per API call may be requested */
     ids?: string[];
-    /**If the response contains a next url. You may need to specify limit as well,
+    /** If the response contains a next url. You may need to specify limit as well,
      * indicating how many items per API call may be requested */
     pagination?: boolean;
     // If ids are provided or pagination is true, limit indicates how many items per API call may be requested
     limit?: number;
-    // The query parameters to add to the url
+    /** The query parameters to add to the url */
     query?: {[key: string]: string | string[]};
-    // The data to send with the request
+    /** The data to send with the request */
     data?: object;
-    // What kind of method to use
+    /** What kind of method to use */
     method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-    // The headers to send with the request
+    /** The headers to send with the request */
     headers?: {[key: string]: string};
 }
 
+/**
+ * The holy fetch handler.
+ * This class handles all requests to the server and spotify.
+ * It handles most (who knows what might happen?) of the errors that could occur
+ */
 export default class Fetch {
     static user: User;
     static refreshingToken: Promise<boolean> | null;

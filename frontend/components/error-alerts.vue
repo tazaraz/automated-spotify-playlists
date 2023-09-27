@@ -21,6 +21,9 @@
 import { Vue } from 'vue-property-decorator';
 import FetchError from '~/stores/error';
 
+/**
+ * Displays a simple error
+ */
 export default class ErrorAlerts extends Vue {
     errors = null as unknown as typeof FetchError.errors;
 

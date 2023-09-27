@@ -17,6 +17,9 @@ import { Prop, Vue } from 'vue-property-decorator';
 import { CTrack, CAlbum, CArtist, CPlaylist } from '../../backend/src/types/client';
 import Layout from '~/stores/layout';
 
+/**
+ * This component is used to display a info field when the view itself is collapesed into its smallest form.
+ */
 export default class SmallHeader extends Vue {
     @Prop({ required: true }) item!: CTrack | CAlbum | CArtist | CPlaylist
     layout!: Layout;
