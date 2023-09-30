@@ -7,6 +7,7 @@ import Users from './stores/users';
 import Database from './tools/database';
 import Fetch from './tools/fetch';
 import Updater from './tools/updater';
+import Metadata from './stores/metadata';
 
 const logfile = fs.createWriteStream('output.log', { flags: 'w+' });
 
@@ -41,6 +42,8 @@ app.use('/', api);
 (async () => {
     LOG_DEBUG('Connecting to db...');
     await Database.connect();
+    LOG_DEBUG('Initializing Metadata storage...');
+    Metadata.initialize();
     LOG_DEBUG('Starting updater...');
     Updater.schedule();
     LOG_DEBUG('Starting server...');

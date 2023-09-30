@@ -62,10 +62,21 @@ export default class Metadata {
     static artists: { [id: string]: SArtist } = {};
     static track_features: { [id: string]: STrackFeatures } = {};
 
-    static track_queue          = new Queue((items: string[]) => this.getMultipleTracks("/tracks", { ids: items }));
-    static album_queue          = new Queue((items: string[]) => this.getMultipleAlbums("/albums", { ids: items, limit: 20 }));
-    static artist_queue         = new Queue((items: string[]) => this.getMultipleArtists("/artists", { ids: items }));
-    static track_features_queue = new Queue((items: string[]) => this.getMultipleTrackFeatures("/audio-features", { ids: items }));
+    static track_queue          = new Queue((items: string[]) => this.getMultipleTracks("/tracks", {
+        user: Metadata.API_USER, ids: items
+    }));
+    static album_queue          = new Queue((items: string[]) => this.getMultipleAlbums("/albums", {
+        user: Metadata.API_USER, ids: items, limit: 20
+    }));
+    static artist_queue         = new Queue((items: string[]) => this.getMultipleArtists("/artists", {
+        user: Metadata.API_USER, ids: items
+    }));
+    static track_features_queue = new Queue((items: string[]) => this.getMultipleTrackFeatures("/audio-features", {
+        user: Metadata.API_USER, ids: items
+    }));
+
+    /** This contains a user used for global API calls */
+    static API_USER: SUser;
 
     /**The value of the url links to the yielded result of that url */
     static url_cache: {
@@ -85,7 +96,7 @@ export default class Metadata {
         };
     } = {};
 
-    constructor() {
+    static initialize() {
         /**We define the getters and setters for the objects */
         Metadata.tracks = new Proxy(Metadata.tracks, {
             set: Metadata.setTrack,
@@ -172,7 +183,8 @@ export default class Metadata {
         const present_data_ids = options.ids.filter(x => !missing_data_ids.includes(x));
 
         // Get the items requested in the track_ids, or just get all items from the url directly
-        options.ids = missing_data_ids;
+        options.ids  = missing_data_ids;
+        options.user = options.user ?? Metadata.API_USER;
         const data  = (await Fetch.get<any[]>(url, options)).data;
 
         // Get the already known tracks
@@ -258,7 +270,7 @@ export default class Metadata {
             Metadata.user_cache[options.user.id][url].expires <= new Date())
             return Metadata.user_cache[options.user.id][url].items;
 
-        let items;
+        let items: any;
         switch (kind) {
             case "track":
                 items = await Metadata.getMultiple<STrack>(url, Metadata.tracks, options);
