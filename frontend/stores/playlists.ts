@@ -245,7 +245,7 @@ export default class Playlists extends Pinia {
             const url = playlist.id == 'library' ? '/me/tracks' : `/playlists/${playlist.id}/tracks`;
 
             // Check if the offset is already loaded
-            if ((all[offset] as CTrack).id === undefined) {
+            if ((all[offset] as CTrack)?.id === undefined) {
                 let tracks = (await Fetch.get<any[]>(`spotify:${url}`, { offset })).data
                              .map((track: any) => this.convertToCTrack(track))
 
@@ -544,7 +544,7 @@ export default class Playlists extends Pinia {
      */
     playlistOwnership(playlist: CPlaylist): LoadedPlaylist['ownership'] {
         const user = this.storage.find(p => p.id === playlist.id) !== undefined;
-        const owner = playlist.owner.id === this.user.info!.id;
+        const owner = (playlist.owner?.id || playlist.user_id) === this.user.info!.id;
         return user && owner ? "user" : user && !owner ? "following" : "none";
     }
 
@@ -634,6 +634,7 @@ export default class Playlists extends Pinia {
         delete splaylist.index
 
         const cplaylist = splaylist as unknown as CPlaylist
+        cplaylist.owner = playlist.owner
         cplaylist.all_tracks = this.getTrackIds(playlist.all_tracks)
         if (playlist.filters !== undefined) {
             cplaylist.matched_tracks = this.getTrackIds(playlist.matched_tracks)

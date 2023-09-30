@@ -1,14 +1,14 @@
 <template>
-    <ol v-if="breadcrumbs && breadcrumbs.history" class="breadcrumb flex-fill flex-nowrap vertical-align-center p-2 m-auto me-3 w-0">
+    <ol v-if="breadcrumbs && breadcrumbs.history" class="breadcrumb flex-fill flex-nowrap vertical-align-center p-2 m-auto w-0 text-truncate">
         <li v-for="(item, index) of breadcrumbs.history"
             :key="index"
             style="min-width: 0rem; max-width: 10rem"
             :class="`breadcrumb-item text-truncate${index == breadcrumbs.history.length - 1 ? ' active' : ''}`"
         >
-        <url v-if="index < breadcrumbs.history.length - 1" class="text-truncate" :to="item.to">{{ item.name }}</url>
-        <template v-else>
-            {{ item.name }}
-        </template>
+            <url v-if="index < breadcrumbs.history.length - 1" class="text-truncate" :to="item.to">{{ item.name }}</url>
+            <template v-else>
+                {{ item.name }}
+            </template>
         </li>
     </ol>
 </template>
@@ -43,11 +43,3 @@ export default class Breadcrumbs extends Vue {
     }
 }
 </script>
-
-<style lang="scss" scoped>
-nav {
-    a {
-        cursor: pointer;
-    }
-}
-</style>

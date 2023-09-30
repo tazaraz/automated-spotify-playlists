@@ -1,5 +1,5 @@
 <template>
-    <div v-if="user" class="d-flex align-items-center" style="max-width: 16rem;">
+    <div v-if="user" class="d-flex align-items-center flex-nowrap" style="max-width: 16rem;">
         <template v-if="user.info && player">
             <span class="now-playing">Now playing</span>
             <url @click="breadcrumbs.clear()" :to="`/info/track/${player.track.id}`" class="loading-container">

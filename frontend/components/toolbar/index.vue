@@ -1,13 +1,13 @@
 <template>
-    <nav id="toolbar" class="d-flex bg-dark-subtle justify-content-between align-items-center rounded-3 mb-2">
+    <nav id="toolbar" class="d-flex gap-3 bg-dark-subtle justify-content-between align-items-center rounded-3 mb-2">
         <ClientOnly>
             <button class="navbar-toggler d-sm-none ms-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
                 <h2 class="m-0 me-2"><fa-icon :icon="['fas', 'bars']"></fa-icon></h2>
             </button>
-            <ToolbarPlaying class="ms-2 me-2"/>
-            <ToolbarBreadcrumbs class="d-none d-lg-flex me-2"/>
+            <ToolbarPlaying class="nav flex-shrink-0 flex-grow-1 ms-2"/>
+            <ToolbarBreadcrumbs class="d-none d-lg-flex"/>
         </ClientOnly>
-        <ul class="nav flex-shrink-0 nav-pills overflow-hidden me-3">
+        <ul class="nav flex-shrink-0 nav-pills overflow-hidden me-2">
             <li v-if="user && user.info" class="nav-item cursor-pointer">
                 <url class="nav-link p-2 me-2" @click="user.logout()">
                     <span class="d-md-inline d-none me-3">{{ user.info.name }}</span>

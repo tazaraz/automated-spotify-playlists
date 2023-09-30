@@ -72,7 +72,7 @@
                         </div>
                     </Modal>
 
-                    <template v-if="playlists.loaded.ownership == 'user'">
+                    <template v-if="playlists.loaded.filters !== undefined && playlists.loaded.ownership == 'user'">
                         <button v-if="!playlists.editing || playlists.loaded.id == playlists.editing.id" class="btn btn-primary d-inline-flex text-nowrap me-3" @click="setEditedPlaylist(playlists.loaded.id)">
                             <h5 class="m-auto me-2"><fa-icon :icon="['fas', 'wand-magic']" /></h5>
                             Edit config
@@ -140,7 +140,6 @@ import Playlists, { LoadedPlaylist } from '~/stores/playlists';
 import User from '~/stores/user';
 import { CTrack } from '../../backend/src/types/client';
 import Layout from '~/stores/layout';
-import { parse } from 'path';
 
 export default class PlaylistDisplay extends Vue {
     @Prop({ required: true }) id!: string;
@@ -231,32 +230,31 @@ export default class PlaylistDisplay extends Vue {
             this.observer.unobserve(item);
         }
 
+        this.shown.kind = kind;
+        this.shown.tracks = [];
+        await this.$nextTick();
+
         // Get the tracks we want to show
         let tracks = await this.playlists.loadPlaylistTracks(this.playlists.loaded, kind, 0);
-        let shown: CTrack[] = [];
+        let shown;
         switch(kind) {
             case "all":
                 this.playlists.loaded.all_tracks = tracks.all;
-                shown = tracks.all;
+                this.shown.tracks = this.playlists.loaded.all_tracks;
                 break;
             case "matched":
                 this.playlists.loaded.matched_tracks = tracks.matched;
-                shown = tracks.matched;
+                this.shown.tracks = this.playlists.loaded.matched_tracks
                 break;
             case "excluded":
                 this.playlists.loaded.excluded_tracks = tracks.excluded;
-                shown = tracks.excluded;
+                this.shown.tracks = this.playlists.loaded.excluded_tracks
                 break;
             case "included":
                 this.playlists.loaded.included_tracks = tracks.included;
-                shown = tracks.included;
+                this.shown.tracks = this.playlists.loaded.included_tracks
                 break;
         }
-
-        // Set the tracks as shown. Do a nexttick to make vue detect the change
-        this.shown = { kind, tracks: [] };
-        await this.$nextTick();
-        this.shown = { kind, tracks: shown };
 
         this.$nextTick(() => {
             // Observe all items

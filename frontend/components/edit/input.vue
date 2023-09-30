@@ -12,7 +12,11 @@
             <button v-if="removable" class="btn btn-danger" @click="$emit('remove')"><fa-icon :icon="['fas', 'trash-can']"></fa-icon></button>
         </div>
         <div v-else class="input-group">
-            <url v-if="isValid" :to="`/info/${kind}/${id}`" class="link-primary text-decoration-underline source-input form-control bg-body-secondary">{{ name }}</url>
+            <url v-if="isValid"
+                 :to="`/info/${kind}/${id}`"
+                 @click="breadcrumbs.clear(); breadcrumbs.add(`/info/${kind}/${id}`, name)"
+                 class="link-primary text-decoration-underline source-input form-control bg-body-secondary"
+            >{{ name }}</url>
             <input v-else ref="input" @focusout="updateInput" @keyup="updateInput" type="text" class="source-input form-control" :placeholder="`Insert ${kind} ID`" :value="name"/>
             <button v-if="isValid" type="button" class="btn btn-primary" @click="edit">Edit</button>
             <button v-if="removable && (!isValid || name !== '')" class="btn btn-danger" @click="$emit('remove')"><fa-icon :icon="['fas', 'trash-can']"></fa-icon></button>
@@ -25,6 +29,7 @@
 import { Vue, Prop, Emit } from 'vue-property-decorator';
 import Fetch from '~/stores/fetch';
 import { CTrack } from '../../../backend/src/types/client';
+import BreadCrumbs from '~/stores/breadcrumbs';
 
 
 @Emit('update')
@@ -38,12 +43,14 @@ export default class EditInput extends Vue {
     name: string = "";
     error: string = "";
     isValid: boolean = false;
+    breadcrumbs!: BreadCrumbs;
 
     EditInput = EditInput;
     genres: string[] | null = null;
 
     async created() {
         this.id = this.value;
+        this.breadcrumbs = new BreadCrumbs();
 
         try {
             const request = await Fetch.get<{genres: string[]}>(`spotify:/recommendations/available-genre-seeds`);
