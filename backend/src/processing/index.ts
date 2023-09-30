@@ -5,7 +5,7 @@ import FilterParser from "./parser";
 import MusicSources from "./sources";
 import { LOG, LOG_DEBUG } from "../main";
 import { Playlist } from "../types/playlist";
-import { FilterItem, STrack, SUser } from "../types/server";
+import { FilterItem, SAlbum, SArtist, STrack, SUser } from "../types/server";
 import FilterTask from "../stores/filtertask";
 
 export interface FilterResult {
@@ -164,8 +164,8 @@ export default class Filters {
         LOG_DEBUG(`4: added: ${to_be_added.length}, removed: ${to_be_removed.length}`)
 
         // 5. Get unique tracks and remove those from the spotify tracks. These are duplicates
-        let duplicates = Filters.common(spotify_tracks, spotify_tracks)
-            duplicates = Filters.subtract(spotify_tracks, duplicates, false)
+        const unique = Filters.common(spotify_tracks, spotify_tracks)
+        const duplicates = Filters.subtract(spotify_tracks, unique, false)
 
         // The Spotify API removes all duplicates given only one track id, so we must add them back
         to_be_added   = Filters.merge(to_be_added, duplicates)
@@ -181,10 +181,6 @@ export default class Filters {
         playlist.included_tracks    = included_tracks
 
         return {resulting_playlist: playlist, to_be_added, to_be_removed};
-    }
-
-    static toString(list: (FilterItem | string)[]): string[] {
-        return list.map(item => typeof item === "string" ? item : item.id);
     }
 
     /**
@@ -204,34 +200,41 @@ export default class Filters {
             return typeof items[0] === "string" ? (items as string[]) : (items as STrack[]).map(track => track.id);
 
         // Convert STrack[] to string[]
-        if (typeof items[0] !== "string")
-            items = (items as STrack[]).map(t => t.id);
-        if (typeof remove[0] !== "string")
-            remove = (remove as STrack[]).map(t => t.id);
+        items  = Filters.getIds(items);
+        remove = Filters.getIds(remove);
 
-        // Only keep the tracks which are not in the remove list
-        items = (items as string[]).filter(track_id => !remove.some(remove_id => remove_id === track_id))
-        return dedupe ? [...new Set(items)] : items;
+        // Only keep the tracks which are not in the remove list. Match only once
+        if (dedupe) {
+            items = (items as string[]).filter(track_id => !remove.some(remove_id => remove_id === track_id))
+            items = [...new Set(items)];
+        } else {
+            // Removes the first occurrence of every item
+            for (const r of remove) {
+                const index = (items as string[]).findIndex(item => item === r);
+                if (index !== -1)
+                    (items as string[]).splice(index, 1);
+            }
+        }
+
+        return items;
     }
 
     /**
-     * Returns tracks present in both lists
+     * Returns Track present in both lists
      * @param list1 Track list 1
      * @param list2 Track list 2
      * @param dedupe If true, removes duplicate tracks from the input list
      * @returns Filtered track list
      */
-    static common(list1: STrack[] | string[], list2: STrack[] | string[], dedupe = true): string[] {
+    static common(list1: FilterItem[] | string[], list2: FilterItem[] | string[], dedupe = true): string[] {
         /**If there are no tracks to filter OR
          * no tracks to remove, return nothing */
         if (list1.length === 0 || list2.length === 0)
             return [];
 
-        // Convert STrack[] to string[]
-        if (typeof list1[0] !== "string")
-            list1 = (list1 as STrack[]).map(t => t.id);
-        if (typeof list2[0] !== "string")
-            list2 = (list2 as STrack[]).map(t => t.id);
+        // Convert FilterItem[] to string[]
+        list1 = Filters.getIds(list1);
+        list2 = Filters.getIds(list2);
 
         // Only keep the tracks which are not in the remove list
         const items = (list1 as string[]).filter(t1_id => (list2 as string[]).some(t2_id => t2_id === t1_id))
@@ -245,15 +248,13 @@ export default class Filters {
      * @param dedupe If true, removes duplicate tracks from the input list
      * @returns Merged list
      */
-     static merge(list1: STrack[] | string[], list2: STrack[] | string[], dedupe = true): string[] {
-        // Convert STrack[] to string[]
-        if (typeof list1[0] !== "string")
-            list1 = (list1 as STrack[]).map(t => t.id);
-        if (typeof list2[0] !== "string")
-            list2 = (list2 as STrack[]).map(t => t.id);
+     static merge(list1: FilterItem[] | string[], list2: FilterItem[] | string[], dedupe = true): string[] {
+        // Convert FilterItem[] to string[]
+        list1 = Filters.getIds(list1);
+        list2 = Filters.getIds(list2);
 
         // Only keep the tracks which are not in the remove list
-        const items = (list1 as string[]).concat(list2 as string[])
+        const items = (Filters.getIds(list1) as string[]).concat(list2 as string[])
         return dedupe ? [...new Set(items)] : items;
     }
 
@@ -315,5 +316,16 @@ export default class Filters {
         }
 
         await Promise.all(tasks)
+    }
+
+    /**
+     * Converts a list of FilterItems to a list of ids. If the input was already a string[], it will be returned
+     * @param list Items to get the ids from. Can be just a string[]
+     */
+    static getIds(list: FilterItem[] | string[]): string[] {
+        if (typeof list[0] === "string")
+            return list as string[];
+
+        return (list as STrack[]).map(t => t.id);
     }
 }
