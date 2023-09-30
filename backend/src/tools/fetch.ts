@@ -120,16 +120,18 @@ export default class Fetch {
         else if (ids) {
             // 50 often being the maximum amount of data which can be requested at once
             for (let i = 0; i < ids.length; i += limit) {
-                response = (await Fetch.parseRequest(
+                response = await Fetch.parseRequest(
                     `${url}${options.query ? '&' : '?'}ids=${
                         // Take only ${limit} values, exceeding max items behaves like max items
                         ids.slice(i, i + limit).toString()
                     }`,
                     parameters, options
-                )).data;
+                );
+
+                if (response.status >= 300) break;
 
                 // Store data accordingly
-                result.push(...Fetch.format(response));
+                result.push(...Fetch.format(response.data));
             }
 
             return {data: result} as FetchResponse<T>;
