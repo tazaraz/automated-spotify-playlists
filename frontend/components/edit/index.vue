@@ -30,6 +30,56 @@
                         <label>Description</label>
                     </div>
                 </div>
+                <ul class="nav nav-tabs mb-3">
+                    <li class="nav-item">
+                        <span role='button' @click="showLog = false" :class="`nav-link${showLog ? '' : ' active'}`">Configuration</span>
+                    </li>
+                    <li class="nav-item">
+                        <span role='button' @click="showLog = true" :class="`nav-link${showLog ? ' active' : ''}`">Filter log</span>
+                    </li>
+                </ul>
+                <div :hidden="showLog">
+                    <div class="d-flex">
+                        <h5 class="flex-grow-1">Sources</h5>
+                        <button class="btn action" @click="editstate.addSource"><fa-icon class="text-primary"
+                        :icon="['fas', 'plus']"></fa-icon></button>
+                    </div>
+                    <section v-if="editstate.computedSources.length > 0" id="sources" class="flex-center align-items-center column-gap-3 mb-3">
+                        <EditSource
+                            v-for="source, index in editstate.computedSources"
+                            ref="sources"
+                            :source="source"
+                            @delete="editstate.deleteSource(index)"></EditSource>
+                    </section>
+                    <div class="mt-4 d-flex">
+                        <h5 class="flex-grow-1">Filters</h5>
+                        <button class="btn action" @click="editstate.addFilter('condition')">
+                            <fa-icon class="text-primary" :icon="['fas', 'plus']"></fa-icon>
+                        </button>
+                        <button class="btn action" @click="editstate.addFilter('statement')">
+                            <fa-icon class="text-primary" :icon="['fas', 'code-branch']"></fa-icon>
+                        </button>
+                    </div>
+                    <section v-if="editstate.computedFilters" id="filters" class="overflow-x-auto mb-5" data-edit-class="small-small normal-normal large-large">
+                        <template v-for="entry in editstate.flattenedFilters">
+                            <EditStatement
+                                v-if="entry.content.mode"
+                                ref="filters"
+                                :indent="entry.indent"
+                                :statement="entry.content"
+                                @change="editstate.updateFilter($event, entry.index)"
+                                @event="editstate.eventFilter($event, entry.index)"></EditStatement>
+                            <EditCondition
+                                v-else
+                                ref="filters"
+                                :indent="entry.indent"
+                                :condition="entry.content"
+                                @change="editstate.updateFilter($event, entry.index)"
+                                @event="editstate.eventFilter($event, entry.index)"></EditCondition>
+                        </template>
+                    </section>
+                </div>
+                <div :hidden="!showLog">
                     <h5>Sources</h5>
                     <ul class="list-unstyled">
                         <template v-for="source of playlists.editing.log.sources">
@@ -48,6 +98,7 @@
                     <span class="text-body-secondary">
                         <template v-for="filter of playlists.editing.log.filters"><template v-if="filter.startsWith('Converted')">Result: {{ filter }}</template></template>
                     </span>
+                </div>
                 <div v-if="editstate.error > 0" class="alert alert-primary" role="alert">
                     Some {{ editstate.error == 1 ? 'sources' : editstate.error == 2 ? 'filters' : 'filters and sources'}} are not filled in correctly
                 </div>
@@ -58,12 +109,12 @@
                 <section class="d-flex flex-wrap">
                     <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" data-bs-dismiss="offcanvas" @click="save" :disabled="playlists.editing.id == 'example'">
                         <span>{{ saveState == 0 ? "Save" : saveState == 1 ? "Saving" : "Saved" }}</span>
-                        <Image v-if="editstate.saving && editstate.error == 0 && saveState == 1" class="d-inline shadow-none ms-2" style="width: 1.5rem" src=""></Image>
+                        <Image v-if="editstate.saving && editstate.error == 0 && saveState == 1" class="d-inline shadow-none ms-2" style="width: 1.5rem; height: 1.5rem" src=""></Image>
                     </button>
 
                     <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" data-bs-dismiss="offcanvas" @click="execute" :disabled="playlists.editing.id == 'example'">
                         <span>{{ executeState == 0 ? "Run" : executeState == 1 ? "Running" : "Done" }}</span>
-                        <Image class="d-inline shadow-none ms-2" style="width: 1.5rem" v-if="executeState == 1" src=""></Image>
+                        <Image class="d-inline shadow-none ms-2" style="width: 1.5rem; height: 1.5rem" v-if="executeState == 1" src=""></Image>
                     </button>
 
                     <button type="button" id="editReset" class="btn btn-danger ms-auto mt-3 me-3" data-bs-dismiss="offcanvas" @click="editstate.reset">Reset</button>
@@ -89,8 +140,7 @@ export default class Edit extends Vue {
     layout!: Layout;
     editstate!: EditState;
 
-    /** Item which is being dragged */
-    draggingIndex: string = "";
+    showLog = false;
     /** 0: default, 1: pending, 2: finished */
     saveState = 0;
     executeState = 0;
@@ -135,6 +185,7 @@ export default class Edit extends Vue {
 </script>
 
 <style lang="scss" scoped>
+
 article{
     overflow: auto;
 
