@@ -13,41 +13,41 @@ export class FilterString {
     public static readonly operation = FilterStringOptions;
 
     /**
-     *                  Checks if input matches the set rule
-     * @param operation Operation to execute on the input
-     * @param filter    Filter to check the for in the input
-     * @param input     Input to check
+     *                  Checks if value matches the set rule
+     * @param operation Operation to execute on the value
+     * @param filter    Filter specified by the user
+     * @param value     Value to check
      * @returns         Whether the rule is matched
      */
     public static matches(operation: keyof typeof FilterString.operation,
                           filter: string,
-                          input: string): boolean{
+                          value: string): boolean{
         let data: string[],
             find: string[];
 
         switch (operation) {
             case "contains":
                 // Split at every "," and trim
-                data = input.split(",").map(value => value.trim().toLowerCase());
+                data = value.split(",").map(value => value.trim().toLowerCase());
                 find = filter.split(",").map(value => value.trim().toLowerCase());
                 return data.some(d => find.some(f => d.includes(f)))
 
             case "does not contain":
-                data = input.split(",").map(value => value.trim().toLowerCase());
+                data = value.split(",").map(value => value.trim().toLowerCase());
                 find = filter.split(",").map(value => value.trim().toLowerCase());
                 return data.every(d => find.every(f => !d.includes(f)))
 
             case "is":
-                return filter.toLowerCase() == input.toLowerCase();
+                return filter.toLowerCase() == value.toLowerCase();
 
             case "is not":
-                return filter.toLowerCase() != input.toLowerCase();
+                return filter.toLowerCase() != value.toLowerCase();
 
             case "begins with":
-                return filter.toLowerCase().startsWith(input.toLowerCase());
+                return filter.toLowerCase().startsWith(value.toLowerCase());
 
             case "ends with":
-                return filter.toLowerCase().endsWith(input.toLowerCase());
+                return filter.toLowerCase().endsWith(value.toLowerCase());
 
             default:
                 throw Error(`Illegal Condition operation "${operation}"`);

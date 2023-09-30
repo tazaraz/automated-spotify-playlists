@@ -11,27 +11,27 @@ export class FilterValue {
     public static readonly operation = FilterValueOptions;
 
     /**
-     *                  Checks if input matches the set rule
-     * @param operation Operation to execute on the input
-     * @param filter    Filter to check the for in the input
-     * @param input     Input to check
+     *                  Checks if value matches the set rule
+     * @param operation Operation to execute on the value
+     * @param filter    Filter specified by the user
+     * @param value     Value to check
      * @returns         Whether the rule is matched
      */
     public static matches(operation: keyof typeof FilterValue.operation,
                           filter: number,
-                          input: number): boolean{
+                          value: number): boolean{
         switch (operation) {
             case "is":
-                return filter == input;
+                return filter == value;
 
             case "is not":
-                return filter != input;
+                return filter != value;
 
             case "is at least":
-                return input >= filter;
+                return value >= filter;
 
             case "is at most":
-                return input <= filter;
+                return value <= filter;
 
             default:
                 throw Error(`Illegal Condition operation "${operation}"`);

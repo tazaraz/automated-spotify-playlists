@@ -7,19 +7,19 @@ export class FilterSlider {
     public static max = 100;
 
     /**
-     *                  Checks if input matches the set rule
-     * @param operation Operation to execute on the input
-     * @param filter    Filter to check the for in the input
-     * @param input     Input to check
+     *                  Checks if value matches the set rule
+     * @param operation Operation to execute on the value
+     * @param filter    Filter specified by the user
+     * @param value     Value to check
      * @returns         Whether the rule is matched
      */
     public static matches(operation: keyof typeof FilterSlider.operation,
                           filter: number,
-                          input: number): boolean {
+                          value: number): boolean {
         // Enforce the maximum size of 100
-        if (input < FilterSlider.min || input > FilterSlider.max)
+        if (value < FilterSlider.min || value > FilterSlider.max)
             return false;
 
-        return FilterValue.matches(operation, filter, input);
+        return FilterValue.matches(operation, filter / 100, value);
     }
 }
