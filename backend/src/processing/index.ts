@@ -106,19 +106,19 @@ export default class Filters {
          *      - added: tracks now present in Spotify where they weren't before
          *      - removed: tracks previously present where they are not anymore
          * 3. Process the matched items based on the added and removed tracks
-         *      - included: (original included + new manually added tracks) and not present in the filter
+         *      - matched:  items which macthed the filters
          *      - excluded: (original excluded + new manually removed tracks) and present in the filter
-         *      - matched:  tracks from both the result and included AND NOT tracks from the excluded
+         *      - included: (original included + new manually added tracks) and not present in the filter
          * 4. Calculate the tracks we should add and remove in the Spotify playlist
          *      - to be added: tracks present in matched but not in Spotify
          *      - to be removed: tracks present in Spotify but not in matched
+         * 5. Remove duplicates
          * */
 
         /**Get the playlist tracks from Spotify
          * First remove the url from the cache, preventing the cache from being used
          */
-        if (Metadata.url_cache && Metadata.url_cache.tracks)
-            delete Metadata.url_cache.tracks[`/playlists/${playlist.id}/tracks`]
+        delete Metadata.url_cache[`/playlists/${playlist.id}/tracks`]
 
         const spotify_tracks = dryrun ? [] :
             await Metadata.getMultipleTracks(`/playlists/${playlist.id}/tracks`,{
@@ -134,7 +134,7 @@ export default class Filters {
         LOG_DEBUG(`0: spotify tracks: ${spotify_tracks.length}, old tracks: ${playlist_tracks.length}`)
 
         // 1. Match the tracks
-        const filter_tracks = await FilterParser.process(
+        const matched_tracks = await FilterParser.process(
             playlist.filters,
             input,
             user,
@@ -142,8 +142,7 @@ export default class Filters {
             dryrun
         );
 
-        LOG_DEBUG(`1: filter input: ${input.length}, filter output: ${filter_tracks.length}`)
-        LOG_DEBUG(playlist.log.filters)
+        LOG_DEBUG(`1: filter input: ${input.length}, filter output: ${matched_tracks.length}`)
 
         // 2. Calculate the added and removed tracks
         const newly_added_tracks    = Filters.subtract(spotify_tracks, playlist_tracks)
@@ -151,23 +150,35 @@ export default class Filters {
         LOG_DEBUG(`2: added: ${newly_added_tracks.length}, removed: ${newly_removed_tracks.length}`)
 
         // 3. Process the matched items
-        let included_tracks         = Filters.merge(playlist.included_tracks, newly_added_tracks)
-            included_tracks         = Filters.subtract(included_tracks, filter_tracks)
         let excluded_tracks         = Filters.merge(playlist.excluded_tracks, newly_removed_tracks)
-            excluded_tracks         = Filters.common(excluded_tracks, filter_tracks)
-        let matched_tracks          = Filters.subtract(filter_tracks, excluded_tracks)
-
-        LOG_DEBUG(`3: matched: ${matched_tracks.length}, included: ${included_tracks.length}, excluded: ${excluded_tracks.length}, matched: ${matched_tracks.length}`)
+            excluded_tracks         = Filters.common(excluded_tracks, matched_tracks)
+        let included_tracks         = Filters.merge(playlist.included_tracks, newly_added_tracks)
+            included_tracks         = Filters.subtract(included_tracks, matched_tracks)
+        LOG_DEBUG(`3: matched: ${matched_tracks.length}, included: ${included_tracks.length}, excluded: ${excluded_tracks.length}`)
 
         // 4. Calculate the tracks to add and remove
-        const new_playlist_tracks   = Filters.merge(matched_tracks, included_tracks)
-        const to_be_added           = Filters.subtract(new_playlist_tracks, spotify_tracks)
-        const to_be_removed         = Filters.subtract(spotify_tracks, new_playlist_tracks)
+        let new_playlist_tracks   = Filters.merge(matched_tracks, included_tracks)
+            new_playlist_tracks   = Filters.subtract(new_playlist_tracks, excluded_tracks)
+        let to_be_added           = Filters.subtract(new_playlist_tracks, spotify_tracks)
+        let to_be_removed         = Filters.subtract(spotify_tracks, new_playlist_tracks)
         LOG_DEBUG(`4: added: ${to_be_added.length}, removed: ${to_be_removed.length}`)
 
-        playlist.included_tracks    = included_tracks
+        // 5. Get unique tracks and remove those from the spotify tracks. These are duplicates
+        let duplicates = Filters.common(spotify_tracks, spotify_tracks)
+            duplicates = Filters.subtract(spotify_tracks, duplicates, false)
+
+        // The Spotify API removes all duplicates given only one track id, so we must add them back
+        to_be_added   = Filters.merge(to_be_added, duplicates)
+        to_be_removed = Filters.merge(to_be_removed, duplicates)
+        LOG_DEBUG(`5: duplicates: ${duplicates.length}, removed: ${to_be_removed.length} (+${duplicates.length})`)
+
+        if (duplicates.length > 0) {
+            task.log.filters.push(`Detected ${duplicates.length} duplicate tracks. Removing them might have resulted in a location of these tracks in the playlist`)
+        }
+
+        playlist.matched_tracks     = matched_tracks.map(item => item.id)
         playlist.excluded_tracks    = excluded_tracks
-        playlist.matched_tracks     = matched_tracks
+        playlist.included_tracks    = included_tracks
 
         return {resulting_playlist: playlist, to_be_added, to_be_removed};
     }
@@ -181,9 +192,10 @@ export default class Filters {
      * Removes remove from tracks in the input
      * @param items Input list of tracks
      * @param remove Tracks to remove from the input list
+     * @param dedupe If true, removes duplicate tracks from the input list
      * @returns Filtered track list
      */
-    static subtract(items: FilterItem[] | string[], remove: FilterItem[] | string[]): string[] {
+    static subtract(items: FilterItem[] | string[], remove: FilterItem[] | string[], dedupe = true): string[] {
         /**If there are no tracks to filter OR
          * no tracks to remove, return nothing */
         if (items.length === 0)
@@ -198,17 +210,18 @@ export default class Filters {
             remove = (remove as STrack[]).map(t => t.id);
 
         // Only keep the tracks which are not in the remove list
-        items = (items as string[]).filter(track_id => !remove.some(remove_id => remove_id === track_id));
-        return [...new Set(items)]
+        items = (items as string[]).filter(track_id => !remove.some(remove_id => remove_id === track_id))
+        return dedupe ? [...new Set(items)] : items;
     }
 
     /**
      * Returns tracks present in both lists
      * @param list1 Track list 1
      * @param list2 Track list 2
+     * @param dedupe If true, removes duplicate tracks from the input list
      * @returns Filtered track list
      */
-    static common(list1: STrack[] | string[], list2: STrack[] | string[]): string[] {
+    static common(list1: STrack[] | string[], list2: STrack[] | string[], dedupe = true): string[] {
         /**If there are no tracks to filter OR
          * no tracks to remove, return nothing */
         if (list1.length === 0 || list2.length === 0)
@@ -221,17 +234,18 @@ export default class Filters {
             list2 = (list2 as STrack[]).map(t => t.id);
 
         // Only keep the tracks which are not in the remove list
-        const items = (list1 as string[]).filter(t1_id => (list2 as string[]).some(t2_id => t2_id === t1_id));
-        return [...new Set(items)]
+        const items = (list1 as string[]).filter(t1_id => (list2 as string[]).some(t2_id => t2_id === t1_id))
+        return dedupe ? [...new Set(items)] : items;
     }
 
     /**
      * Merges both lists
      * @param list1 Track list 1
      * @param list2 Track list 2
+     * @param dedupe If true, removes duplicate tracks from the input list
      * @returns Merged list
      */
-     static merge(list1: STrack[] | string[], list2: STrack[] | string[]): string[] {
+     static merge(list1: STrack[] | string[], list2: STrack[] | string[], dedupe = true): string[] {
         // Convert STrack[] to string[]
         if (typeof list1[0] !== "string")
             list1 = (list1 as STrack[]).map(t => t.id);
@@ -239,8 +253,8 @@ export default class Filters {
             list2 = (list2 as STrack[]).map(t => t.id);
 
         // Only keep the tracks which are not in the remove list
-        const items = (list1 as string[]).concat(list2 as string[]);
-        return [...new Set(items)]
+        const items = (list1 as string[]).concat(list2 as string[])
+        return dedupe ? [...new Set(items)] : items;
     }
 
     /**
