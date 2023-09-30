@@ -1,4 +1,4 @@
-import FilterLog from "../stores/filterlog";
+import FilterTask from "../stores/filtertask";
 import Metadata from "../stores/metadata";
 import { Sources } from "../types/filters";
 import { PlaylistSource } from "../types/playlist";
@@ -10,14 +10,15 @@ export default class MusicSources {
     public static async get(
         sources: PlaylistSource[],
         user: SUser,
-        log: FilterLog,
+        task: FilterTask,
         dry_run=false
     ): Promise<FilterItem[]> {
         let tracks, albums, artists, parsed: any[],
             filteritems: FilterItem[] = [];
 
-        for (const index in sources) {
-            const source = sources[index];
+        Metadata.API_USER = user;
+
+        for (const [index, source] of sources.entries()) {
             // Execute the dry_run if necessary
             if (dry_run) {
                 if (Object.keys(Sources).indexOf(source.origin) === -1)
@@ -100,14 +101,14 @@ export default class MusicSources {
             }
 
             filteritems.push(...(parsed as FilterItem[]))
-            log.sources.push(MusicSources.as_log(index, parsed.length));
+            task.log.sources.push(MusicSources.as_log(index, parsed.length));
         }
 
-        log.sources.push(`All given sources resulted in ${filteritems.length} items`);
+        task.log.sources.push(`All given sources resulted in ${filteritems.length} items`);
         return filteritems;
     }
 
-    private static as_log(index: string, count: number) {
+    private static as_log(index: number, count: number) {
         return `Source ${index + 1} yielded ${count} items`;
     }
 }

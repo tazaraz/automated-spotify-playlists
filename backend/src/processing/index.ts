@@ -6,9 +6,9 @@ import MusicSources from "./sources";
 import { LOG, LOG_DEBUG } from "../main";
 import { Playlist } from "../types/playlist";
 import { FilterItem, STrack, SUser } from "../types/server";
-import FilterLog from "../stores/filterlog";
+import FilterTask from "../stores/filtertask";
 
-interface FilterResult {
+export interface FilterResult {
     message: string;
     status: number;
     playlist?: Playlist;
@@ -22,10 +22,16 @@ export default class Filters {
      * @param playlist   Either a Playlist or a playlist_id
      * @param user_id           The user_id of the user
      */
-    static async execute(playlist: Playlist | string, user: SUser): Promise<FilterResult> {
+    static async execute(playlist: Playlist | string, user: SUser): Promise<void> {
+        // If the playlist is already being processed, return
+        if (FilterTask.exists((playlist as any).id || playlist))
+            return;
+
+        const task = new FilterTask((playlist as any).id || playlist);
+
         // If we are rate limited, wait until we are not
         if (Filters.retry_after !== undefined && Filters.retry_after > new Date())
-            return { message: `Retry after:${Filters.retry_after.toLocaleString()}`, status: 429 };
+            return task.finalize({ message: `Retry after:${Filters.retry_after.toLocaleString()}`, status: 429 });
 
         // Get the playlist if only an id is given
         if (typeof playlist === "string") {
@@ -34,14 +40,9 @@ export default class Filters {
 
             // If it does not exist, return
             if (playlist === undefined)
-                return { message: `Playlist ${playlist} does not exist`, status: 404 };
+                return task.finalize({ message: `Playlist ${playlist} does not exist`, status: 404 });
         } else
             playlist = playlist;
-
-        if (FilterLog.exists(playlist.id))
-            return { message: `Playlist ${playlist.id} is already being processed`, status: 409 };
-
-        const log = new FilterLog(playlist.id);
 
         // Update the playlist information. Spotify is probably correct
         const response = await Fetch.get(`/playlists/${playlist.id}`, { user })
@@ -52,9 +53,9 @@ export default class Filters {
             if (response.headers.get("retry-after") !== null) {
                 Filters.retry_after = new Date(Date.now() + parseInt(response.headers.get("retry-after")) * 1000);
                 LOG(`Retry after:${Filters.retry_after.toLocaleString()}`);
-                return { message: `Retry after:${Filters.retry_after.toLocaleString()}`, status: 429 };
+                return task.finalize({ message: `Retry after:${Filters.retry_after.toLocaleString()}`, status: 429 });
             } else {
-                return { message: `Failed to get playlist ${playlist.id}`, status: response.status }
+                return task.finalize({ message: `Failed to get playlist ${playlist.id}`, status: response.status })
             }
         }
 
@@ -63,13 +64,13 @@ export default class Filters {
         playlist.description = (spotify_playlist as Playlist).description;
 
         // Get tracks according to the specified sources
-        const source_tracks = await MusicSources.get(playlist.track_sources, user, log);
+        const source_tracks = await MusicSources.get(playlist.track_sources, user, task);
 
         // Filter out duplicate tracks.
         const input = [...new Map(source_tracks.map(item => [item.id, item])).values()]
 
         // Update the playlist
-        const {resulting_playlist, to_be_added, to_be_removed} = await Filters.process(playlist, input, user, log);
+        const {resulting_playlist, to_be_added, to_be_removed} = await Filters.process(playlist, input, user, task);
 
         // Update the playlist
         await Promise.all([
@@ -77,16 +78,15 @@ export default class Filters {
             Filters.removeTracksFromSpotify(user, resulting_playlist.id, to_be_removed)
         ]);
 
-        // Get the log
-        resulting_playlist.log = log.finalize();
+        resulting_playlist.log = task.log;
 
         // Update the database
         if (!(await Database.setPlaylist(user.id, resulting_playlist))) {
             LOG(`Failed to save a newly calculated playlist in database`);
-            return { message: `Failed to save a newly calculated playlist in database`, status: 500 };
+            return task.finalize({ message: `Failed to save a newly calculated playlist in database`, status: 500 });
         }
 
-        return { message: `Successfully executed playlist ${playlist.id}`, status: 200, playlist: resulting_playlist };
+        task.finalize({ message: `Successfully executed playlist ${playlist.id}`, status: 200, playlist: resulting_playlist });
     }
 
 
@@ -95,7 +95,7 @@ export default class Filters {
      * @param playlist  The playlist config
      * @param tracks    Tracks to match
      */
-    static async process(playlist: Playlist, input : FilterItem[], user: SUser, log: FilterLog, dryrun=false) {
+    static async process(playlist: Playlist, input : FilterItem[], user: SUser, task: FilterTask, dryrun=false) {
         /** We must account for the following things:
          * - Nothing changed
          * - Included and/or excluded changed
@@ -138,7 +138,7 @@ export default class Filters {
             playlist.filters,
             input,
             user,
-            log,
+            task,
             dryrun
         );
 

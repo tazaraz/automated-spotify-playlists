@@ -1,8 +1,9 @@
 import { Store, Pinia } from "pinia-class-component";
 import Playlists from "./playlists";
-import { Playlist, PlaylistCondition, PlaylistSource, PlaylistStatement } from "../../backend/src/types/playlist";
+import { PlaylistCondition, PlaylistSource, PlaylistStatement } from "../../backend/src/types/playlist";
 import { CTrack } from "../../backend/src/types/client";
 import { Sources } from "../../backend/src/types/filters";
+import Fetch from "./fetch";
 
 /**
  * README
@@ -24,7 +25,6 @@ export default class EditState extends Pinia {
     saving: boolean = false
     /** 0: no error, 1: Source error, 2: Filter error, 3: Source + Filter error */
     error: number = 0
-    executingLog: Playlist['log'] = null as any;
 
     name: string = "";
     description: string = "";
@@ -270,12 +270,14 @@ export default class EditState extends Pinia {
     }
 
     async execute() {
-        /**Execute the playlist. While incomplete, this will yield a log */
-        let status = await this.playlists.execute(this.playlists.editing)
-        while (typeof status != 'boolean') {
-            this.executingLog = status
-            status = await this.playlists.execute(this.playlists.editing)
+        /** Start the execution of the playlist */
+        const result = await Fetch.patch(`server:/playlist/${this.playlists.editing.id}`)
+        if (result.status != 201) {
+            return;
         }
+
+        // Wait for the execution to finish
+        while (await this.playlists.execute(this.playlists.editing)) continue;
     }
 
     reset() {

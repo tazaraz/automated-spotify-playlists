@@ -460,21 +460,44 @@ export default class Playlists extends Pinia {
      */
     async execute(playlist: LoadedPlaylist | CPlaylist){
         const response = await Fetch.patch(`server:/playlist/${playlist.id}`);
-        if (response.status === 304) {
-            return response.data.log as CPlaylist['log']
+        if (response.status === 302) {
+            this.editing.log = response.data.log;
+            return true;
         } else if (response.status === 200) {
+            // Store the log
+            this.editing.log = response.data.log;
+
+            const all_tracks_length = response.data.matched_tracks.length + response.data.included_tracks.length - response.data.excluded_tracks.length;
+
+            // Calculate the length of all_tracks
+            response.data.all_tracks = Array(all_tracks_length).fill("");
+            response.data.owner = playlist.owner
             this.save(response.data)
 
             // If it is the loaded playlist, load the new tracks
             if (response.data.id === this.loaded.id) {
-                const tracks = await this.loadPlaylistTracks(response.data)
-                this.loaded.matched_tracks = tracks.matched;
-                this.loaded.excluded_tracks = tracks.excluded;
-                this.loaded.included_tracks = tracks.included;
+                this.loadPlaylistTracks(response.data).then(tracks => {
+                    /** The pointers stored at all, matched, excluded and included are used somewhere else
+                     * hence 'this.loaded.all_tracks = tracks.all' overwrites the pointer and breaks the other components
+                     * So clear the array and push the new tracks in
+                    */
+                    this.loaded.all_tracks.length = 0;
+                    this.loaded.all_tracks.push(...tracks.all);
+
+                    this.loaded.matched_tracks.length = 0;
+                    this.loaded.matched_tracks.push(...tracks.matched);
+
+                    this.loaded.excluded_tracks.length = 0;
+                    this.loaded.excluded_tracks.push(...tracks.excluded);
+
+                    this.loaded.included_tracks.length = 0;
+                    this.loaded.included_tracks.push(...tracks.included);
+                })
             }
 
-            return true;
+            return false;
         }
+
         return false;
     }
 

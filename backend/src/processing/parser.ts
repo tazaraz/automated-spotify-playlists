@@ -1,4 +1,4 @@
-import FilterLog from "../stores/filterlog";
+import FilterTask from "../stores/filtertask";
 import Fetch from "../tools/fetch";
 import { FilterParserOptions } from "../types/filters";
 import { Filters } from "../types/filters";
@@ -19,23 +19,23 @@ export default class FilterParser {
     public static async process(statement: PlaylistStatement,
                                 input: FilterItem[],
                                 user: SUser,
-                                log: FilterLog,
+                                task: FilterTask,
                                 dryrun=false): Promise<FilterItem[]> {
         let result: FilterItem[];
 
         // If the user specified no filters at all
         if (statement.filters.length === 0) {
             result = input
-            log.filters.push("No filters specified");
+            task.log.filters.push("No filters specified");
         } else {
-            result = await FilterParser.checkStatement(statement, input, user, log, dryrun);
+            result = await FilterParser.checkStatement(statement, input, user, task, dryrun);
         }
 
         // Convert the FilterItems to STracks and flatten (FilterItem can always map to a STrack[])
         const tracks = ([] as STrack[]).concat(...await Promise.all(result.map(item => Track.convert(item))))
               tracks.forEach(item => (item as FilterItem).kind = "track")
 
-        log.filters.push(`Converted ${result.length} items to ${tracks.length} tracks`)
+        task.log.filters.push(`Converted ${result.length} items to ${tracks.length} tracks`)
 
         // Now they are STracks but stored as a FilterItem
         return tracks as FilterItem[]
@@ -50,7 +50,7 @@ export default class FilterParser {
     private static async checkStatement(statement: PlaylistStatement,
                                         input: FilterItem[],
                                         user: SUser,
-                                        log: FilterLog,
+                                        task: FilterTask,
                                         dryrun=false
     ): Promise<FilterItem[]>{
         // If the filter is not an object or does not have the required entries
@@ -67,15 +67,16 @@ export default class FilterParser {
             // If the filter is an statement
             if ((f as PlaylistCondition).value === undefined){
                 // the loop again
+                task.log.filters.push(`Start statement (${(f as PlaylistStatement).mode})`)
                 const result = await FilterParser.checkStatement(
                     f as PlaylistStatement,
                     input,
                     user,
-                    log,
+                    task,
                     dryrun
                 );
 
-                log.filters.push(`Statement filtered ${result.length} of ${input.length} items (change: ${result.length - input.length})`);
+                task.log.filters.push(`End statement: filtered ${result.length} of ${input.length} items (change: ${result.length - input.length})`);
 
                 // Pipe it into the output set. The correct action will be taken after the for loop
                 result.forEach(track => matches[track.id] = track);
@@ -85,14 +86,14 @@ export default class FilterParser {
                     f as PlaylistCondition,
                     input,
                     user,
-                    log,
+                    task,
                     dryrun
                 )
 
                 if (result === undefined)
                     continue
 
-                log.filters.push(`Filter matched ${result.length} of ${input.length} items (change: ${result.length - input.length})`);
+                task.log.filters.push(`Filter '${(f as any).category} ${(f as any).filter}' matched ${result.length} of ${input.length} items (change: ${result.length - input.length})`);
 
                 /**Otherwise pipe the output into the next input, in effect filtering out all
                  * which do not match, leaving the ones who do */
@@ -142,7 +143,7 @@ export default class FilterParser {
     private static async checkCondition(condition: PlaylistCondition,
                                         input: FilterItem[],
                                         user: SUser,
-                                        log: FilterLog,
+                                        task: FilterTask,
                                         dryrun=false): Promise<FilterItem[] | undefined> {
         if (!FilterParser.isCondition(condition))
             throw Error("Invalid playlist condition")
@@ -162,8 +163,6 @@ export default class FilterParser {
             const tracks = (await Promise.all(input.map(item => Track.convert(item)))).flat() as FilterItem[]
             tracks.forEach(item => (item as FilterItem).kind = "track")
 
-
-
             for (let i = 0; i < tracks.length; i += 50) {
                 // Spotify endpoint to check if a track is loved
                 const response = await Fetch.get<boolean[]>('/me/tracks/contains', {
@@ -178,7 +177,7 @@ export default class FilterParser {
             // Filter out the tracks which are loved
             const loved_tracks = tracks.filter((_, i) => FilterBoolean.matches(condition.operation as keyof typeof FilterBoolean.operation, loved[i]))
 
-            log.filters.push(`Is loved check present. Converted ${input.length} items to ${tracks.length} tracks and checked if they were loved, leaving ${loved_tracks.length} tracks.`)
+            task.log.filters.push(`Is loved check present. Converted ${input.length} items to ${tracks.length} tracks and checked if they were loved, leaving ${loved_tracks.length} tracks.`)
 
             return loved_tracks
         } else {

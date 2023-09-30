@@ -5,7 +5,7 @@ import Filters from './processing';
 import Users from './stores/users';
 import MusicSources from './processing/sources';
 import FilterParser from './processing/parser';
-import FilterLog from './stores/filterlog';
+import FilterTask from './stores/filtertask';
 import { Playlist } from './types/playlist';
 import { CUser } from './types/client';
 import { LOG } from './main';
@@ -124,19 +124,19 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
 
     /**We now verify the validity of the filters and sources */
     const user = await Users.get(req.user.id)
-    const log = new FilterLog(Math.random().toString())
+    const task = new FilterTask(Math.random().toString())
 
     try {
         // Check if the filters supplied are valid
-        await FilterParser.process(playlist.filters, [], user, log, true);
+        await FilterParser.process(playlist.filters, [], user, task, true);
         // Check if the sources supplied are valid
-        await MusicSources.get(playlist.track_sources, user, log, true)
+        await MusicSources.get(playlist.track_sources, user, task, true)
     } catch (error) {
         return res.status(400).json({ error: error.message });
     }
 
     // Delete the log
-    log.finalize();
+    task.delete();
 
     /** We now update or create the playlist */
     const dbplaylist = await Database.getPlaylist(req.user.id, playlist.id);
@@ -202,20 +202,29 @@ api.delete('/playlist', Users.verify_token, async (req, res) => {
  * Runs the filters for a given playlist
  */
 api.patch(`/playlist/:playlistid`, Users.verify_token, async (req, res) => {
-    const result = await Filters.execute(req.params.playlistid, await Users.get(req.user.id));
+    if (!FilterTask.exists(req.params.playlistid)) {
+        // Start the execution
+        Filters.execute(req.params.playlistid, await Users.get(req.user.id))
+        // Wait for the log to be created
+        while (!FilterTask.exists(req.params.playlistid)) await new Promise(resolve => setTimeout(resolve, 100))
+        // Reply
+        return res.status(201).send("Started running the playlist filters");
+    } else {
+        const task = FilterTask.get(req.params.playlistid);
 
-    // If false, something went wrong
-    if (result.playlist) {
-        return res.json(result.playlist);
-    } else if (result.status === 409) {
-        return res.status(304).json({
-            status: "Playlist is already running",
-            log: await FilterLog.get(req.params.playlistid).changed()
-        });
-    }
-    // True means the playlist is already running
-    else  {
-        return res.json(result);
+        if (task.finalized) {
+            if (task.result.status === 200)
+                res.json(task.result.playlist);
+            else
+                res.status(task.result.status).json(task.result.message);
+
+            task.delete();
+        } else {
+            return res.status(302).json({
+                status: "Playlist is already running",
+                log: (await FilterTask.get(req.params.playlistid).logChange()).log
+            });
+        }
     }
 })
 

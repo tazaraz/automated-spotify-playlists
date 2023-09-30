@@ -30,45 +30,24 @@
                         <label>Description</label>
                     </div>
                 </div>
-                <div class="d-flex">
-                    <h5 class="flex-grow-1">Sources</h5>
-                    <button class="btn action" @click="editstate.addSource"><fa-icon class="text-primary"
-                    :icon="['fas', 'plus']"></fa-icon></button>
-                </div>
-                <section v-if="editstate.computedSources.length > 0" id="sources" class="flex-center align-items-center column-gap-3 mb-3">
-                    <EditSource
-                        v-for="source, index in editstate.computedSources"
-                        ref="sources"
-                        :source="source"
-                        @delete="editstate.deleteSource(index)"></EditSource>
-                </section>
-                <div class="mt-4 d-flex">
-                    <h5 class="flex-grow-1">Filters</h5>
-                    <button class="btn action" @click="editstate.addFilter('condition')">
-                        <fa-icon class="text-primary" :icon="['fas', 'plus']"></fa-icon>
-                    </button>
-                    <button class="btn action" @click="editstate.addFilter('statement')">
-                        <fa-icon class="text-primary" :icon="['fas', 'code-branch']"></fa-icon>
-                    </button>
-                </div>
-                <section v-if="editstate.computedFilters" id="filters" class="overflow-x-auto mb-5" data-edit-class="small-small normal-normal large-large">
-                    <template v-for="entry in editstate.flattenedFilters">
-                        <EditStatement
-                            v-if="entry.content.mode"
-                            ref="filters"
-                            :indent="entry.indent"
-                            :statement="entry.content"
-                            @change="editstate.updateFilter($event, entry.index)"
-                            @event="editstate.eventFilter($event, entry.index)"></EditStatement>
-                        <EditCondition
-                            v-else
-                            ref="filters"
-                            :indent="entry.indent"
-                            :condition="entry.content"
-                            @change="editstate.updateFilter($event, entry.index)"
-                            @event="editstate.eventFilter($event, entry.index)"></EditCondition>
-                    </template>
-                </section>
+                    <h5>Sources</h5>
+                    <ul class="list-unstyled">
+                        <template v-for="source of playlists.editing.log.sources">
+                            <li class="ps-3" v-if="!source.startsWith('All')">{{ source }}</li>
+                        </template>
+                    </ul>
+                    <span class="text-body-secondary">
+                        <template v-for="source of playlists.editing.log.sources"><template v-if="source.startsWith('All')">Result: {{ source }}</template></template>
+                    </span>
+                    <h5 class="mt-4">Filters</h5>
+                    <ul>
+                        <template v-for="filter of playlists.editing.log.filters">
+                            <li class="ps-3" v-if="!filter.startsWith('Converted')">{{ filter }}</li>
+                        </template>
+                    </ul>
+                    <span class="text-body-secondary">
+                        <template v-for="filter of playlists.editing.log.filters"><template v-if="filter.startsWith('Converted')">Result: {{ filter }}</template></template>
+                    </span>
                 <div v-if="editstate.error > 0" class="alert alert-primary" role="alert">
                     Some {{ editstate.error == 1 ? 'sources' : editstate.error == 2 ? 'filters' : 'filters and sources'}} are not filled in correctly
                 </div>
@@ -144,6 +123,8 @@ export default class Edit extends Vue {
     /** Executes the filters of the playlists */
     async execute() {
         if (this.saveState > 0) return;
+        this.playlists.editing.log = { sources: [], filters: [] };
+        await this.save();
 
         this.executeState = 1;
         await this.editstate.execute();
