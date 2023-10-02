@@ -1,4 +1,4 @@
-import { CAlbum, CArtist, CTrack, CTrackFeatures, CUser } from "./client";
+import { CAlbum, CArtist, CTrack, CTrackFeatures } from "./client";
 
 /**
  * Filtering can use multiple types and thus it is not efficient to parse everything down to a track. This interface

@@ -1,5 +1,5 @@
 import { FilterBoolean, FilterString, FilterValue } from "../processing/matching";
-import FilterParser from "../processing/parser";
+import { FilterParserOptions } from "../types/filters";
 import { Filters, Sources } from "./filters";
 
 export interface Playlist {
@@ -20,7 +20,7 @@ export interface Playlist {
 }
 
 export interface PlaylistStatement {
-    mode: keyof typeof FilterParser.mode;
+    mode: keyof typeof FilterParserOptions;
     filters: (PlaylistCondition | PlaylistStatement)[];
 }
 
