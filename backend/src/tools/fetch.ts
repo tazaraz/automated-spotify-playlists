@@ -1,3 +1,4 @@
+import { THROW_DEBUG_ERROR } from "../main";
 import Users from "../stores/users";
 import { SUser } from "../types/server";
 
@@ -26,6 +27,9 @@ export interface FetchOptions {
     method?: "GET" | "POST" | "PUT" | "DELETE";
     // The headers to send with the request
     headers?: {[key: string]: string};
+
+    /** How long to wait before trying again */
+    retry_after?: number;
 }
 
 export default class Fetch {
@@ -45,7 +49,7 @@ export default class Fetch {
         return Fetch.build<T>(url, { method: "DELETE", ...options });
     }
 
-    protected static async build<T>(url: string, options: FetchOptions = {}) {
+    protected static async build<T>(url: string, options: FetchOptions = {}): Promise<FetchResponse<T>> {
         const limit      = options?.limit ?? 50;
         const ids        = options?.ids?.sort() ?? undefined;
         const pagination = options?.pagination ?? false;
@@ -97,24 +101,26 @@ export default class Fetch {
 
         if (pagination) {
             // Do the first request. This will also tell us how many items there will be in total
-            response = (await Fetch.parseRequest(`${url}${options.query ? '&' : '?'}limit=${limit}&offset=0`, parameters, options)).data;
+            response = await Fetch.parseRequest(`${url}${options.query ? '&' : '?'}limit=${limit}&offset=0`, parameters, options);
 
-            const total = response.total;
-            const requests: any = [{data: response}];
+            const total = response.data.total;
+            const requests: any[] = Fetch.format(response.data);
 
-            // Do the rest of the requests in parallel
+            // Do the rest of the requests
             for (let i = limit; i < total; i += limit) {
-                requests.push(Fetch.parseRequest(
+                const response2 = await Fetch.parseRequest(
                     `${url}${options.query ? '&' : '?'}limit=${limit}&offset=${i}`,
                     parameters, options
-                ));
+                );
+
+                if (response2.status >= 300)
+                    THROW_DEBUG_ERROR(`Failed to fetch ${url} with status ${response2.status}`);
+
+                requests.push(...Fetch.format(response2.data));
             }
 
-            // Wait for all requests to finish and format the data
-            const responses = await Promise.all(requests);
-            responses.map(response => result.push(...Fetch.format(response.data)));
-
-            return {data: result} as FetchResponse<T>;
+            response.data = requests;
+            return response as FetchResponse<T>;
         }
 
         else if (ids) {
@@ -189,21 +195,27 @@ export default class Fetch {
 
             /**Spotify had a hiccough, give it some time */
             case 429:
-                if (!options.retries || options.retries-- <= 0)
+                if (options.retry_after > 16000) {
+                    console.log(response.status, response.headers)
+                    throw new Error(`Should fix this`);
+                }
+                if (options.retries-- <= 0)
                     break;
             case 500:
             case 502:
             case 504:
-                // Set the default timeout to 5 seconds. If "Retry-After" is set, use that instead
-                let retry_after = 5000;
+                // Set the default timeout to 2 seconds. If "Retry-After" is set, use that instead
+                options.retry_after = 2000;
                 if (response.headers.has("Retry-After"))
-                    retry_after = parseInt(response.headers.get("Retry-After")!) * 1000;
+                    options.retry_after = parseInt(response.headers.get("Retry-After")!) * 1000;
 
                 return await new Promise(resolve => {
                     setTimeout(async () => {
+                        // Increase the timeout
+                        options.retry_after *= 2;
                         // Retry the request
                         resolve(await Fetch.parseRequest(url, parameters, options));
-                    }, retry_after)
+                    }, options.retry_after)
                 });
 
             /** No data */
