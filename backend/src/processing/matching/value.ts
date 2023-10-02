@@ -1,9 +1,9 @@
 
 const FilterValueOptions = {
-    "is": "The result must be equal to the given value",
-    "is not": "The result must not be equal to the given value",
     "is at least": "The search must be equal or larger than the given value",
     "is at most": "The search must be equal or smaller than the given value",
+    "is": "The result must be equal to the given value",
+    "is not": "The result must not be equal to the given value",
 }
 
 export class FilterValue {

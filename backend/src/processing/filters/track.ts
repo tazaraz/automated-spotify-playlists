@@ -1,4 +1,4 @@
-import { FilterString, FilterValue } from "../matching";
+import { FilterSlider, FilterString, FilterValue } from "../matching";
 import { FilterItem, STrack } from "../../types/server";
 import { filter_async, get_by_kind } from ".";
 
@@ -44,17 +44,17 @@ export class Track {
     }
 
     static async Popularity(items: FilterItem[],
-                            operation: keyof typeof FilterValue.operation,
+                            operation: keyof typeof FilterSlider.operation,
                             filter: number,
                             dry_run=false){
         if (dry_run) {
-            FilterValue.matches(operation, filter, 0)
+            FilterSlider.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, Track.convert, async item => {
             // Popularity ranges from 0 - 100
-            if (FilterValue.matches(operation, filter, item.popularity / 100))
+            if (FilterSlider.matches(operation, filter, item.popularity))
                 return item;
         })
     }

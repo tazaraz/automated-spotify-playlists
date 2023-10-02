@@ -20,6 +20,6 @@ export class FilterSlider {
         if (value < FilterSlider.min || value > FilterSlider.max)
             return false;
 
-        return FilterValue.matches(operation, filter / 100, value);
+        return FilterValue.matches(operation, filter, value);
     }
 }

@@ -34,7 +34,6 @@ export class TrackFeatures {
         }
 
         return await filter_async(items, TrackFeatures.convert, async item => {
-            // 0.8 I just made up
             if (FilterSlider.matches(operation, filter, (await item.features()).acousticness * 100))
                 return item;
         })
@@ -51,7 +50,7 @@ export class TrackFeatures {
 
         return await filter_async(items, TrackFeatures.convert, async item => {
             // Sliders on the client side range from 0 - 100, whereas the API ranges from 0.0 - 1.0
-            if (FilterSlider.matches(operation, filter, (await item.features()).danceability))
+            if (FilterSlider.matches(operation, filter, (await item.features()).danceability * 100))
                 return item;
         })
     }
@@ -66,7 +65,7 @@ export class TrackFeatures {
         }
 
         return await filter_async(items, TrackFeatures.convert, async item => {
-            if (FilterSlider.matches(operation, filter, (await item.features()).energy))
+            if (FilterSlider.matches(operation, filter, (await item.features()).energy * 100))
                 return item;
         })
     }
@@ -81,7 +80,8 @@ export class TrackFeatures {
         }
 
         return await filter_async(items, TrackFeatures.convert, async item => {
-            if (FilterSlider.matches(operation, filter, (await item.features()).instrumentalness * 100))
+            // The UI displays this as 'Vocality', but the API calls it 'instrumentalness', which is the opposite
+            if (FilterSlider.matches(operation, filter, (1 - (await item.features()).instrumentalness) * 100))
                 return item;
         })
     }
@@ -96,7 +96,7 @@ export class TrackFeatures {
         }
 
         return await filter_async(items, TrackFeatures.convert, async item => {
-            if (FilterValue.matches(operation, filter, (await item.features()).loudness))
+            if (FilterValue.matches(operation, filter, (await item.features()).loudness * 100))
                 return item;
         })
     }
@@ -142,7 +142,7 @@ export class TrackFeatures {
 
         return await filter_async(items, TrackFeatures.convert, async item => {
             // Sliders on the client side range from 0 - 100, whereas the API ranges from 0.0 - 1.0
-            if (FilterSlider.matches(operation, filter, (await item.features()).valence))
+            if (FilterSlider.matches(operation, filter, (await item.features()).valence * 100))
                 return item;
         })
     }
