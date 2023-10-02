@@ -90,7 +90,7 @@
                     <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
                         <InfoField :description="Filters.Track.Vocality.description">Vocals</InfoField>
                         <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ Math.round(track.features.instrumentalness * 100) / 10 }} / 10</span>
+                        <span v-else>{{ Math.round((1 - track.features.instrumentalness) * 100) / 10 }} / 10</span>
                     </div>
                     <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
                         <InfoField :description="Filters.Track.Liveness.description">Live</InfoField>
