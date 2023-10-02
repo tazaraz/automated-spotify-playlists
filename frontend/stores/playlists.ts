@@ -459,7 +459,7 @@ export default class Playlists extends Pinia {
      * @param playlist Playlist filters to run
      */
     async execute(playlist: LoadedPlaylist | CPlaylist){
-        const response = await Fetch.patch(`server:/playlist/${playlist.id}`);
+        const response = await Fetch.patch(`server:/playlist/${playlist.id}`, { retries: 0 });
         if (response.status === 302) {
             this.editing.log = response.data.log;
             return true;

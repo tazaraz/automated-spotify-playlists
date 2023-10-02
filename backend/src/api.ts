@@ -210,7 +210,7 @@ api.patch(`/playlist/:playlistid`, Users.verify_token, async (req, res) => {
         // Reply
         return res.status(201).send("Started running the playlist filters");
     } else {
-        const task = FilterTask.get(req.params.playlistid);
+        const task = await FilterTask.get(req.params.playlistid).stateChange();
 
         if (task.finalized) {
             if (task.result.status === 200)
@@ -222,7 +222,7 @@ api.patch(`/playlist/:playlistid`, Users.verify_token, async (req, res) => {
         } else {
             return res.status(302).json({
                 status: "Playlist is already running",
-                log: (await FilterTask.get(req.params.playlistid).logChange()).log
+                log: task.log
             });
         }
     }
@@ -259,6 +259,9 @@ api.delete(`/playlist/:playlistid/matched-tracks`, Users.verify_token, async (re
     if (!req.body.removed || req.body.removed instanceof Array === false)
         return res.status(400).json({status: "Invalid Request"});
 
+    // Remove any empty strings, null or undefined values
+    req.body.removed = req.body.removed.filter(i => i);
+
     // Remove from the playlist
     for (let i = 0; req.body.removed && i < req.body.removed.length; i += 100) {
         Fetch.delete(`/playlists/${req.params.playlistid}/tracks`, {
@@ -289,6 +292,9 @@ api.delete(`/playlist/:playlistid/excluded-tracks`, Users.verify_token, async (r
     if (!req.body.removed || req.body.removed instanceof Array === false)
         return res.status(400).json({status: "Invalid Request"});
 
+    // Remove any empty strings, null or undefined values
+    req.body.removed = req.body.removed.filter(i => i);
+
     // Add to the playlist
     for (let i = 0; req.body.removed && i < req.body.removed.length; i += 100) {
         Fetch.post(`/playlists/${req.params.playlistid}/tracks`, {
@@ -299,9 +305,9 @@ api.delete(`/playlist/:playlistid/excluded-tracks`, Users.verify_token, async (r
         }).then(response => {
             if (response.status !== 200 && response.status !== 201) {
                 res.status(response.status).json({status: "Spotify Error", error: response.statusText})
-                return LOG({task: "Move excluded tracks", status: "Spotify Error", error: response.statusText});
+                LOG({task: "Move excluded tracks", status: "Spotify Error", error: response.statusText});
             }
-        });
+        })
     }
 
     // Move the tracks
@@ -318,6 +324,9 @@ api.delete(`/playlist/:playlistid/excluded-tracks`, Users.verify_token, async (r
 api.delete(`/playlist/:playlistid/included-tracks`, Users.verify_token, async (req, res) => {
     if (!req.body.removed || req.body.removed instanceof Array === false)
         return res.status(400).json({status: "Invalid Request"});
+
+    // Remove any empty strings, null or undefined values
+    req.body.removed = req.body.removed.filter(i => i);
 
     // Update the playlist
     for (let i = 0; i < req.body.removed.length; i += 100) {

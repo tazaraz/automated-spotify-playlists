@@ -50,7 +50,7 @@ export default class FilterTask {
     /**
      * Returns a promise which resolves when the log changes.
      */
-    async logChange() {
+    async stateChange() {
         if (this.finalized) {
             return this;
         }
@@ -66,14 +66,15 @@ export default class FilterTask {
     }
 
     /**
-     * Returns the log and marks it for deletion. Will be deleted after 5 seconds if not deleted by the endpoint.
+     * Returns the log and marks it for deletion. Will be deleted after 50 seconds if not deleted by the endpoint.
      */
     finalize(result: FilterResult) {
         this.finalized = true;
         this.result = result;
+        new Promise<FilterTask>(resolve => { this.resolve = resolve; })
 
-        // Delete the log after 5 seconds
-        setTimeout(() => this.delete(), 5000);
+        // Delete the log after 50 seconds
+        setTimeout(() => this.delete(), 50000);
     }
 
     /**
