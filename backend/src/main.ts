@@ -27,6 +27,13 @@ export async function LOG_DEBUG(...log: any[]){
     }
 }
 
+export function THROW_DEBUG_ERROR(...log: any[]){
+    if (process.env.NODE_ENV === "development") {
+        LOG_DEBUG(log);
+        throw new Error(log.join(' '));
+    }
+}
+
 const app       = express();
 const database  = new Database();
 const fetch     = new Fetch();
