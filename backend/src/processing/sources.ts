@@ -1,3 +1,4 @@
+import { THROW_DEBUG_ERROR } from "../main";
 import FilterTask from "../stores/filtertask";
 import Metadata from "../stores/metadata";
 import { Sources } from "../types/filters";
@@ -21,8 +22,10 @@ export default class MusicSources {
         for (const [index, source] of sources.entries()) {
             // Execute the dry_run if necessary
             if (dry_run) {
-                if (Object.keys(Sources).indexOf(source.origin) === -1)
-                    throw Error("Unsupported source")
+                if (Object.keys(Sources).indexOf(source.origin) === -1) {
+                    task.log.sources.push(`Source ${index + 1} is not a supported source: ${source.origin}`);
+                    THROW_DEBUG_ERROR(`Source ${index + 1} is not a supported source: ${source.origin}`);
+                }
                 else continue;
             }
 
@@ -46,6 +49,7 @@ export default class MusicSources {
                     );
 
                     // Convert to FilterItem
+                    console.log(tracks)
                     tracks.map(item => (item as FilterItem).kind = "track");
                     parsed = tracks
                     break;

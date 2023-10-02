@@ -1,3 +1,4 @@
+import { THROW_DEBUG_ERROR } from "../../main";
 
 const FilterStringOptions = {
     "contains": "Input contains the value specified. You can specify multiple values by separating them with a ','. The matching is case insensitive, and if the input contains multiple values (separated by a ',') only one of them has to fullfill the condition.",
@@ -50,7 +51,7 @@ export class FilterString {
                 return filter.toLowerCase().endsWith(value.toLowerCase());
 
             default:
-                throw Error(`Illegal Condition operation "${operation}"`);
+                THROW_DEBUG_ERROR(`FilterString: Unknown operation '${operation}'`);
         }
     }
 }

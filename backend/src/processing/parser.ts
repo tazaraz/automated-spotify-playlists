@@ -1,3 +1,4 @@
+import { THROW_DEBUG_ERROR } from "../main";
 import FilterTask from "../stores/filtertask";
 import Fetch from "../tools/fetch";
 import { FilterParserOptions } from "../types/filters";
@@ -54,8 +55,10 @@ export default class FilterParser {
                                         dryrun=false
     ): Promise<FilterItem[]>{
         // If the filter is not an object or does not have the required entries
-        if (!FilterParser.isStatement(statement))
-            throw Error("Invalid playlist statement")
+        if (!FilterParser.isStatement(statement)) {
+            task.log.filters.push(`Invalid statement: ${JSON.stringify(statement)}`)
+            THROW_DEBUG_ERROR(`Invalid statement: ${JSON.stringify(statement)}`);
+        }
 
         // Store the matches and original input
         const matches = {} as { [key: string]: FilterItem },
@@ -112,7 +115,8 @@ export default class FilterParser {
 
                     // Someone tried funky business with the filter
                     default:
-                        throw Error(`Illegal Statement operation "${statement.mode}"`);
+                        task.log.filters.push(`Illegal Statement operation "${statement.mode}"`);
+                        THROW_DEBUG_ERROR(`Illegal Statement operation "${statement.mode}"`);
                 }
             }
         }
@@ -145,13 +149,16 @@ export default class FilterParser {
                                         user: SUser,
                                         task: FilterTask,
                                         dryrun=false): Promise<FilterItem[] | undefined> {
-        if (!FilterParser.isCondition(condition))
-            throw Error("Invalid playlist condition")
+        if (!FilterParser.isCondition(condition)) {
+            task.log.filters.push(`Invalid condition: ${JSON.stringify(condition)}`)
+            THROW_DEBUG_ERROR(`Invalid condition: ${JSON.stringify(condition)}`);
+        }
 
         // Someone tried funky business with the condition
         if (!Filters.hasOwnProperty(condition.category) ||
            (Filters as any)[condition.category][condition.filter] === undefined){
-            throw Error(`Unknown filter "${condition.category}.${condition.filter}"`)
+            task.log.filters.push(`Illegal Condition category "${condition.category}" or filter "${condition.filter}"`)
+            THROW_DEBUG_ERROR(`Illegal Condition category "${condition.category}" or filter "${condition.filter}"`);
         }
 
         if (`${condition.category} ${condition.filter}` == "Track is Loved") {

@@ -1,3 +1,4 @@
+import { THROW_DEBUG_ERROR } from "../../main";
 
 const FilterValueOptions = {
     "is at least": "The search must be equal or larger than the given value",
@@ -34,7 +35,7 @@ export class FilterValue {
                 return value <= filter;
 
             default:
-                throw Error(`Illegal Condition operation "${operation}"`);
+                THROW_DEBUG_ERROR(`FilterValue: Unknown operation '${operation}'`);
         }
     }
 }

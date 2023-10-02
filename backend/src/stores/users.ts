@@ -2,6 +2,7 @@ import * as jwt from "jsonwebtoken";
 import Database from "../tools/database";
 import { SUser } from "../types/server";
 import Fetch from "../tools/fetch";
+import { THROW_DEBUG_ERROR } from "../main";
 
 export default class Users {
     private static users: {[id: string]: SUser} = {};
@@ -101,7 +102,7 @@ export default class Users {
             if (retry > 0) {
                 return await Users.refreshAccessToken(refresh_token, retry - 1);
             } else {
-                throw new Error("Could not refresh access token");
+                THROW_DEBUG_ERROR(`Could not refresh access token: ${JSON.stringify(response.data)}`);
             }
         }
 

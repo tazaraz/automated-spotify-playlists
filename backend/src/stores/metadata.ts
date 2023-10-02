@@ -1,7 +1,7 @@
+import { THROW_DEBUG_ERROR } from "../main";
 import Fetch, { FetchOptions } from "../tools/fetch";
 import { SUser } from "../types/server";
 import { SAlbum, SArtist, STrack, STrackFeatures } from "../types/server";
-import Users from "./users";
 
 /**
  * This class creates a queue which is used to group up items if they are requested quickly after each other.
@@ -185,7 +185,7 @@ export default class Metadata {
         // Get the items requested in the track_ids, or just get all items from the url directly
         options.ids  = missing_data_ids;
         options.user = options.user ?? Metadata.API_USER;
-        const data  = (await Fetch.get<any[]>(url, options)).data;
+        const data   = (await Fetch.get<any[]>(url, options)).data;
 
         // Get the already known tracks
         const items = present_data_ids.map(id => cache[id]);
@@ -204,7 +204,7 @@ export default class Metadata {
                     case "/artists": Metadata.getArtist(item.id); break;
                     case "/audio-features": Metadata.getTrackFeatures(item.id); break;
                     default:
-                        throw new Error(`The endpoint '${url}' returned incomplete data`);
+                        THROW_DEBUG_ERROR(`getMultiple: The endpoint '${url}' returned incomplete data'`);
                 }
             }
 

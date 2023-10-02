@@ -1,3 +1,4 @@
+import { THROW_DEBUG_ERROR } from "../../main";
 
 const FilterBooleanOptions = {
     "True": "The filter should be true",
@@ -23,7 +24,7 @@ export class FilterBoolean {
                 return !value;
 
             default:
-                throw Error(`Illegal Condition operation "${operation}"`);
+                THROW_DEBUG_ERROR(`FilterBoolean: Unknown operation '${operation}'`);
         }
     }
 }

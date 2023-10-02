@@ -1,3 +1,4 @@
+import { THROW_DEBUG_ERROR } from "../../main";
 import { FilterItem } from "../../types/server";
 
 export { Album } from "./album";
@@ -27,7 +28,7 @@ export { TrackFeatures } from "./track_features";
         case "artist":
             return await artist(item);
         default:
-            throw Error(`get_by_kind: Unknown kind '${item}'`);
+            THROW_DEBUG_ERROR(`get_by_kind: Unknown kind '${item}'`);
     }
 }
 
