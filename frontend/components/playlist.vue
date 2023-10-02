@@ -58,7 +58,7 @@
                         </div>
                     </Modal>
 
-                    <Modal v-if="shown.kind != 'all' && shown.kind != 'matched' && shown?.tracks?.length > 0" :button-text="`Clear ${shown.kind} tracks`" button-class="btn btn-secondary text-nowrap me-3">
+                    <Modal v-if="shown.kind != 'all' && shown.kind != 'matched'" :button-text="`Clear ${shown.kind} tracks`" button-class="btn btn-secondary text-nowrap me-3">
                         <div class="modal-header">
                             <h1 class="modal-title fs-5" id="exampleModalLabel">Clear all {{ shown.kind }} tracks?</h1>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -93,7 +93,6 @@
                     </template>
 
                     <div v-if="playlists.loaded.filters" class="d-flex align-items-end dropdown">
-
                         <button class="btn" type="button" data-bs-toggle="dropdown">
                             <h5 class="m-0"><fa-icon :icon="['fas', 'arrow-down-wide-short']" /></h5>
                         </button>
@@ -114,16 +113,16 @@
                     </div>
                 </div>
                 <div class="accordion rounded-5">
-                    <Track v-for="track, index of shown.tracks"
-                        :track="typeof track === 'string' ? undefined : track"
-                        :id="index"
-                        class="playlist-track"
-                        :deleteable="shown.kind !== 'all'"
-                        @delete="removeTrack"/>
                     <h4 v-if="loading || !playlists.loaded || !playlists.loaded.all_tracks" class="m-5">
                         Loading tracks...
                     </h4>
-                    <h4 v-else-if="shown.tracks.length == 0" class="m-5">
+                    <Track v-else-if="shown.tracks.length > 0"
+                           v-for="track, index of shown.tracks"
+                        :track="typeof track === 'string' ? undefined : track"
+                        :id="index" class="playlist-track"
+                        :deleteable="shown.kind !== 'all'"
+                        @delete="removeTrack"/>
+                    <h4 v-else class="m-5">
                         No tracks here.
                     </h4>
                 </div>
@@ -160,7 +159,7 @@ export default class PlaylistDisplay extends Vue {
     shown: {
         kind: "all" | "matched" | "excluded" | "included";
         tracks: CTrack[];
-    } = { kind: "all", tracks: [] };
+    } = { kind: 'all', tracks: [] };
 
     async mounted() {
         if (!process.client) return;
@@ -214,6 +213,11 @@ export default class PlaylistDisplay extends Vue {
         this.breadcrumbs.add(useRoute().fullPath, this.playlists.loaded.name)
         this.loading = false;
         await this.layout.render(null, true);
+
+        watch(() => this.playlists.loaded.all_tracks, () => this.showTracks(this.shown.kind))
+        watch(() => this.playlists.loaded.matched_tracks, () => this.showTracks(this.shown.kind))
+        watch(() => this.playlists.loaded.excluded_tracks, () => this.showTracks(this.shown.kind))
+        watch(() => this.playlists.loaded.included_tracks, () => this.showTracks(this.shown.kind))
     }
 
     /**
@@ -225,36 +229,35 @@ export default class PlaylistDisplay extends Vue {
         if (!this.playlists.loaded || (!this.playlists.loaded.filters && (kind == 'excluded' || kind == 'included')))
             return false;
 
+        this.loading = true;
+
         // Remove all elements from the observer
         for (const item of document.getElementsByClassName("playlist-track")) {
             this.observer.unobserve(item);
         }
 
         this.shown.kind = kind;
-        this.shown.tracks = [];
         await this.$nextTick();
+
 
         // Get the tracks we want to show
         let tracks = await this.playlists.loadPlaylistTracks(this.playlists.loaded, kind, 0);
-        let shown;
         switch(kind) {
             case "all":
-                this.playlists.loaded.all_tracks = tracks.all;
-                this.shown.tracks = this.playlists.loaded.all_tracks;
+                this.shown.tracks = this.playlists.loaded.all_tracks = tracks.all;
                 break;
             case "matched":
-                this.playlists.loaded.matched_tracks = tracks.matched;
-                this.shown.tracks = this.playlists.loaded.matched_tracks
+                this.shown.tracks = this.playlists.loaded.matched_tracks = tracks.matched;
                 break;
             case "excluded":
-                this.playlists.loaded.excluded_tracks = tracks.excluded;
-                this.shown.tracks = this.playlists.loaded.excluded_tracks
+                this.shown.tracks = this.playlists.loaded.excluded_tracks = tracks.excluded;
                 break;
             case "included":
-                this.playlists.loaded.included_tracks = tracks.included;
-                this.shown.tracks = this.playlists.loaded.included_tracks
+                this.shown.tracks = this.playlists.loaded.included_tracks = tracks.included;
                 break;
         }
+
+        this.loading = false;
 
         this.$nextTick(() => {
             // Observe all items
@@ -285,13 +288,13 @@ export default class PlaylistDisplay extends Vue {
         switch (this.shown.kind) {
             case "all": break;
             case "matched":
-                this.playlists.removeMatched(this.shown.tracks)
+                this.playlists.removeMatched(this.playlists.loaded.matched_tracks);
                 break;
             case "excluded":
-                this.playlists.removeExcluded(this.shown.tracks)
+                this.playlists.removeExcluded(this.playlists.loaded.excluded_tracks)
                 break;
             case "included":
-                this.playlists.removeIncluded(this.shown.tracks)
+                this.playlists.removeIncluded(this.playlists.loaded.included_tracks)
                 break;
         }
 

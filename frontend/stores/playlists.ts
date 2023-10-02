@@ -332,7 +332,7 @@ export default class Playlists extends Pinia {
      * Moves tracks from matched_tracks to excluded_tracks
      * @param tracks Track to move
      */
-    removeMatched(tracks: CTrack[]){
+    removeMatched(tracks: partialTrackList){
         // Remove the tracks from the from the origin
         this.loaded.matched_tracks = this.filterOut(this.loaded.matched_tracks, tracks);
         this.loaded.all_tracks     = this.filterOut(this.loaded.all_tracks, tracks);
@@ -342,14 +342,14 @@ export default class Playlists extends Pinia {
         this.loaded.excluded_tracks.sort();
 
         // Let the server know the change
-        this.removeTracks(this.loaded, 'matched', tracks.map(t => t.id))
+        this.removeTracks(this.loaded, 'matched', tracks.map(t => (t as CTrack).id || (t as string)))
     }
 
     /**
      * Moves tracks from excluded_tracks to matched_tracks
      * @param tracks Tracks to move
      */
-    removeExcluded(tracks: CTrack[]){
+    removeExcluded(tracks: partialTrackList){
         // Remove the tracks from the from the origin
         this.loaded.excluded_tracks = this.filterOut(this.loaded.excluded_tracks, tracks);
 
@@ -360,20 +360,20 @@ export default class Playlists extends Pinia {
         this.loaded.all_tracks.sort();
 
         // Let the server know the change
-        this.removeTracks(this.loaded, 'excluded', tracks.map(t => t.id))
+        this.removeTracks(this.loaded, 'excluded', tracks.map(t => (t as CTrack).id || (t as string)))
     }
 
     /**
      * Moves tracks from excluded_tracks to matched_tracks
      * @param tracks Tracks to move
      */
-    removeIncluded(tracks: CTrack[]){
+    removeIncluded(tracks: partialTrackList){
         // Remove the tracks from the from the origin
         this.loaded.included_tracks = this.filterOut(this.loaded.included_tracks, tracks);
         this.loaded.all_tracks      = this.filterOut(this.loaded.all_tracks, tracks);
 
         // Let the server know the change
-        this.removeTracks(this.loaded, 'included', tracks.map(t => t.id))
+        this.removeTracks(this.loaded, 'included', tracks.map(t => (t as CTrack).id || (t as string)))
     }
 
     /**
@@ -477,21 +477,10 @@ export default class Playlists extends Pinia {
             // If it is the loaded playlist, load the new tracks
             if (response.data.id === this.loaded.id) {
                 this.loadPlaylistTracks(response.data).then(tracks => {
-                    /** The pointers stored at all, matched, excluded and included are used somewhere else
-                     * hence 'this.loaded.all_tracks = tracks.all' overwrites the pointer and breaks the other components
-                     * So clear the array and push the new tracks in
-                    */
-                    this.loaded.all_tracks.length = 0;
-                    this.loaded.all_tracks.push(...tracks.all);
-
-                    this.loaded.matched_tracks.length = 0;
-                    this.loaded.matched_tracks.push(...tracks.matched);
-
-                    this.loaded.excluded_tracks.length = 0;
-                    this.loaded.excluded_tracks.push(...tracks.excluded);
-
-                    this.loaded.included_tracks.length = 0;
-                    this.loaded.included_tracks.push(...tracks.included);
+                    this.loaded.all_tracks = tracks.all;
+                    this.loaded.matched_tracks = tracks.matched;
+                    this.loaded.excluded_tracks = tracks.excluded;
+                    this.loaded.included_tracks = tracks.included;
                 })
             }
 
@@ -650,8 +639,8 @@ export default class Playlists extends Pinia {
      * @param tracks Tracks which to look in
      * @param remove Tracks to remove
      */
-    filterOut(tracks: partialTrackList, remove: CTrack[]) {
-        return tracks.filter(track => !remove.some(t => t.id === (track as string) || t.id === (track as CTrack).id))
+    filterOut(tracks: partialTrackList, remove: partialTrackList) {
+        return tracks.filter(track => !remove.some(t => t === (track as string) || t === (track as CTrack).id))
     }
 
     /**
