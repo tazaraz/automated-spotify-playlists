@@ -1,5 +1,6 @@
-import { FilterBoolean, FilterString, FilterValue } from "../processing/matching";
-import { FilterParserOptions } from "../types/filters";
+
+import { FilterBoolean, FilterString, FilterValue } from "../matching";
+import { FilterParserOptions } from "./descriptions";
 import { Filters, Sources } from "./filters";
 
 export interface Playlist {

@@ -172,7 +172,7 @@ export default class Edit extends Vue {
 
     /** Executes the filters of the playlists */
     async execute() {
-        if (this.saveState > 0) return;
+        if (this.saveState > 0 || this.executeState > 0) return;
         this.playlists.editing.log = { sources: [], filters: [] };
         await this.save();
 
