@@ -30,6 +30,7 @@ import { Vue, Prop, Emit } from 'vue-property-decorator';
 import Fetch from '~/stores/fetch';
 import { CTrack } from '../../../backend/src/shared/types/client';
 import BreadCrumbs from '~/stores/breadcrumbs';
+import { WatchStopHandle } from 'nuxt/dist/app/compat/capi';
 
 
 @Emit('update')
@@ -46,6 +47,7 @@ export default class EditInput extends Vue {
     breadcrumbs!: BreadCrumbs;
 
     EditInput = EditInput;
+    watcher: WatchStopHandle = null as any;
     genres: string[] | null = null;
 
     async created() {
@@ -63,7 +65,7 @@ export default class EditInput extends Vue {
         // Try and fix the input
         await this.findId();
 
-        watch(() => this.value, async () => {
+        this.watcher = watch(() => this.value, async () => {
             this.id = this.value;
             await this.findId();
         })
@@ -129,8 +131,9 @@ export default class EditInput extends Vue {
         })
     }
 
-    async beforeUnmount() {
+    beforeUnmount() {
         this.isValid = true;
+        this.watcher();
     }
 }
 </script>

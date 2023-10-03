@@ -138,6 +138,7 @@ import Playlists, { LoadedPlaylist } from '~/stores/playlists';
 import User from '~/stores/user';
 import { CTrack } from '../../backend/src/shared/types/client';
 import Layout from '~/stores/layout';
+import { WatchStopHandle } from 'nuxt/dist/app/compat/capi';
 
 export default class PlaylistDisplay extends Vue {
     @Prop({ required: true }) id!: string;
@@ -153,6 +154,9 @@ export default class PlaylistDisplay extends Vue {
     observer: IntersectionObserver = null as any;
 
     loading: boolean = true;
+
+    /** Contains the watchers function to stop watching */
+    watchers: WatchStopHandle[] = [];
 
     /**Tracks which should be shown. Only possible if the playlist is a smart playlist */
     shown: {
@@ -217,15 +221,24 @@ export default class PlaylistDisplay extends Vue {
             this.playlists.loaded = playlist;
         }
 
-        watch(() => this.playlists.loaded.all_tracks, () => this.showTracks(this.shown.kind))
-        watch(() => this.playlists.loaded.matched_tracks, () => this.showTracks(this.shown.kind))
-        watch(() => this.playlists.loaded.excluded_tracks, () => this.showTracks(this.shown.kind))
-        watch(() => this.playlists.loaded.included_tracks, () => this.showTracks(this.shown.kind))
-
         await this.showTracks("all");
         this.breadcrumbs.add(useRoute().fullPath, this.playlists.loaded.name)
         this.loading = false;
         await this.layout.render(null, true);
+
+        // Store the unwatch handlers
+        this.watchers = [
+            watch(() => this.playlists.loaded.all_tracks, () => this.showTracks(this.shown.kind)),
+            watch(() => this.playlists.loaded.matched_tracks, () => this.showTracks(this.shown.kind)),
+            watch(() => this.playlists.loaded.excluded_tracks, () => this.showTracks(this.shown.kind)),
+            watch(() => this.playlists.loaded.included_tracks, () => this.showTracks(this.shown.kind))
+        ];
+    }
+
+    beforeUnmount() {
+        for (const unwatch of this.watchers) {
+            unwatch();
+        }
     }
 
     /**
