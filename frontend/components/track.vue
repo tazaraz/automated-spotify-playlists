@@ -1,7 +1,7 @@
 <template>
     <div class="accordion-item border-0 border-bottom">
         <h2 class="accordion-header">
-            <button v-if="!track || placeholder" class="accordion-button shadow-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="undefined">
+            <button v-if="(typeof track == 'string')" class="accordion-button shadow-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="undefined">
                 <div class="container ms-0 d-flex gap-3 align-items-center ps-0 placeholder-glow">
                     <span class="placeholder image flex-shrink-0"></span>
                     <div class="flex-grow-1 multilayer m-0 d-grid gap-1">
@@ -43,7 +43,7 @@
                 </div>
             </button>
         </h2>
-        <div v-if="track && !placeholder" :id="`track:${track.id}`" class="accordion-collapse collapse">
+        <div v-if="(typeof track != 'string')" :id="`track:${track.id}`" class="accordion-collapse collapse">
             <div class="accordion-body">
                 <div class="row placeholder-glow">
                     <div class="col-12 mb-2 multilayer" data-main-class="normal-d-none">
@@ -111,8 +111,7 @@ import Fetch from '~/stores/fetch';
 
 @Emit('delete')
 export default class Track extends Vue {
-    @Prop({ required: false }) track!: CTrack;
-    @Prop({ default: false }) placeholder!: boolean;
+    @Prop({ required: true }) track!: CTrack | string;
     @Prop({ default: false }) deleteable!: boolean;
 
     expanded = false;
@@ -125,10 +124,10 @@ export default class Track extends Vue {
      * @param state State of the accordion. If undefined, it will be toggled
      */
     async getFeatures(state: boolean | undefined = undefined) {
-        this.trackGenres = (await Fetch.get<CArtist>(`spotify:/artists/${this.track.artists![0].id}`)).data.genres.join(', ') || "No genres have been found";
+        this.trackGenres = (await Fetch.get<CArtist>(`spotify:/artists/${(this.track as CTrack).artists![0].id}`)).data.genres.join(', ') || "No genres have been found";
 
-        if (!this.track.features) {
-            this.track.features = (await Fetch.get<CTrackFeatures>(`spotify:/audio-features/${this.track.id}`)).data;
+        if (!(this.track as CTrack).features) {
+            (this.track as CTrack).features = (await Fetch.get<CTrackFeatures>(`spotify:/audio-features/${(this.track as CTrack).id}`)).data;
         }
 
         this.expanded = state ?? !this.expanded;

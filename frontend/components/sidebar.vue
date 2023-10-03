@@ -121,8 +121,9 @@ export default class Sidebar extends Vue {
     }
 
     async addSmartPlaylist() {
-        await this.playlists.addSmartPlaylist();
+        this.playlists.addSmartPlaylist();
         await navigateTo('/playlist/unpublished');
+        await this.playlists.loadUserPlaylistByID('unpublished');
         await this.playlists.loadEditingPlaylist('unpublished');
         this.tryClose();
     }

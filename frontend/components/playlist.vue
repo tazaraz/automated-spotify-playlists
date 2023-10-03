@@ -113,12 +113,11 @@
                     </div>
                 </div>
                 <div class="accordion rounded-5">
-                    <h4 v-if="loading || !playlists.loaded || !playlists.loaded.all_tracks" class="m-5">
-                        Loading tracks...
-                    </h4>
+                    <Track v-if="loading || !playlists.loaded || !playlists.loaded.all_tracks"
+                           v-for="index in 20" track="" :id="index" class="playlist-track"/>
                     <Track v-else-if="shown.tracks.length > 0"
                            v-for="track, index of shown.tracks"
-                        :track="typeof track === 'string' ? undefined : track"
+                        :track="track"
                         :id="index" class="playlist-track"
                         :deleteable="shown.kind !== 'all'"
                         @delete="removeTrack"/>
@@ -163,6 +162,7 @@ export default class PlaylistDisplay extends Vue {
 
     async mounted() {
         if (!process.client) return;
+        console.log(this.playlists)
 
         this.playlists = new Playlists();
         this.playlists.setUser(new User())
@@ -184,9 +184,17 @@ export default class PlaylistDisplay extends Vue {
         /** Style the loading placeholders accordingly */
         await this.layout.render(null, true);
 
+        console.log(this.id)
+        if (this.id == 'unpublished') {
+            await this.showTracks("all");
+            this.loading = false;
+            await this.layout.render(null, true);
+            return;
+        }
+
         /**We must load tracks as CTracks, these cannot be string[] */
         // Load the library if we're on the library page
-        if (this.$route.path == '/library' || this.id == 'library') {
+        else if (this.$route.path == '/library' || this.id == 'library') {
             await this.playlists.loadUserLibrary();
         }
 
@@ -209,15 +217,15 @@ export default class PlaylistDisplay extends Vue {
             this.playlists.loaded = playlist;
         }
 
-        await this.showTracks("all");
-        this.breadcrumbs.add(useRoute().fullPath, this.playlists.loaded.name)
-        this.loading = false;
-        await this.layout.render(null, true);
-
         watch(() => this.playlists.loaded.all_tracks, () => this.showTracks(this.shown.kind))
         watch(() => this.playlists.loaded.matched_tracks, () => this.showTracks(this.shown.kind))
         watch(() => this.playlists.loaded.excluded_tracks, () => this.showTracks(this.shown.kind))
         watch(() => this.playlists.loaded.included_tracks, () => this.showTracks(this.shown.kind))
+
+        await this.showTracks("all");
+        this.breadcrumbs.add(useRoute().fullPath, this.playlists.loaded.name)
+        this.loading = false;
+        await this.layout.render(null, true);
     }
 
     /**
@@ -238,7 +246,6 @@ export default class PlaylistDisplay extends Vue {
 
         this.shown.kind = kind;
         await this.$nextTick();
-
 
         // Get the tracks we want to show
         let tracks = await this.playlists.loadPlaylistTracks(this.playlists.loaded, kind, 0);
