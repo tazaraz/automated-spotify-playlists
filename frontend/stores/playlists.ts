@@ -185,34 +185,13 @@ export default class Playlists extends Pinia {
         let index = this.storage.findIndex(p => p.id === id);
         if (index === -1) return false;
 
-        // Start retrieving the first 50 tracks
-        const track_retrieval = this.loadPlaylistTracks(this.storage[index]);
-
         // Partially load the playlist
         this.loaded = {
             ...this.copy(this.storage[index]),
             index: index,
             ownership: this.playlistOwnership(this.storage[index]),
             owner: { id: this.storage[index].owner.id, display_name: this.storage[index].owner.display_name }
-        } as any as LoadedPlaylist
-
-        // Wait for the tracks to be loaded
-        const tracks = await track_retrieval;
-
-        // If the loading playlist ID changed while loading, we are loading another playlist. exit
-        if (this.loadingPlaylistID !== id) return true;
-
-        // Get the tracks associated with the playlist
-        this.loaded = {
-            ...this.copy(this.storage[index]),
-            index: index,
-            ownership: this.loaded.ownership,
-            all_tracks: tracks.all,
-            matched_tracks: tracks.matched,
-            excluded_tracks: tracks.excluded,
-            included_tracks: tracks.included,
-            owner: { id: this.storage[index].owner.id, display_name: this.storage[index].owner.display_name }
-        } as any as LoadedPlaylist;
+        } as LoadedPlaylist
 
         // Reset the loading playlist ID
         this.loadingPlaylistID = "";
