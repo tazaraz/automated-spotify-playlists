@@ -31,7 +31,7 @@ export default class InfoField extends Vue {
     }
 
     beforeUnmount() {
-        this.tooltip.hide();
+        this.hide();
         this.tooltip.dispose();
     }
 

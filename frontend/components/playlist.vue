@@ -166,7 +166,6 @@ export default class PlaylistDisplay extends Vue {
 
     async mounted() {
         if (!process.client) return;
-        console.log(this.playlists)
 
         this.playlists = new Playlists();
         this.playlists.setUser(new User())
@@ -188,7 +187,6 @@ export default class PlaylistDisplay extends Vue {
         /** Style the loading placeholders accordingly */
         await this.layout.render(null, true);
 
-        console.log(this.id)
         if (this.id == 'unpublished') {
             await this.showTracks("all");
             this.loading = false;

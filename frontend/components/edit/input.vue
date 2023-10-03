@@ -110,8 +110,8 @@ export default class EditInput extends Vue {
         }
     }
 
-    async updateInput(event: Event) {
-        if (event.key && event.key !== 'Enter') return;
+    async updateInput(event: Event | KeyboardEvent) {
+        if ((event as KeyboardEvent).key && (event as KeyboardEvent).key !== 'Enter') return;
 
         this.id = (event.target as HTMLInputElement).value;
         await this.findId();
