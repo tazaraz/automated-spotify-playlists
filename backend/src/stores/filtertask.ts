@@ -69,9 +69,10 @@ export default class FilterTask {
      * Returns the log and marks it for deletion. Will be deleted after 50 seconds if not deleted by the endpoint.
      */
     finalize(result: FilterResult) {
-        this.finalized = true;
         this.result = result;
-        new Promise<FilterTask>(resolve => { this.resolve = resolve; })
+        this.finalized = true;
+        // Finalize the last promise
+        if (this.resolve) this.resolve(this);
 
         // Delete the log after 50 seconds
         setTimeout(() => this.delete(), 50000);
