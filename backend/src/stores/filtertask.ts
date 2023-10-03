@@ -1,5 +1,5 @@
 import { FilterResult } from "../processing";
-import { Playlist } from "../types/playlist";
+import { Playlist } from "../shared/types/playlist";
 
 /**
  * FilterTask allows storing logs, but adds a listener to the log to detect when it updates.

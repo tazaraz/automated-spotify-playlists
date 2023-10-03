@@ -28,7 +28,7 @@
 <script lang="ts">
 import { Vue, Prop, Emit } from 'vue-property-decorator';
 import Fetch from '~/stores/fetch';
-import { CTrack } from '../../../backend/src/types/client';
+import { CTrack } from '../../../backend/src/shared/types/client';
 import BreadCrumbs from '~/stores/breadcrumbs';
 
 

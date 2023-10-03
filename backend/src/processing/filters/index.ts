@@ -1,5 +1,4 @@
-import { THROW_DEBUG_ERROR } from "../../main";
-import { FilterItem } from "../../types/server";
+import { FilterItem } from "../../shared/types/server";
 
 export { Album } from "./album";
 export { Artist } from "./artist";
@@ -28,7 +27,7 @@ export { TrackFeatures } from "./track_features";
         case "artist":
             return await artist(item);
         default:
-            THROW_DEBUG_ERROR(`get_by_kind: Unknown kind '${item}'`);
+            console.error(`get_by_kind: Unknown kind '${item}'`);
     }
 }
 

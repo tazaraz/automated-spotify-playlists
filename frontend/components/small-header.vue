@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import { Prop, Vue } from 'vue-property-decorator';
-import { CTrack, CAlbum, CArtist, CPlaylist } from '../../backend/src/types/client';
+import { CTrack, CAlbum, CArtist, CPlaylist } from '../../backend/src/shared/types/client';
 import Layout from '~/stores/layout';
 
 /**

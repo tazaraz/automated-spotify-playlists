@@ -1,5 +1,5 @@
 import { FilterValue, FilterSlider } from "../matching";
-import { FilterItem, STrack } from "../../types/server";
+import { FilterItem, STrack } from "../../shared/types/server";
 import { filter_async, get_by_kind } from ".";
 
 export class TrackFeatures {

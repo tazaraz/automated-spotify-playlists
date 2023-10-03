@@ -1,7 +1,7 @@
 import { THROW_DEBUG_ERROR } from "../main";
 import Fetch, { FetchOptions } from "../tools/fetch";
-import { SUser } from "../types/server";
-import { SAlbum, SArtist, STrack, STrackFeatures } from "../types/server";
+import { SUser } from "../shared/types/server";
+import { SAlbum, SArtist, STrack, STrackFeatures } from "../shared/types/server";
 
 /**
  * This class creates a queue which is used to group up items if they are requested quickly after each other.

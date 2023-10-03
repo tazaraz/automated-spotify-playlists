@@ -1,5 +1,3 @@
-import { THROW_DEBUG_ERROR } from "../../main";
-
 const FilterBooleanOptions = {
     "True": "The filter should be true",
     "False": "The filter should not be true",
@@ -24,7 +22,7 @@ export class FilterBoolean {
                 return !value;
 
             default:
-                THROW_DEBUG_ERROR(`FilterBoolean: Unknown operation '${operation}'`);
+                console.error(`FilterBoolean: Unknown operation '${operation}'`);
         }
     }
 }

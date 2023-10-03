@@ -137,7 +137,7 @@ import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
 import Playlists, { LoadedPlaylist } from '~/stores/playlists';
 import User from '~/stores/user';
-import { CTrack } from '../../backend/src/types/client';
+import { CTrack } from '../../backend/src/shared/types/client';
 import Layout from '~/stores/layout';
 
 export default class PlaylistDisplay extends Vue {

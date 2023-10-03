@@ -1,8 +1,8 @@
 import { Store, Pinia } from "pinia-class-component";
 import Playlists from "./playlists";
-import { PlaylistCondition, PlaylistSource, PlaylistStatement } from "../../backend/src/types/playlist";
-import { CTrack } from "../../backend/src/types/client";
-import { Sources } from "../../backend/src/types/filters";
+import { PlaylistCondition, PlaylistSource, PlaylistStatement } from "../../backend/src/shared/types/playlist";
+import { CTrack } from "../../backend/src/shared/types/client";
+import { SourceDescription as Sources } from "../../backend/src/shared/types/descriptions";
 import Fetch from "./fetch";
 
 /**

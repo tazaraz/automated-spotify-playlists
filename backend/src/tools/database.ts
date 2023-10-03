@@ -1,7 +1,7 @@
 import { Client as postgresClient } from 'pg';
 import { Playlist } from '../types/playlist';
 import { LOG_DEBUG, LOG } from '../main';
-import { DBUser, SUser } from '../types/server';
+import { DBUser, SUser } from '../shared/types/server';
 
 export default class Database {
     private static client: postgresClient;

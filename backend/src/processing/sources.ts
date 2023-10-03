@@ -1,9 +1,9 @@
 import { THROW_DEBUG_ERROR } from "../main";
 import FilterTask from "../stores/filtertask";
 import Metadata from "../stores/metadata";
-import { Sources } from "../types/filters";
-import { PlaylistSource } from "../types/playlist";
-import { FilterItem, SUser } from "../types/server";
+import { Sources } from "../shared/types/filters";
+import { PlaylistSource } from "../shared/types/playlist";
+import { FilterItem, SUser } from "../shared/types/server";
 
 export default class MusicSources {
     public static readonly origin = Sources;

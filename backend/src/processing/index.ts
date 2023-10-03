@@ -4,8 +4,8 @@ import Fetch from "../tools/fetch";
 import FilterParser from "./parser";
 import MusicSources from "./sources";
 import { LOG, LOG_DEBUG } from "../main";
-import { Playlist } from "../types/playlist";
-import { FilterItem, SAlbum, SArtist, STrack, SUser } from "../types/server";
+import { Playlist } from "../shared/types/playlist";
+import { FilterItem, SUser } from "../shared/types/server";
 import FilterTask from "../stores/filtertask";
 
 export interface FilterResult {
@@ -197,7 +197,7 @@ export default class Filters {
         if (items.length === 0)
             return [];
         if (remove.length === 0)
-            return typeof items[0] === "string" ? (items as string[]) : (items as STrack[]).map(track => track.id);
+            return typeof items[0] === "string" ? (items as string[]) : (items as FilterItem[]).map(track => track.id);
 
         // Convert STrack[] to string[]
         items  = Filters.getIds(items);
@@ -326,6 +326,6 @@ export default class Filters {
         if (typeof list[0] === "string")
             return list as string[];
 
-        return (list as STrack[]).map(t => t.id);
+        return (list as FilterItem[]).map(t => t.id);
     }
 }

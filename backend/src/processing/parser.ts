@@ -1,10 +1,10 @@
 import { THROW_DEBUG_ERROR } from "../main";
 import FilterTask from "../stores/filtertask";
 import Fetch from "../tools/fetch";
-import { FilterParserOptions } from "../types/filters";
-import { Filters } from "../types/filters";
-import { PlaylistCondition, PlaylistStatement } from "../types/playlist";
-import { FilterItem, STrack, SUser } from "../types/server";
+import { Filters } from "../shared/types/filters";
+import { PlaylistCondition, PlaylistStatement } from "../shared/types/playlist";
+import { FilterItem, STrack, SUser } from "../shared/types/server";
+import { FilterParserOptions } from "../shared/types/descriptions";
 import { Track } from "./filters";
 import { FilterBoolean } from "./matching/boolean";
 

@@ -105,8 +105,8 @@
 
 <script lang="ts">
 import { Emit, Prop, Vue } from 'vue-property-decorator';
-import { CArtist, CTrack, CTrackFeatures } from '~/../backend/src/types/client';
-import { Filters } from '~/../backend/src/types/filters';
+import { CArtist, CTrack, CTrackFeatures } from '~/../backend/src/shared/types/client';
+import { FilterDescriptions as Filters } from '~/../backend/src/shared/types/descriptions';
 import Fetch from '~/stores/fetch';
 
 @Emit('delete')

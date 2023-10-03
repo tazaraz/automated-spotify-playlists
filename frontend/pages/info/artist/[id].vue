@@ -86,8 +86,8 @@
 
 <script lang="ts">
 import { Vue } from 'vue-property-decorator';
-import { CAlbum, CArtist, CTrack } from "~/../backend/src/types/client";
-import { Filters } from '~/../backend/src/types/filters';
+import { CAlbum, CArtist, CTrack } from "~/../backend/src/shared/types/client";
+import { FilterDescriptions as Filters } from '~/../backend/src/shared/types/descriptions';
 import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
 import Playlists from '~/stores/playlists';

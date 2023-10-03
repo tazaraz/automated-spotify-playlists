@@ -108,8 +108,8 @@
 
 <script lang="ts">
 import { Vue } from 'vue-property-decorator';
-import { CArtist, CTrack, CTrackFeatures } from "~/../backend/src/types/client";
-import { Filters } from '~/../backend/src/types/filters';
+import { CArtist, CTrack, CTrackFeatures } from "~/../backend/src/shared/types/client";
+import { FilterDescriptions as Filters } from '~/../backend/src/shared/types/descriptions';
 import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
 import Layout from '~/stores/layout';

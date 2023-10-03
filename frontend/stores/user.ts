@@ -1,5 +1,5 @@
 import { Store, Pinia } from "pinia-class-component";
-import { CUser } from "~/../backend/src/types/client";
+import { CUser } from "~/../backend/src/shared/types/client";
 import Fetch from "./fetch";
 
 @Store

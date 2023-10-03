@@ -26,8 +26,8 @@
 
 <script lang="ts">
 import { Emit, Vue, Prop } from 'vue-property-decorator';
-import { PlaylistStatement } from '../../../backend/src/types/playlist';
-import { FilterParserOptions } from '../../../backend/src/types/filters';
+import { PlaylistStatement } from '../../../backend/src/shared/types/playlist';
+import { FilterParserOptions } from '../../../backend/src/shared/types/descriptions';
 
 @Emit('change')
 @Emit('event')

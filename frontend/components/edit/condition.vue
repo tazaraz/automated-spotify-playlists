@@ -115,10 +115,10 @@
 
 <script lang="ts">
 import { Vue, Prop, Emit } from 'vue-property-decorator';
-import { PlaylistCondition } from '../../../backend/src/types/playlist';
-import { Filters } from '../../../backend/src/types/filters';
+import { PlaylistCondition } from '../../../backend/src/shared/types/playlist';
+import { FilterDescriptions as Filters } from '../../../backend/src/shared/types/descriptions';
 import Layout from '~/stores/layout';
-import { FilterBoolean, FilterDate, FilterSlider } from '../../../backend/src/processing/matching';
+import { FilterBoolean, FilterDate, FilterSlider } from '../../../backend/src/shared/matching';
 
 enum inputTypes {
     value,

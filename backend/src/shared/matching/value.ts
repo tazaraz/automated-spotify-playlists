@@ -1,5 +1,3 @@
-import { THROW_DEBUG_ERROR } from "../../main";
-
 const FilterValueOptions = {
     "is at least": "The search must be equal or larger than the given value",
     "is at most": "The search must be equal or smaller than the given value",
@@ -35,7 +33,7 @@ export class FilterValue {
                 return value <= filter;
 
             default:
-                THROW_DEBUG_ERROR(`FilterValue: Unknown operation '${operation}'`);
+                console.error(`FilterValue: Unknown operation '${operation}'`);
         }
     }
 }

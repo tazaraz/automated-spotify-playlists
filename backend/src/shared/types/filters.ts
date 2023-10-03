@@ -1,5 +1,6 @@
-import { Album, Artist, Track, TrackFeatures } from "../processing/filters";
-import { FilterBoolean, FilterDate, FilterSlider, FilterString, FilterValue } from "../processing/matching";
+import { Album, Artist, Track, TrackFeatures } from "../../processing/filters";
+import { FilterBoolean, FilterDate, FilterSlider, FilterString, FilterValue } from "../matching";
+import { FilterDescriptions } from "./descriptions";
 
 export const Sources = {
     "Library": {
@@ -37,121 +38,115 @@ export const Filters = {
         "Artists": {
             filter: Album.Artists,
             type: FilterString,
-            description: "Artists of the album"
+            ...FilterDescriptions.Album["Artists"]
         },
         "Name": {
             filter: Artist.Name,
             type: FilterString,
-            description: "Name of the album"
+            ...FilterDescriptions.Album["Name"]
         },
         "Release date": {
             filter: Album.ReleaseDate,
             type: FilterDate,
-            description: "The release date of the album. May contain only a year or a year and month"
+            ...FilterDescriptions.Album["Release date"]
         },
         "Track count": {
             filter: Album.TrackCount,
             type: FilterValue,
-            description: "Amount of tracks in the album"
+            ...FilterDescriptions.Album["Track count"]
         },
         "Genres": {
             filter: Album.Genres,
             type: FilterString,
-            description: "A list of the genres the album is associated with. If not yet classified, the array is empty."
+            ...FilterDescriptions.Album["Genres"]
         },
         "Popularity": {
             filter: Album.Popularity,
             type: FilterSlider,
-            description: "The popularity of the album. Ranges from 0 - 10."
+            ...FilterDescriptions.Album["Popularity"]
         },
     },
     "Artist": {
         "Name": {
             filter: Artist.Name,
             type: FilterString,
-            description: "Name of the artist"
+            ...FilterDescriptions.Artist["Name"]
         },
         "Genres": {
             filter: Artist.Genres,
             type: FilterString,
-            description: "Type of genres the artist produces"
+            ...FilterDescriptions.Artist["Genres"]
         },
         "Popularity": {
             filter: Artist.Popularity,
             type: FilterSlider,
-            description: "The popularity of the artist. The artist's popularity is calculated from the popularity of all the artist's tracks and ranges from 0 - 10."
+            ...FilterDescriptions.Artist["Popularity"]
         },
         "Followers": {
             filter: Artist.Followers,
             type: FilterValue,
-            description: "The amount of people following the artist"
+            ...FilterDescriptions.Artist["Followers"]
         },
     },
     "Track": {
         "is Loved": {
             type: FilterBoolean,
-            description: "Whether the track is present in your library"
+            ...FilterDescriptions.Track["is Loved"]
         },
         "Name": {
             filter: Track.Name,
             type: FilterString,
-            description: "Name of the track"
+            ...FilterDescriptions.Track["Name"]
         },
         "Popularity": {
             filter: Track.Popularity,
             type: FilterSlider,
-            description: "The popularity of the track. Generally speaking, songs that are being played a lot now will have a higher popularity than songs that were played a lot in the past and ranges from 0 - 10"
+            ...FilterDescriptions.Track["Popularity"]
         },
         "Duration": {
             filter: Track.Duration,
             type: FilterValue,
-            description: "Duration of the track in seconds"
+            ...FilterDescriptions.Track["Duration"]
         },
         "Accousticness": {
             filter: TrackFeatures.Acoustic,
             type: FilterSlider,
-            description: "Whether the track Accousticness"
+            ...FilterDescriptions.Track["Accousticness"]
         },
         "Danceability": {
             filter: TrackFeatures.Danceability,
             type: FilterSlider,
-            description: "How suitable a track is for dancing based on a combination of musical elements including tempo, rhythm stability, beat strength, and overall regularity"
+            ...FilterDescriptions.Track["Danceability"]
         },
         "Energy": {
             filter: TrackFeatures.Energy,
             type: FilterSlider,
-            description: "A perceptual measure of intensity and activity. Typically, energetic tracks feel fast, loud, and noisy. For example, death metal has high energy, while a Bach prelude scores low on the scale. Perceptual features contributing to this attribute include dynamic range, perceived loudness, timbre, onset rate, and general entropy"
+            ...FilterDescriptions.Track["Energy"]
         },
         "Vocality": {
             filter: TrackFeatures.Vocality,
             type: FilterSlider,
-            description: "Whether someone is singing in the track"
+            ...FilterDescriptions.Track["Vocality"]
         },
         "Loudness": {
             filter: TrackFeatures.Loudness,
             type: FilterValue,
-            description: "The overall loudness of a track in decibels (dB). Loudness values are averaged across the entire track. Values typically range between -60 and 0 db."
+            ...FilterDescriptions.Track["Loudness"]
         },
         "Liveness": {
             filter: TrackFeatures.Live,
             type: FilterSlider,
-            description: "Whether an audience is present in the track. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live."
+            ...FilterDescriptions.Track["Liveness"]
         },
         "BPM": {
             filter: TrackFeatures.BPM,
             type: FilterValue,
-            description: "The overall tempo of a track in beats per minute"
+            ...FilterDescriptions.Track["BPM"]
         },
         "Positivity": {
             filter: TrackFeatures.Positivity,
             type: FilterSlider,
-            description: "The musical positiveness conveyed by a track. Tracks with high valence sound more positive (e.g. happy, cheerful, euphoric), while tracks with low valence sound more negative (e.g. sad, depressed, angry)."
+            ...FilterDescriptions.Track["Positivity"]
         }
     },
-}
-
-export const FilterParserOptions = {
-    "any": "If any of the following are true",
-    "all": "If all of the following are true",
-    "none": "If none of the following are true",
 }

@@ -1,6 +1,6 @@
 import { THROW_DEBUG_ERROR } from "../main";
 import Users from "../stores/users";
-import { SUser } from "../types/server";
+import { SUser } from "../shared/types/server";
 
 interface FetchResponse<T> extends Response {
     data: T

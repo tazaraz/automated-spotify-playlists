@@ -16,3 +16,6 @@ A playlist is configured by the user in the frontend, and is processed in backen
 ### Sources and filters
 `Sources` are processed in `src/processing/sources.ts` and is a simple while loop over the array  
 `filters` are processed in `src/processing/parser.ts`. Filters consist of two types, one being an actual filter, such as a release date or a name matcher, while the other contains a list of filters and specifies if all filters containing it should be true or false.
+
+### Shared
+Some data types are shared between the frontend and backend. With the notabe exception of `shared/types/filters`, these files should never contain any dependencies on the frontend or backend. This is to ensure that the frontend and backend can be developed independently of each other. If neglected, the frontend might try to resolve the complete backend (or the backend the frontend). Not very nice.

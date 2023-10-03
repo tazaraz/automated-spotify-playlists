@@ -1,6 +1,6 @@
 import * as jwt from "jsonwebtoken";
 import Database from "../tools/database";
-import { SUser } from "../types/server";
+import { SUser } from "../shared/types/server";
 import Fetch from "../tools/fetch";
 import { THROW_DEBUG_ERROR } from "../main";
 

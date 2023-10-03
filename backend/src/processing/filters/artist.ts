@@ -1,5 +1,5 @@
 import { FilterString, FilterValue } from "../matching";
-import { FilterItem, SAlbum, SArtist, STrack } from "../../types/server";
+import { FilterItem, SAlbum, SArtist, STrack } from "../../shared/types/server";
 import { filter_async, get_by_kind } from ".";
 
 export class Artist {

@@ -2,7 +2,7 @@ import { Store, Pinia } from "pinia-class-component";
 
 import User from "./user";
 import Fetch from "./fetch";
-import { CTrack, CArtist, CPlaylist } from "~/../backend/src/types/client";
+import { CTrack, CArtist, CPlaylist } from "~/../backend/src/shared/types/client";
 import FetchError from "./error";
 
 export type { CPlaylist };

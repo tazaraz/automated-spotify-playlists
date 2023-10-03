@@ -36,8 +36,8 @@
 
 <script lang="ts">
 import { Vue, Prop, Emit } from 'vue-property-decorator';
-import { PlaylistSource } from '../../../backend/src/types/playlist';
-import { Sources } from '../../../backend/src/types/filters';
+import { PlaylistSource } from '../../../backend/src/shared/types/playlist';
+import { SourceDescription as Sources } from '../../../backend/src/shared/types/descriptions';
 import Info from '~/stores/info';
 import EditInput from './input.vue';
 import Layout from '~/stores/layout';

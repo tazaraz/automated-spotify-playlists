@@ -6,8 +6,8 @@ import Users from './stores/users';
 import MusicSources from './processing/sources';
 import FilterParser from './processing/parser';
 import FilterTask from './stores/filtertask';
-import { Playlist } from './types/playlist';
-import { CUser } from './types/client';
+import { Playlist } from './shared/types/playlist';
+import { CUser } from './shared/types/client';
 import { LOG } from './main';
 
 const api = express.Router();
