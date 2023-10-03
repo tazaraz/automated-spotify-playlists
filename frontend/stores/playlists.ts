@@ -207,21 +207,20 @@ export default class Playlists extends Pinia {
      * @param offset Offset to start loading from
      * @param limit How many tracks to load at once
      */
-    async loadPlaylistTracks(playlist: CPlaylist | LoadedPlaylist,
-                             kind: "all" | "matched" | "excluded" | "included" = "all",
+    async loadPlaylistTracks(kind: "all" | "matched" | "excluded" | "included" = "all",
                              offset: number = 0,
                              limit: number = 50) {
-        let all: partialTrackList      = playlist.all_tracks || [];
-        let matched: partialTrackList  = playlist.matched_tracks || [];
-        let excluded: partialTrackList = playlist.excluded_tracks || [];
-        let included: partialTrackList = playlist.included_tracks || [];
+        let all: partialTrackList      = this.loaded.all_tracks || [];
+        let matched: partialTrackList  = this.loaded.matched_tracks || [];
+        let excluded: partialTrackList = this.loaded.excluded_tracks || [];
+        let included: partialTrackList = this.loaded.included_tracks || [];
 
-        if (playlist.id === "unpublished")
+        if (this.loaded.id === "unpublished")
             return { all, matched, included, excluded };
 
         /** If it is not a smart playlist, use the Spotify playlist endpoint */
-        if (kind == 'all' || playlist.filters === undefined) {
-            const url = playlist.id == 'library' ? '/me/tracks' : `/playlists/${playlist.id}/tracks`;
+        if (kind == 'all' || this.loaded.filters === undefined) {
+            const url = this.loaded.id == 'library' ? '/me/tracks' : `/playlists/${this.loaded.id}/tracks`;
 
             // Check if the offset is already loaded
             if ((all[offset] as CTrack)?.id === undefined) {
@@ -232,7 +231,7 @@ export default class Playlists extends Pinia {
                 all.splice(offset, limit, ...tracks);
 
                 // Check if the playlist is a smart playlist. If so update the other track lists as well
-                if (playlist.filters !== undefined) {
+                if (this.loaded.filters !== undefined) {
                     // For all track lists, replace the ids with the tracks
                     for (const target of [all, matched, excluded, included]) {
                         for (const track of tracks) {
@@ -455,7 +454,13 @@ export default class Playlists extends Pinia {
 
             // If it is the loaded playlist, load the new tracks
             if (response.data.id === this.loaded.id) {
-                this.loadPlaylistTracks(response.data).then(tracks => {
+                if (!await this.loadUserPlaylistByID(this.loaded.id)) {
+                    FetchError.create({ status: 500, message: "The playlist you just executed does not exist. Even though the shown playlist does. Which must be yours given you just executed its filters. Weird." });
+                    return false;
+                }
+
+                // Don't hang the page while loading
+                this.loadPlaylistTracks().then(tracks => {
                     this.loaded.all_tracks = tracks.all;
                     this.loaded.matched_tracks = tracks.matched;
                     this.loaded.excluded_tracks = tracks.excluded;

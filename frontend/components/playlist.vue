@@ -248,7 +248,7 @@ export default class PlaylistDisplay extends Vue {
         await this.$nextTick();
 
         // Get the tracks we want to show
-        let tracks = await this.playlists.loadPlaylistTracks(this.playlists.loaded, kind, 0);
+        let tracks = await this.playlists.loadPlaylistTracks(kind, 0);
         switch(kind) {
             case "all":
                 this.shown.tracks = this.playlists.loaded.all_tracks = tracks.all;
@@ -363,13 +363,13 @@ export default class PlaylistDisplay extends Vue {
         // If the previous tracks are not loaded, load them
         if (typeof this.shown.tracks[prev] === 'string') {
             offset = Math.floor(prev / 50) * 50;
-            this.playlists.loadPlaylistTracks(this.playlists.loaded, this.shown.kind, offset);
+            this.playlists.loadPlaylistTracks(this.shown.kind, offset);
         }
 
         // If the next tracks are not loaded, load them
         if (typeof this.shown.tracks[next] === 'string') {
             offset = Math.floor(next / 50) * 50;
-            this.playlists.loadPlaylistTracks(this.playlists.loaded, this.shown.kind, offset);
+            this.playlists.loadPlaylistTracks(this.shown.kind, offset);
         }
     }
 
