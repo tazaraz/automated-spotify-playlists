@@ -6,7 +6,7 @@ import { PlaylistCondition, PlaylistStatement } from "../shared/types/playlist";
 import { FilterItem, STrack, SUser } from "../shared/types/server";
 import { FilterParserOptions } from "../shared/types/descriptions";
 import { Track } from "./filters";
-import { FilterBoolean } from "./matching/boolean";
+import { FilterBoolean } from "../shared/matching/boolean";
 
 export default class FilterParser {
     public static readonly mode = FilterParserOptions;
@@ -70,7 +70,7 @@ export default class FilterParser {
             // If the filter is an statement
             if ((f as PlaylistCondition).value === undefined){
                 // the loop again
-                task.log.filters.push(`Start statement (${(f as PlaylistStatement).mode})`)
+                task.log.filters.push(`Start statement (${String((f as PlaylistStatement).mode)})`)
                 const result = await FilterParser.checkStatement(
                     f as PlaylistStatement,
                     input,
@@ -115,8 +115,8 @@ export default class FilterParser {
 
                     // Someone tried funky business with the filter
                     default:
-                        task.log.filters.push(`Illegal Statement operation "${statement.mode}"`);
-                        THROW_DEBUG_ERROR(`Illegal Statement operation "${statement.mode}"`);
+                        task.log.filters.push(`Illegal Statement operation "${String(statement.mode)}"`);
+                        THROW_DEBUG_ERROR(`Illegal Statement operation "${String(statement.mode)}"`);
                 }
             }
         }

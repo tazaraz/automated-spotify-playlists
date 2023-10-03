@@ -1,5 +1,5 @@
 import { Client as postgresClient } from 'pg';
-import { Playlist } from '../types/playlist';
+import { Playlist } from '../shared/types/playlist';
 import { LOG_DEBUG, LOG } from '../main';
 import { DBUser, SUser } from '../shared/types/server';
 

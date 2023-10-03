@@ -1,5 +1,4 @@
-import { FilterValue } from "../../processing/matching"
-import { FilterBoolean, FilterDate, FilterSlider, FilterString } from "../matching"
+import { FilterBoolean, FilterDate, FilterSlider, FilterString, FilterValue } from "../matching"
 
 export const FilterParserOptions = {
     "any": "If any of the following are true",

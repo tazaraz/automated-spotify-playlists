@@ -1,4 +1,4 @@
-import { FilterValue, FilterSlider } from "../matching";
+import { FilterValue, FilterSlider } from "../../shared/matching";
 import { FilterItem, STrack } from "../../shared/types/server";
 import { filter_async, get_by_kind } from ".";
 

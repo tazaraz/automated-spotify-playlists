@@ -1,4 +1,4 @@
-import { FilterString, FilterValue } from "../matching";
+import { FilterString, FilterValue } from "../../shared/matching";
 import { FilterItem, SAlbum, SArtist } from "../../shared/types/server";
 import { filter_async, get_by_kind } from ".";
 
