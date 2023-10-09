@@ -1,7 +1,7 @@
 <template>
     <article key="artist" class="rounded-2 p-2 bg-dark-subtle flex-grow-1 overflow-hidden">
         <SmallHeader :item="artist"></SmallHeader>
-        <div class="h-100 pe-1 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
+        <div class="h-100 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
             <Title v-if="!artist">Loading artist...</Title>
             <Title v-else>{{ artist.name }}</Title>
             <header class="p-4 pt-5 d-flex gap-4" data-main-class="normal-flex-row normal-align-items-stretch tiny-flex-column tiny-align-items-center">

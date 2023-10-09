@@ -2,7 +2,7 @@
     <article class="rounded-2 p-2 bg-dark-subtle flex-grow-1 overflow-hidden">
         <template v-if="playlists">
             <SmallHeader :item="playlists.loaded"></SmallHeader>
-            <div id="playlist-wrapper" class="h-100 pe-1 overflow-y-auto" data-edit-class="full-d-none">
+            <div id="playlist-wrapper" class="h-100 overflow-y-auto overflow-hidden" data-edit-class="full-d-none">
                 <Title v-if="!playlists.loaded">Loading playlist</Title>
                 <Title v-else>{{ playlists.loaded.name }}</Title>
                 <header class="p-4 pt-5 d-flex gap-4 mb-3" data-main-class="normal-flex-row normal-align-items-stretch tiny-flex-column tiny-align-items-center">

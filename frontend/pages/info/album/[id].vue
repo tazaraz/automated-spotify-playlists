@@ -1,7 +1,7 @@
 <template>
     <article key="album" class="rounded-2 p-2 bg-dark-subtle flex-grow-1 overflow-hidden">
         <SmallHeader :item="album"></SmallHeader>
-        <div class="h-100 pe-1 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
+        <div class="h-100 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
             <Title v-if="!album">Loading album...</Title>
             <Title v-else>{{ album.name }}</Title>
             <header class="p-4 pt-5 d-flex gap-4" data-main-class="normal-flex-row normal-align-items-stretch tiny-flex-column tiny-align-items-center">
@@ -69,21 +69,13 @@
                     <span v-else>{{ album.total_tracks }}</span>
                 </div>
             </div>
-            <div class="text-white row flex-row m-2 mb-0">
-                <h4 v-if="album && tracks" class="m-0 w-auto me-auto">Tracks</h4>
-                <InfoField description="In how many playlist the track appears" class="col-3 border-start">Playlist count</InfoField>
+            <div class="text-white row flex-row m-2">
+                <h4 class="m-0 w-auto me-auto">Tracks</h4>
             </div>
-            <ol v-if="tracks" class="m-lg-5 mt-lg-3 m-3 mt-3 placeholder-glow">
-                <li v-if="!tracks">
-                    <span class="placeholder rounded-2 ms-3" style="width: 7rem;"></span>
-                </li>
-                <li v-else v-for="track of tracks" class="p-2">
-                    <div class="row">
-                        <url :to="`/info/track/${track.id}`" class="col rounded-2 ms-3 text-truncate">{{ track.name }}</url>
-                        <span class="ps-4 col-1" v-if="track.appearsIn.length > 0">{{ track.appearsIn.length }}</span>
-                    </div>
-                </li>
-            </ol>
+            <div class="accordion rounded-5">
+                <Track v-for="track, index of tracks" :track="track" :id="index" :deleteable="false">
+                </Track>
+            </div>
         </div>
     </article>
 </template>
@@ -121,6 +113,7 @@ export default class InfoAlbum extends Vue {
             throw createError({ statusCode: 404, message: response.statusText, fatal: true })
 
         this.album = response.data;
+        this.tracks = Array(this.album.total_tracks).fill("");
         this.album.image = Fetch.bestImage(this.album.images);
 
         // Get the artists and their images
@@ -128,18 +121,19 @@ export default class InfoAlbum extends Vue {
         .then(response => {
             this.album!.artists = response.data;
             this.album!.artists?.forEach(artist => artist.image = Fetch.bestImage(artist.images))
+        })
 
-            // Get the tracks
-            Fetch.get<CTrack[]>(`spotify:/albums/${this.$route.params.id}/tracks`, { pagination: true })
-            .then(response => {
-                response.data.forEach(async track => {
-                    this.tracks.push({
-                        ...track,
-                        // Get the playlists the track appears in
-                        appearsIn: await this.playlists.trackAppearsIn(track.id)
-                    });
-                })
-            })
+        // Get the tracks
+        Fetch.get<CTrack[]>(`spotify:/albums/${this.$route.params.id}/tracks`, { pagination: true })
+        .then(async response => {
+            console.log(this.playlists.storage)
+            this.tracks = await Promise.all(Fetch.format(response.data).map(async t => ({
+                ...t,
+                album: this.album,
+                image: this.album.image,
+                appearsIn: await this.playlists.trackAppearsIn(t.id)
+            })));
+            console.log(this.playlists.storage)
         })
 
         this.breadcrumbs.add(`/info/album/${this.album.id}`, this.album.name)
