@@ -49,7 +49,6 @@ export default class MusicSources {
                     );
 
                     // Convert to FilterItem
-                    console.log(tracks)
                     tracks.map(item => (item as FilterItem).kind = "track");
                     parsed = tracks
                     break;
