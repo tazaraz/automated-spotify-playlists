@@ -136,6 +136,11 @@ export default class Fetch {
 
                 if (response.status >= 300) break;
 
+                if (response.data[0] === null) {
+                    console.log(response)
+                    THROW_DEBUG_ERROR(`Failed to fetch ${url} with status ${response.status}`);
+                }
+
                 // Store data accordingly
                 result.push(...Fetch.format(response.data));
             }
@@ -197,7 +202,7 @@ export default class Fetch {
             case 429:
                 if (options.retry_after > 16000) {
                     console.log(response.status, response.headers)
-                    throw new Error(`Should fix this`);
+                    throw new Error(`Should fix this. Somehow`);
                 }
                 if (options.retries-- <= 0)
                     break;
@@ -234,20 +239,26 @@ export default class Fetch {
     }
 
     protected static format(data: any) {
-        /**Converting containers to a simple form */
-        if (data.tracks) data = data.tracks;
-        if (data.albums) data = data.albums;
-        if (data.artists) data = data.artists;
-        if (data.playlists) data = data.playlists;
-        if (data.audio_features) data = data.audio_features;
+        try {
+            /**Converting containers to a simple form */
+            if (data.tracks) data = data.tracks;
+            if (data.albums) data = data.albums;
+            if (data.artists) data = data.artists;
+            if (data.playlists) data = data.playlists;
+            if (data.audio_features) data = data.audio_features;
 
-        // If there are multiple items, get those
-        if (data.items) data = data.items;
+            // If there are multiple items, get those
+            if (data.items) data = data.items;
 
-        /**Converting items in the container to a simple form */
-        if (Array.isArray(data)) {
-            // Tracks are nested in the data: track.track.id instead of track.id
-            data = data.map((track: any) => track.track ? track.track : track);
+            /**Converting items in the container to a simple form */
+            if (Array.isArray(data)) {
+
+                    // Tracks are nested in the data: track.track.id instead of track.id
+                    data = data.map((track: any) => track.track ? track.track : track);
+
+            }
+        } catch (_) {
+            THROW_DEBUG_ERROR(`Failed to format data: ${JSON.stringify(data)}`);
         }
 
         return data;
