@@ -1,4 +1,4 @@
-import { LOG, LOG_DEBUG, THROW_DEBUG_ERROR } from "../main";
+import { LOG, THROW_DEBUG_ERROR } from "../main";
 import Filters from "../processing";
 import Database from "../tools/database";
 import Users from "../stores/users";
@@ -14,6 +14,7 @@ export default class Updater {
         setInterval(async () => Updater.updatePlaylists, 1000 * 60 * 60);
         // Clean up the database every 4 days
         setInterval(async () => Updater.cleanDatabase, 1000 * 60 * 60 * 24 * 4);
+        Updater.cleanDatabase();
     }
 
     /**
@@ -65,12 +66,13 @@ export default class Updater {
         const db_users = await Database.getAllUsers();
         const db_playlists = await Database.getAllPlaylists();
 
-        LOG_DEBUG(`Cleaning database...`);
-
         // Get all user playlists from Spotify
         const users_playlists: { [user_id: string]: Playlist[] } = {};
         for (const user of db_users) {
-            const response = await Fetch.get<Playlist[]>(`/users/${user.id}/playlists`, { pagination: true});
+            const response = await Fetch.get<Playlist[]>(`/users/${user.id}/playlists`, {
+                user: await Users.get(user.id),
+                pagination: true
+            });
 
             if (response.status !== 200)
                 THROW_DEBUG_ERROR(`Cleaning: failed to get playlists for user_id: ${user.id}. Error: \n${response}`);
@@ -82,11 +84,17 @@ export default class Updater {
         const remove: Playlist[] = [];
         for (const playlist of db_playlists) {
             // If the user does not have this playlist anymore
-            if (!users_playlists[playlist.user_id].some(p => p.id === playlist.id))
+            if (!users_playlists[playlist.user_id].some(p => p.id === playlist.id)) {
+                const response = await Fetch.get(`/playlists/${playlist.id}`, {
+                    user: await Users.get(playlist.user_id)
+                });
                 // And the playlist has no followers, delete it
-                if ((await Fetch.get(`/playlists/${playlist.id}`)).data?.followers.total == 0)
+                if (response.status == 200 && response.data?.followers.total == 0)
                     remove.push(playlist);
+            }
         }
+
+        LOG(`Cleaning database: removing ${remove.length} playlists...`);
 
         // Remove the playlists
         for (const playlist of remove)
