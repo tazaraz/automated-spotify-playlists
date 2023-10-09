@@ -255,22 +255,30 @@ export default class Metadata {
      * @param options  The options to pass to the request
      * @returns        The result of said request specific to the user
      */
-    static async getUserData(
+    static async getUserData<T extends STrack | SAlbum | SArtist>(
         url: string,
         kind: "track" | "album" | "artist",
         expires: number,
         options: FetchOptions,
-    ): Promise<any[]> {
+    ): Promise<T[]> {
+        let items: any;
+
         // If the user is not yet defined, create the object
         if (Metadata.user_cache[options.user.id] == undefined)
             Metadata.user_cache[options.user.id] = {};
 
         // If this url is known for a specific user, use the cached data (if not expired)
         if (Metadata.user_cache[options.user.id][url]        != undefined &&
-            Metadata.user_cache[options.user.id][url].expires <= new Date())
-            return Metadata.user_cache[options.user.id][url].items;
+            Metadata.user_cache[options.user.id][url].expires <= new Date()) {
+            switch (kind) {
+                case "track":  items = Metadata.user_cache[options.user.id][url].items.map(id => Metadata.getTrack(id))
+                case "album":  items = Metadata.user_cache[options.user.id][url].items.map(id => Metadata.getAlbum(id))
+                case "artist": items = Metadata.user_cache[options.user.id][url].items.map(id => Metadata.getArtist(id))
+            }
 
-        let items: any;
+            return await Promise.all(items);
+        }
+
         switch (kind) {
             case "track":
                 items = await Metadata.getMultiple<STrack>(url, Metadata.tracks, options);
@@ -288,7 +296,7 @@ export default class Metadata {
             items: items.map(item => item.id),
         }
 
-        return items;
+        return items as T[];
     }
 
     private static delete(target: { [id: string]: any }, prop: string){
