@@ -526,6 +526,7 @@ export default class Playlists extends Pinia {
      * @Param trackId The id of the track
      */
     async trackAppearsIn(trackId: string){
+        await this.loadUserPlaylists();
         if (!this.loadingPlaylistsTrackIds || this.storage[0].all_tracks === undefined) {
             // Try to get all the track ids for each playlist
             this.loadingPlaylistsTrackIds = Promise.all(this.storage.map(async (playlist, index) => {
@@ -546,8 +547,18 @@ export default class Playlists extends Pinia {
 
         // Return the playlists in which the track appears
         return this.storage.filter(playlist => {
+            // Check if it exists in the all_tracks
             if (playlist.all_tracks.find(t => t === trackId)) {
                 return playlist;
+            }
+
+            // If the playlist is a smart playlist, check if the track is in the matched or included tracks
+            if (playlist.filters !== undefined) {
+                if ((playlist.matched_tracks.find(t => t === trackId) &&
+                     !playlist.excluded_tracks.find(t => t === trackId)) ||
+                    playlist.included_tracks.find(t => t === trackId)) {
+                    return playlist;
+                }
             }
         })
     }
