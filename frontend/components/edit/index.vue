@@ -35,7 +35,10 @@
                         <span role='button' @click="showLog = false" :class="`nav-link${showLog ? '' : ' active'}`">Configuration</span>
                     </li>
                     <li class="nav-item">
-                        <span role='button' @click="showLog = true" :class="`nav-link${showLog ? ' active' : ''}`">Filter log</span>
+                        <span role='button' @click="showLog = true" :class="`d-flex nav-link${showLog ? ' active' : ''}`">
+                            Filter log
+                            <Image class="d-inline shadow-none ms-2" style="width: 1.5rem; height: 1.5rem" v-if="executeState == 1" src=""></Image>
+                        </span>
                     </li>
                 </ul>
                 <div :hidden="showLog">
@@ -52,7 +55,12 @@
                             @delete="editstate.deleteSource(index)"></EditSource>
                     </section>
                     <div class="mt-4 d-flex">
-                        <h5 class="flex-grow-1">Filters</h5>
+                        <div class="flex-grow-1">
+                            <h5 class="d-inline me-3">Filters</h5>
+                            <small>(match <select id="source-select" class="d-inline-flex form-select form-select-sm w-auto" @change="globalStatementChange">
+                            <option v-for="mode in Object.keys(FilterParserOptions)" :value="mode" :selected="editstate.computedFilters.mode == mode">{{ mode }}</option>
+                            </select> 1<sup>st</sup> level filters)</small>
+                        </div>
                         <button class="btn action" @click="editstate.addFilter('condition')">
                             <fa-icon class="text-primary" :icon="['fas', 'plus']"></fa-icon>
                         </button>
@@ -60,7 +68,7 @@
                             <fa-icon class="text-primary" :icon="['fas', 'code-branch']"></fa-icon>
                         </button>
                     </div>
-                    <section v-if="editstate.computedFilters" id="filters" class="overflow-x-auto mb-5" data-edit-class="small-small normal-normal large-large">
+                    <section v-if="editstate.computedFilters" id="filters" class="mb-5" data-edit-class="small-small normal-normal large-large">
                         <template v-for="entry in editstate.flattenedFilters">
                             <EditStatement
                                 v-if="entry.content.mode"
@@ -79,26 +87,7 @@
                         </template>
                     </section>
                 </div>
-                <div :hidden="!showLog">
-                    <h5>Sources</h5>
-                    <ul class="list-unstyled">
-                        <template v-for="source of playlists.editing.log.sources">
-                            <li class="ps-3" v-if="!source.startsWith('All')">{{ source }}</li>
-                        </template>
-                    </ul>
-                    <span class="text-body-secondary">
-                        <template v-for="source of playlists.editing.log.sources"><template v-if="source.startsWith('All')">Result: {{ source }}</template></template>
-                    </span>
-                    <h5 class="mt-4">Filters</h5>
-                    <ul>
-                        <template v-for="filter of playlists.editing.log.filters">
-                            <li class="ps-3" v-if="!filter.startsWith('Converted')">{{ filter }}</li>
-                        </template>
-                    </ul>
-                    <span class="text-body-secondary">
-                        <template v-for="filter of playlists.editing.log.filters"><template v-if="filter.startsWith('Converted')">Result: {{ filter }}</template></template>
-                    </span>
-                </div>
+                <EditLog :hidden="!showLog" :log="playlists.editing.log"></EditLog>
                 <div v-if="editstate.error > 0" class="alert alert-primary" role="alert">
                     Some {{ editstate.error == 1 ? 'sources' : editstate.error == 2 ? 'filters' : 'filters and sources'}} are not filled in correctly
                 </div>
@@ -134,15 +123,19 @@ import Layout from '~/stores/layout';
 import EditCondition from './condition.vue';
 import EditStatement from './statement.vue';
 import EditState from '~/stores/editstate';
+import { FilterParserOptions } from '../../../backend/src/shared/types/descriptions';
 
 export default class Edit extends Vue {
     playlists!: Playlists;
     layout!: Layout;
     editstate!: EditState;
 
+    FilterParserOptions = FilterParserOptions;
+
     showLog = false;
     /** 0: default, 1: pending, 2: finished */
     saveState = 0;
+    /** 0: default, 1: pending, 2: finished */
     executeState = 0;
 
     created() {
@@ -180,6 +173,10 @@ export default class Edit extends Vue {
         await this.editstate.execute();
         this.executeState = 2;
         setTimeout(() => this.executeState = 0, 1000);
+    }
+
+    globalStatementChange(event: Event) {
+        this.editstate.computedFilters.mode = (event.target! as HTMLSelectElement).value as keyof typeof FilterParserOptions;
     }
 }
 </script>
