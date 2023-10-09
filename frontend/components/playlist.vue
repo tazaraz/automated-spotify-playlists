@@ -58,7 +58,7 @@
                         </div>
                     </Modal>
 
-                    <Modal v-if="shown.kind != 'all' && shown.kind != 'matched'" :button-text="`Clear ${shown.kind} tracks`" button-class="btn btn-secondary text-nowrap me-3">
+                    <Modal v-if="shown.kind != 'all' && shown.kind != 'matched' && shown.tracks.length > 0" :button-text="`Clear ${shown.kind} tracks`" button-class="btn btn-secondary text-nowrap me-3">
                         <div class="modal-header">
                             <h1 class="modal-title fs-5" id="exampleModalLabel">Clear all {{ shown.kind }} tracks?</h1>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -67,8 +67,8 @@
                             This operation will clear the {{ shown.kind }} list and {{ shown.kind == 'excluded' ? 'include' : 'exclude' }} all {{ shown.tracks.length }} tracks again.
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Never mind</button>
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="clearShownTracks">Do it</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="clearShownTracks">Yes</button>
                         </div>
                     </Modal>
 
@@ -77,7 +77,7 @@
                             <h5 class="m-auto me-2"><fa-icon :icon="['fas', 'wand-magic']" /></h5>
                             Edit config
                         </button>
-                        <Modal v-else button-text="Edit config" :button-icon="['fas', 'wand-magic']" button-class="btn btn-primary me-3">
+                        <Modal v-else button-text="Edit config" :button-icon="['fas', 'wand-magic']" button-class="btn btn-primary me-2">
                             <div class="modal-header">
                                 <h1 class="modal-title fs-5" id="exampleModalLabel">Discard current editor?</h1>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -86,7 +86,7 @@
                                 You are currently already editing a smart playlist. If you open this smart playlist configuration, your current changes will be discarded. Are you sure you want to continue?
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                 <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="setEditedPlaylist(playlists.loaded.id)">Yes</button>
                             </div>
                         </Modal>
@@ -345,6 +345,8 @@ export default class PlaylistDisplay extends Vue {
      * @param id ID of the playlist to edit
      */
     async setEditedPlaylist(id: string) {
+        this.playlists.editing = null;
+        await this.$nextTick();
         await this.playlists.loadEditingPlaylist(id);
         await this.showTracks("all");
         // Click the edit button to try and open the offcanvas edit view

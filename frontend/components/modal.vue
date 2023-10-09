@@ -1,6 +1,6 @@
 <template>
     <button @click="openModal" :class="`d-flex border-0 ${buttonClass}`">
-        <h5 v-if="buttonIcon" class="m-auto me-5"><fa-icon :icon="buttonIcon"></fa-icon></h5>
+        <h5 v-if="buttonIcon" class="m-auto me-3"><fa-icon :icon="buttonIcon"></fa-icon></h5>
         {{ buttonText }}
     </button>
     <div class="modal fade" :id="`modal-${id}`" tabindex="-1">
