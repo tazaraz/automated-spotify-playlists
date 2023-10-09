@@ -4,7 +4,8 @@
             <button class="navbar-toggler d-sm-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
                 <h2 class="p-1 m-0"><fa-icon :icon="['fas', 'bars']"></fa-icon></h2>
             </button>
-            <ToolbarPlaying class="nav flex-shrink-0 flex-grow-1 ms-2"/>
+            <ToolbarPlaying class="d-none d-md-flex"/>
+            <span class="d-flex d-md-none">{{ playlists?.loaded?.name }}</span>
             <ToolbarBreadcrumbs class="d-none d-lg-flex"/>
         </ClientOnly>
         <ul class="nav flex-shrink-0 nav-pills overflow-hidden">

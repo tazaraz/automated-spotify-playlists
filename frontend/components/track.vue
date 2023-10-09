@@ -35,8 +35,21 @@
                             </template>
                         </div>
                     </div>
-                    <div class="flex-shrink-0 text-truncate" data-main-class="normal-d-block tiny-d-none" style="width: 40%;">
-                        <url @click="follow" class="text-truncate d-inline-block text-body" :to="`/info/album/${track.album!.id}`">{{ track.album!.name }}</url>
+                    <div v-if="track.appearsIn" class="flex-grow-0 multilayer text-truncate gap-0" data-main-class="normal-d-block tiny-d-none" style="width: 40%;">
+                        <template v-if="track.appearsIn.length > 0">
+                            <div class="text-truncate">
+                                Appears in
+                            </div>
+                            <div class="text-truncate">
+                                <template v-for="(appearsIn, index) in track.appearsIn">
+                                    {{ index > 0 ? ", " : "" }}
+                                    <url @click="follow" :to="`/playlist/${appearsIn.id}`">{{ appearsIn.name }}</url>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                    <div v-else-if="track.album" class="flex-shrink-0 text-truncate" data-main-class="normal-d-block tiny-d-none" style="width: 40%;">
+                        <url @click="follow" class="text-truncate d-inline-block text-body" :to="`/info/album/${track.album.id}`">{{ track.album.name }}</url>
                     </div>
                     <div class="flex-shrink-0" style="width: 10%;">{{ track.duration }}</div>
                     <i v-if="deleteable" @click="$emit('delete', track)" data-bs-toggle="collapse" data-bs-target=""><fa-icon style="color: rgb(155, 0, 0)" :icon="['fas', 'trash-can']"></fa-icon></i>
@@ -52,6 +65,17 @@
                         <url v-else :to="`/info/album/${track.album!.id}`" class="text-decoration-underline">{{
                             track.album!.name }}</url>
                     </div>
+                    <div v-if="track.appearsIn" class="mb-2 multilayer" data-main-class="normal-d-none tiny-d-grid">
+                        <template v-if="track.appearsIn.length > 0">
+                            <span>Appears in</span>
+                            <span>
+                                <template v-for="(appearsIn, index) in track.appearsIn">
+                                    {{ index > 0 ? ", " : "" }}
+                                    <url @click="follow" :to="`/playlist/${appearsIn.id}`">{{ appearsIn.name }}</url>
+                                </template>
+                            </span>
+                        </template>
+                    </div>
                     <div class="mb-2 multilayer" data-main-class="normal-col-6 tiny-col-9">
                         <span>Genres</span>
                         <span v-if="!track.features" class="placeholder rounded-1"></span>
@@ -64,8 +88,8 @@
                     </div>
                     <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
                         <InfoField :description="Filters.Track.Popularity.description">Popularity</InfoField>
-                        <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ track.popularity / 10 }} / 10</span>
+                        <span v-if="!track.album" class="placeholder rounded-1"></span>
+                        <span v-else>{{ (track.popularity || track.album.popularity) / 10 || '?' }} / 10</span>
                     </div>
                     <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
                         <InfoField :description="Filters.Track.Danceability.description">Danceability</InfoField>
@@ -108,6 +132,7 @@ import { Emit, Prop, Vue } from 'vue-property-decorator';
 import { CArtist, CTrack, CTrackFeatures } from '~/../backend/src/shared/types/client';
 import { FilterDescriptions as Filters } from '~/../backend/src/shared/types/descriptions';
 import Fetch from '~/stores/fetch';
+import Layout from '~/stores/layout';
 
 @Emit('delete')
 export default class Track extends Vue {
@@ -119,6 +144,12 @@ export default class Track extends Vue {
 
     Filters = Filters;
 
+    layout: Layout = null as any;
+
+    mounted() {
+        this.layout = new Layout();
+    }
+
     /**
      * Gets the features of the track and toggles the accordion
      * @param state State of the accordion. If undefined, it will be toggled
@@ -128,6 +159,7 @@ export default class Track extends Vue {
 
         if (!(this.track as CTrack).features) {
             (this.track as CTrack).features = (await Fetch.get<CTrackFeatures>(`spotify:/audio-features/${(this.track as CTrack).id}`)).data;
+            this.layout.render(null, true);
         }
 
         this.expanded = state ?? !this.expanded;

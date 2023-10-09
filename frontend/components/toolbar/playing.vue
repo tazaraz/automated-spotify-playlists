@@ -1,6 +1,6 @@
 <template>
-    <div v-if="user" class="d-flex align-items-center flex-nowrap" style="max-width: 16rem;">
-        <template v-if="user.info && player">
+    <div v-if="user && player" class="nav flex-shrink-0 flex-grow-1 d-flex align-items-center flex-nowrap ms-2" style="max-width: 16rem;">
+        <template v-if="user.info">
             <span class="now-playing">Now playing</span>
             <url @click="breadcrumbs.clear()" :to="`/info/track/${player.track.id}`" class="loading-container">
                 <Image :src="player"/>
@@ -16,14 +16,7 @@
             </span>
         </template>
     </div>
-    <div v-else class="d-flex align-items-center p-2 placeholder-glow" style="max-width: 16rem;">
-        <span class="now-playing">Now playing</span>
-        <span class="placeholder loading-container flex-shrink-0"></span>
-        <span class="multilayer ms-3">
-            <span class="rounded-1 text-truncate placeholder mb-2" :style="`width: ${randomBetween(4, 9)}rem`"></span>
-            <span class="rounded-1 text-truncate placeholder" :style="`width: ${randomBetween(3, 5)}rem`"></span>
-        </span>
-    </div>
+    <div v-else></div>
 </template>
 
 <script lang="ts">
