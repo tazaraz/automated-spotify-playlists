@@ -61,7 +61,7 @@
                 <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
                     <InfoField :description="Filters.Album.Popularity.description">Popularity</InfoField>
                     <span v-if="!album" class="placeholder rounded-1"></span>
-                    <span v-else>{{ album.popularity }} / 10</span>
+                    <span v-else>{{ album.popularity / 10 }} / 10</span>
                 </div>
                 <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
                     <InfoField :description="Filters.Album['Track count'].description">Total tracks</InfoField>
