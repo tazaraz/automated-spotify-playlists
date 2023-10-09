@@ -12,13 +12,13 @@ export default class FilterParser {
     public static readonly mode = FilterParserOptions;
 
     /**
-     *                  Checks if input matches the set rules.
+     *                  Finds filteritems match which the set rules.
      * @param statement The main smart playlist operation wrapper
-     * @param input     Input to check
+     * @param items     Filteritems to check
      * @returns         Whether the rule is matched
      */
     public static async process(statement: PlaylistStatement,
-                                input: FilterItem[],
+        items: FilterItem[],
                                 user: SUser,
                                 task: FilterTask,
                                 dryrun=false): Promise<FilterItem[]> {
@@ -26,10 +26,10 @@ export default class FilterParser {
 
         // If the user specified no filters at all
         if (statement.filters.length === 0) {
-            result = input
+            result = items
             task.log.filters.push("No filters specified");
         } else {
-            result = await FilterParser.checkStatement(statement, input, user, task, dryrun);
+            result = await FilterParser.checkStatement(statement, items, user, task, dryrun);
         }
 
         // Convert the FilterItems to STracks and flatten (FilterItem can always map to a STrack[])
@@ -43,13 +43,13 @@ export default class FilterParser {
     }
 
     /**
-     *                  Checks if the operation is valid
+     *                  Parses a statement and returns the result
      * @param statement An statement
-     * @param input     The input specified
+     * @param items     Filteritems to check
      * @param log       nD log array
      */
     private static async checkStatement(statement: PlaylistStatement,
-                                        input: FilterItem[],
+                                        items: FilterItem[],
                                         user: SUser,
                                         task: FilterTask,
                                         dryrun=false
@@ -58,12 +58,14 @@ export default class FilterParser {
         if (!FilterParser.isStatement(statement)) {
             task.log.filters.push(`Invalid statement: ${JSON.stringify(statement)}`)
             THROW_DEBUG_ERROR(`Invalid statement: ${JSON.stringify(statement)}`);
+            return [];
         }
 
         // Store the matches and original input
         const matches = {} as { [key: string]: FilterItem },
-              original = input;
+              original = items;
 
+        let input = items;
         let result: FilterItem[] | undefined;
 
         for (const f of statement.filters){
@@ -71,7 +73,7 @@ export default class FilterParser {
             if ((f as PlaylistCondition).value === undefined){
                 // the loop again
                 task.log.filters.push(`Start statement (${String((f as PlaylistStatement).mode)})`)
-                const result = await FilterParser.checkStatement(
+                result = await FilterParser.checkStatement(
                     f as PlaylistStatement,
                     input,
                     user,
@@ -79,10 +81,7 @@ export default class FilterParser {
                     dryrun
                 );
 
-                task.log.filters.push(`End statement: filtered ${result.length} of ${input.length} items (change: ${result.length - input.length})`);
-
-                // Pipe it into the output set. The correct action will be taken after the for loop
-                result.forEach(track => matches[track.id] = track);
+                task.log.filters.push(`End statement: filtered ${result.length} of ${input.length} items (${result.length - input.length})`);
             } else {
                 // Execute the filter
                 result = await FilterParser.checkCondition(
@@ -96,28 +95,28 @@ export default class FilterParser {
                 if (result === undefined)
                     continue
 
-                task.log.filters.push(`Filter '${(f as any).category} ${(f as any).filter}' matched ${result.length} of ${input.length} items (change: ${result.length - input.length})`);
+                task.log.filters.push(`Filter '${(f as any).category} ${(f as any).filter}' matched ${result.length} of ${input.length} items (${result.length - input.length})`);
+            }
 
-                /**Otherwise pipe the output into the next input, in effect filtering out all
-                 * which do not match, leaving the ones who do */
-                switch (statement.mode) {
-                    // If only one filter needs be true
-                    case "any":
-                        // Save all those who matched the filter, as only one filter needs be true
-                        result.forEach(track => matches[track.id] = track);
-                        break;
+            /**Otherwise pipe the output into the next input, in effect filtering out all
+             * which do not match, leaving the ones who do */
+            switch (statement.mode) {
+                // If only one filter needs be true
+                case "any":
+                    // Save all those who matched the filter, as only one filter needs be true
+                    result.forEach(track => matches[track.id] = track);
+                    break;
 
-                    case "all":
-                    case "none":
-                        // If the filter actually did anything
-                        input = result;
-                        break;
+                case "all":
+                case "none":
+                    // If the filter actually did anything
+                    input = [...result];
+                    break;
 
-                    // Someone tried funky business with the filter
-                    default:
-                        task.log.filters.push(`Illegal Statement operation "${String(statement.mode)}"`);
-                        THROW_DEBUG_ERROR(`Illegal Statement operation "${String(statement.mode)}"`);
-                }
+                // Someone tried funky business with the filter
+                default:
+                    task.log.filters.push(`Illegal Statement operation "${String(statement.mode)}"`);
+                    THROW_DEBUG_ERROR(`Illegal Statement operation "${String(statement.mode)}"`);
             }
         }
 
