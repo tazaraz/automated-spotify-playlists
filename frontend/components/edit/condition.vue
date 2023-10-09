@@ -7,7 +7,7 @@
                 <select class="ms-2 form-select form-select-sm w-auto">
                     <option
                         v-for="category in Object.keys(MainFilters)"
-                        @click="filterChange($event, 'category')"
+                        @click="filterChange(category, 'category')"
                         :value="category"
                         :selected="condition.category == category">{{ category }}</option>
                 </select>
@@ -15,7 +15,7 @@
                     <select class="ms-2 form-select form-select-sm w-auto">
                         <option
                             v-for="filter in Object.keys(SubFilters)"
-                            @click="filterChange($event, 'filter')"
+                            @click="filterChange(filter, 'filter')"
                             :value="filter"
                             :selected="condition.filter == filter">{{ filter }}</option>
                     </select>
@@ -29,7 +29,7 @@
                 <select class="form-select form-select-sm w-auto">
                     <option
                         v-for="op in Object.keys(Operations)"
-                        @click="filterChange($event, 'operation')"
+                        @click="filterChange(op, 'operation')"
                         :value="op"
                         :selected="condition.operation == op">{{ op }}</option>
                 </select>
@@ -77,7 +77,7 @@
                         <select class="form-select form-select-sm w-auto ms-4">
                             <option
                                 v-for="op in Object.keys(Operations)"
-                                @click="filterChange($event, 'operation')"
+                                @click="filterChange(op, 'operation')"
                                 :value="op"
                                 :selected="condition.operation == op">{{ op }}</option>
                         </select>
@@ -152,6 +152,7 @@ export default class EditCondition extends Vue {
     }
 
     mounted() {
+        this.update();
         this.layout = new Layout();
         this.layout.render(null, true);
     }
@@ -175,20 +176,20 @@ export default class EditCondition extends Vue {
         return false;
     }
 
-    filterChange(event: Event, kind: "category" | "filter" | "operation") {
+    filterChange(value: string, kind: "category" | "filter" | "operation") {
         if (kind == "category") {
-            this.condition.category = (event.target! as HTMLSelectElement).value as any;
+            this.condition.category = value as any;
         } else if (kind == "filter") {
-            this.condition.filter = (event.target! as HTMLSelectElement).value as any;
+            this.condition.filter = value as any;
         } else if (kind == "operation") {
-            this.condition.operation = (event.target! as HTMLSelectElement).value as any;
+            this.condition.operation = value as any;
         }
 
         this.condition.value = "";
 
+        this.$emit('change', this.condition)
         this.update();
         this.$forceUpdate();
-        this.$emit('change', this.condition)
     }
 
     update() {
@@ -200,7 +201,7 @@ export default class EditCondition extends Vue {
         }
 
         // Update the available operations
-        this.Operations  = Filters[this.condition.category][this.condition.filter].type.operation;
+        this.Operations = Filters[this.condition.category][this.condition.filter].type.operation;
 
         // If we switch to a filter that doesn't have the current option, switch to the first option of the filters
         if (this.Operations[this.condition.operation] == undefined) {
@@ -317,8 +318,10 @@ export default class EditCondition extends Vue {
 .input { grid-column: 8 / 8; }
 .stacked-input {
     width: 75%;
-    min-width: min(100%, 20rem);
     grid-column: 4 / -1;
+    input {
+        width: fit-content;
+    }
 }
 .input.duration,
 .stacked-input.duration {
