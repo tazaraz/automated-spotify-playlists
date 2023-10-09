@@ -172,10 +172,6 @@ export default class Filters {
         to_be_removed = Filters.merge(to_be_removed, duplicates)
         LOG_DEBUG(`5: duplicates: ${duplicates.length}, removed: ${to_be_removed.length} (+${duplicates.length})`)
 
-        if (duplicates.length > 0) {
-            task.log.filters.push(`Detected ${duplicates.length} duplicate tracks. Removing them might have resulted in a location of these tracks in the playlist`)
-        }
-
         playlist.matched_tracks     = matched_tracks.map(item => item.id)
         playlist.excluded_tracks    = excluded_tracks
         playlist.included_tracks    = included_tracks

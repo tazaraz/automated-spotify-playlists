@@ -3,7 +3,7 @@ import FilterTask from "../stores/filtertask";
 import Metadata from "../stores/metadata";
 import { Sources } from "../shared/types/filters";
 import { PlaylistSource } from "../shared/types/playlist";
-import { FilterItem, SUser } from "../shared/types/server";
+import { FilterItem, SAlbum, STrack, SUser } from "../shared/types/server";
 
 export default class MusicSources {
     public static readonly origin = Sources;
@@ -14,7 +14,7 @@ export default class MusicSources {
         task: FilterTask,
         dry_run=false
     ): Promise<FilterItem[]> {
-        let tracks, albums, artists, parsed: any[],
+        let tracks: STrack[], albums: SAlbum[], artists, parsed: any[],
             filteritems: FilterItem[] = [];
 
         Metadata.API_USER = user;

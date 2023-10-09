@@ -61,7 +61,7 @@ export const FilterDescriptions = {
         },
         "Popularity": {
             type: FilterSlider,
-            description: "The popularity of the album. Ranges from 0 - 10."
+            description: "The popularity of the album. Ranges from 0.0 - 10.0"
         },
     },
     "Artist": {
@@ -75,7 +75,7 @@ export const FilterDescriptions = {
         },
         "Popularity": {
             type: FilterSlider,
-            description: "The popularity of the artist. The artist's popularity is calculated from the popularity of all the artist's tracks and ranges from 0 - 10."
+            description: "The popularity of the artist. The artist's popularity is calculated from the popularity of all the artist's tracks and ranges from 0.0 - 10.0"
         },
         "Followers": {
             type: FilterValue,
@@ -93,7 +93,7 @@ export const FilterDescriptions = {
         },
         "Popularity": {
             type: FilterSlider,
-            description: "The popularity of the track. Generally speaking, songs that are being played a lot now will have a higher popularity than songs that were played a lot in the past and ranges from 0 - 10"
+            description: "The popularity of the track. Generally speaking, songs that are being played a lot now will have a higher popularity than songs that were played a lot in the past and ranges from 0.0 - 10.0"
         },
         "Duration": {
             type: FilterValue,
@@ -101,7 +101,7 @@ export const FilterDescriptions = {
         },
         "Accousticness": {
             type: FilterSlider,
-            description: "Whether the track Accousticness"
+            description: "A confidence measure from 0.0 to 10.0 of whether the track is acoustic. 10.0 represents high confidence the track is acoustic."
         },
         "Danceability": {
             type: FilterSlider,
@@ -121,7 +121,7 @@ export const FilterDescriptions = {
         },
         "Liveness": {
             type: FilterSlider,
-            description: "Whether an audience is present in the track. Higher liveness values represent an increased probability that the track was performed live. A value above 0.8 provides strong likelihood that the track is live."
+            description: "Whether an audience is present in the track. Higher liveness values represent an increased probability that the track was performed live. A value above 8.0 provides strong likelihood that the track is live."
         },
         "BPM": {
             type: FilterValue,
