@@ -10,7 +10,8 @@ export default class FilterTask {
     // Playlist id
     playlist_id: string;
     // Promise resolve function
-    resolve: ((value: FilterTask) => void) | undefined;
+    logChangeResolver: ((value: FilterTask) => void) | undefined;
+
     // Contains the actual logs
     log: Playlist['log'];
     // Whether the log is finalized
@@ -36,9 +37,9 @@ export default class FilterTask {
                     target[property] = value;
 
                     // On update, resolve the promise if it was created
-                    if (this.resolve) {
-                        this.resolve(this);
-                        this.resolve = undefined
+                    if (this.logChangeResolver) {
+                        this.logChangeResolver(this);
+                        this.logChangeResolver = undefined
                     }
 
                     return true;
@@ -50,12 +51,12 @@ export default class FilterTask {
     /**
      * Returns a promise which resolves when the log changes.
      */
-    async stateChange() {
+    async logChange() {
         if (this.finalized) {
             return this;
         }
 
-        return new Promise<FilterTask>(resolve => { this.resolve = resolve; })
+        return new Promise<FilterTask>(resolve => { this.logChangeResolver = resolve; })
     }
 
     /**
@@ -72,7 +73,7 @@ export default class FilterTask {
         this.result = result;
         this.finalized = true;
         // Finalize the last promise
-        if (this.resolve) this.resolve(this);
+        if (this.logChangeResolver) this.logChangeResolver(this);
 
         // Delete the log after 50 seconds
         setTimeout(() => this.delete(), 50000);

@@ -210,7 +210,7 @@ api.patch(`/playlist/:playlistid`, Users.verify_token, async (req, res) => {
         // Reply
         return res.status(201).send("Started running the playlist filters");
     } else {
-        const task = await FilterTask.get(req.params.playlistid).stateChange();
+        const task = await FilterTask.get(req.params.playlistid).logChange();
 
         if (task.finalized) {
             if (task.result.status === 200)
