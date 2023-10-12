@@ -48,10 +48,10 @@ import User from '~/stores/user';
 export default class EditSource extends Vue {
     @Prop({ required: true }) source!: PlaylistSource
 
-    playlists!: Playlists;
-    info!: Info;
+    playlists: Playlists = null as any;
+    info: Info = null as any;
+    layout: Layout = null as any;
     SourceDescription = Object.keys(Sources);
-    layout!: Layout;
 
     /** Multiple is not yet supported */
     kind: "album" | "artist" | "playlist" | "library" | "multiple" = "library"

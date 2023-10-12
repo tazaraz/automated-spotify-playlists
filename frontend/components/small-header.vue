@@ -22,7 +22,7 @@ import Layout from '~/stores/layout';
  */
 export default class SmallHeader extends Vue {
     @Prop({ required: true }) item!: CTrack | CAlbum | CArtist | CPlaylist
-    layout!: Layout;
+    layout: Layout = null as any;
     type: "Track" | "Album" | "Artist" | "Playlist" | "User" | null = null;
 
     mounted() {

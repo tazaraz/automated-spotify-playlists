@@ -22,9 +22,9 @@ import User from '~/stores/user';
 
 
 export default class Breadcrumbs extends Vue {
-    playlists!: Playlists
-    breadcrumbs!: BreadCrumbs;
-    info!: Info;
+    playlists: Playlists = null as any;
+    breadcrumbs: BreadCrumbs = null as any;
+    info: Info = null as any;
     RC = useRuntimeConfig();
 
     async created() {

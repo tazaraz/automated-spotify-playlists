@@ -44,7 +44,7 @@ export default class EditInput extends Vue {
     name: string = "";
     error: string = "";
     isValid: boolean = false;
-    breadcrumbs!: BreadCrumbs;
+    breadcrumbs: BreadCrumbs = null as any;
 
     EditInput = EditInput;
     watcher: WatchStopHandle = null as any;

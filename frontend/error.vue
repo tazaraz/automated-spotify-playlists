@@ -30,9 +30,9 @@ import Layout from './stores/layout';
 
 export default class ErrorPage extends Vue {
     error = useError();
-    user!: User;
-    playlists!: Playlists;
-    layout!: Layout;
+    user: User = null as any;
+    playlists: Playlists = null as any;
+    layout: Layout = null as any;
 
     created() {
         if (!process.client) return;

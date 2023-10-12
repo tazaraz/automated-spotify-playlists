@@ -126,9 +126,9 @@ import EditState from '~/stores/editstate';
 import { FilterParserOptions } from '../../../backend/src/shared/types/descriptions';
 
 export default class Edit extends Vue {
-    playlists!: Playlists;
-    layout!: Layout;
-    editstate!: EditState;
+    playlists: Playlists = null as any;
+    layout: Layout = null as any;
+    editstate: EditState = null as any;
 
     FilterParserOptions = FilterParserOptions;
 
