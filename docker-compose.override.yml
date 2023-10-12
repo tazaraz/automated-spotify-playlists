@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  sp-nginx:
+    ports:
+      - 80:80
+      - 24672:24672
+
+  sp-frontend:
+    command: npm run dev
+
+  sp-backend:
+    command: npm run dev

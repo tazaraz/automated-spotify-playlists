@@ -41,6 +41,7 @@ export interface STrack extends CTrack {
     features: () => Promise<STrackFeatures>;
 }
 
+// @ts-ignore
 export interface SAlbum extends CAlbum {
     // Tracks in this album
     tracks: () => Promise<STrack[]>
