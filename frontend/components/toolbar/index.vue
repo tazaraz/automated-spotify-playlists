@@ -37,7 +37,6 @@ import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class Sidebar extends Vue {
-    RC = useRuntimeConfig();
     user: User = null as any;
     breadcrumbs: BreadCrumbs = null as any;
     playlists: Playlists = null as any;
@@ -57,7 +56,7 @@ export default class Sidebar extends Vue {
 
             // Request tokens
             const error = await this.user.getTokens(
-                this.RC.public.SP_CLIENT_ID,
+                useRuntimeConfig().public.SP_CLIENT_ID,
                 code as string
             );
 

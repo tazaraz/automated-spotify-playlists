@@ -9,14 +9,14 @@ import Fetch from "./fetch";
 export default class User extends Pinia {
     info: CUser | undefined;
 
-    getCodeGrant(client_id: string, domain: string){
+    getCodeGrant(client_id: string){
         /**
          * Redirect the user to the spotify authorization page
          */
         window.location.href = "https://accounts.spotify.com/authorize" +
             `?client_id=${client_id}` +
             `&response_type=code` +
-            `&redirect_uri=${domain}` +
+            `&redirect_uri=${window.location.origin}` +
             `&state=` +
             `&scope=${[
                 "playlist-modify-public",
@@ -65,7 +65,7 @@ export default class User extends Pinia {
 
     login() {
         localStorage.setItem("o", window.location.pathname);
-        this.getCodeGrant(useRuntimeConfig().public.SP_CLIENT_ID, useRuntimeConfig().public.DOMAIN)
+        this.getCodeGrant(useRuntimeConfig().public.SP_CLIENT_ID)
     }
 
     finishLogin() {

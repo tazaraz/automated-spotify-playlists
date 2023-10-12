@@ -25,7 +25,6 @@ export default class Breadcrumbs extends Vue {
     playlists: Playlists = null as any;
     breadcrumbs: BreadCrumbs = null as any;
     info: Info = null as any;
-    RC = useRuntimeConfig();
 
     async created() {
         if (!process.client) return;

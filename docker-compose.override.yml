@@ -7,6 +7,10 @@ services:
 
   sp-frontend:
     command: npm run dev
+    environment:
+      NODE_ENV: development
 
   sp-backend:
     command: npm run dev
+    environment:
+      NODE_ENV: development

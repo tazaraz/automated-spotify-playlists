@@ -25,7 +25,7 @@ api.post('/user/authorize', async (req, res) => {
     let response = await Fetch.post('https://accounts.spotify.com/api/token', {
         data: {
             grant_type: 'authorization_code',
-            redirect_uri: `${process.env.DOMAIN}`,
+            redirect_uri: `${req.get('origin')}`,
             code: req.body.code,
         },
         headers: {

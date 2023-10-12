@@ -24,8 +24,7 @@ services:
       - ./backend:/backend
     environment:
       PORT: 8080
-      DOMAIN: 'http://localhost'
-      NODE_ENV: "development"
+      NODE_ENV: production
       SP_CLIENT_ID: ${SP_CLIENT_ID}
 
   sp-backend:
@@ -36,8 +35,7 @@ services:
     volumes:
       - ./backend:/backend
     environment:
-      DOMAIN: 'http://localhost'
-      NODE_ENV: development
+      NODE_ENV: production
       PGHOST: sp-database
       PGUSER: postgres
       SP_CLIENT_ID: ${SP_CLIENT_ID}

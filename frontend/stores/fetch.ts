@@ -80,7 +80,7 @@ export default class Fetch {
 
         // Set the base domain
         if (server) {
-            url = url.replace("server:", `${useRuntimeConfig().public.DOMAIN}/api`);
+            url = url.replace("server:", `${window.location.origin}/api`);
         } else if (url.startsWith("spotify:")) {
             url = url.replace("spotify:", "https://api.spotify.com/v1");
         } else {
