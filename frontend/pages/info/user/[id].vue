@@ -64,7 +64,7 @@ interface User {
 }
 
 export default class InfoUser extends Vue {
-    breadcrumbs!: BreadCrumbs;
+    breadcrumbs: BreadCrumbs = null as any;
 
     playlists: CPlaylist[] = [];
     followers: User[] = [];
