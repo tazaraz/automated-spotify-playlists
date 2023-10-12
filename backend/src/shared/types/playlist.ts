@@ -42,5 +42,5 @@ export interface PlaylistSource {
     // Source of the data
     origin: keyof typeof Sources;
     // Contains any extra data needed for the source
-    value: string | typeof Sources['Recommendations']['value'];
+    value: string;
 }
