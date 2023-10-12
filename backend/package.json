@@ -9,7 +9,7 @@
     "pg": "^8.10.0"
   },
   "scripts": {
-    "deploy": "NODE_ENV=production tsc && node src/main.js",
+    "deploy": "NODE_ENV=production tsc && node build/main.js",
     "dev": "npx nodemon -L src/main.ts"
   },
   "author": "tazaraz",
