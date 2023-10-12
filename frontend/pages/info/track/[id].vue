@@ -117,9 +117,9 @@ import Playlists, { CPlaylist } from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class InfoTrack extends Vue {
-    breadcrumbs!: BreadCrumbs
-    playlists!: Playlists
-    layout!: Layout
+    breadcrumbs: BreadCrumbs = null as any;
+    playlists: Playlists = null as any;
+    layout: Layout = null as any;
 
     track: CTrack = null as any;
     trackGenres!: string

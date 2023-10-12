@@ -20,7 +20,7 @@ import { Vue, Prop } from 'vue-property-decorator';
  */
 export default class InfoField extends Vue {
     @Prop({ required: true }) description!: string
-    tooltip!: Tooltip;
+    tooltip: Tooltip = null as any;
 
     mounted() {
         this.tooltip = new this.$bootstrap.Tooltip(this.$refs.info as HTMLElement);

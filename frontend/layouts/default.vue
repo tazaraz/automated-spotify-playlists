@@ -47,10 +47,10 @@ import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class App extends Vue {
-    user!: User;
-    playlists!: Playlists;
-    layout!: Layout;
-    offcanvas!: Offcanvas[];
+    user: User = null as any;
+    playlists: Playlists = null as any;
+    layout: Layout = null as any;
+    offcanvas: Offcanvas[] = null as any;
 
     async created() {
         if (!process.client) return;

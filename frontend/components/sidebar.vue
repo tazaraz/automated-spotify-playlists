@@ -102,8 +102,8 @@ import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class Sidebar extends Vue {
-    playlists!: Playlists
-    user!: User
+    playlists: Playlists = null as any;
+    user: User = null as any;
     RC = useRuntimeConfig();
 
     selectedPlaylist = -1;

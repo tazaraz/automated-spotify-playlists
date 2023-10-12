@@ -94,8 +94,8 @@ import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class InfoAlbum extends Vue {
-    breadcrumbs!: BreadCrumbs
-    playlists!: Playlists
+    breadcrumbs: BreadCrumbs = null as any;
+    playlists: Playlists = null as any;
 
     artist: CArtist = null as any;
     topTracks: CTrack[] = null as any;

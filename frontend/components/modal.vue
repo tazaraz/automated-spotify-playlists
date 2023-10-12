@@ -25,7 +25,7 @@ export default class Modal extends Vue {
     @Prop({ default: "" }) buttonClass!: string;
 
     id = Math.random().toString(36).substring(2, 15);
-    modal!: bsModal
+    modal: bsModal = null as any;
 
     openModal() {
         const modalElement = document.getElementById(`modal-${this.id}`);

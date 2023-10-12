@@ -136,7 +136,7 @@ import Info, { SearchConfig } from '~/stores/info';
 
 @Emit('delete')
 export default class InfoSearch extends Vue {
-    info!: Info;
+    info: Info = null as any;
     error: string | null = null;
 
     created() {

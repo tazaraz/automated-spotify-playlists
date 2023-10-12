@@ -37,11 +37,11 @@ import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class Sidebar extends Vue {
-    user!: User;
-    breadcrumbs!: BreadCrumbs;
     RC = useRuntimeConfig();
+    user: User = null as any;
+    breadcrumbs: BreadCrumbs = null as any;
+    playlists: Playlists = null as any;
     options: { name: string, icon: string[], click: any }[] = []
-    playlists!: Playlists;
 
     async created() {
         if (!process.client) return;

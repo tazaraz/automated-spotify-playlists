@@ -90,8 +90,8 @@ import Playlists, { CPlaylist } from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class InfoAlbum extends Vue {
-    breadcrumbs!: BreadCrumbs
-    playlists!: Playlists
+    breadcrumbs: BreadCrumbs = null as any;
+    playlists: Playlists = null as any;
 
     album: CAlbum = null as any;
     tracks: ({

@@ -26,8 +26,8 @@ import Fetch from '~/stores/fetch';
 import User from '~/stores/user';
 
 export default class ToolbarPlaying extends Vue {
-    user!: User;
-    breadcrumbs!: BreadCrumbs;
+    user: User = null as any;
+    breadcrumbs: BreadCrumbs = null as any;
 
     player: {
         image: string
