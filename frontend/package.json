@@ -2,7 +2,7 @@
   "name": "nuxt-app",
   "private": true,
   "scripts": {
-    "deploy": "nuxt generate && nuxt start",
+    "deploy": "NODE_ENV=production nuxt generate && nuxt start",
     "build": "nuxt build",
     "dev": "nuxi dev --no-clear",
     "generate": "nuxt generate",
