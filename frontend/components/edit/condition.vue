@@ -53,7 +53,7 @@
             </span>
             <span v-if="inputType == inputTypes.slider" class="center input input-group flex-column input-group-sm gap-3">
                 <input @input="condition.value = $event.target!.value" type="range" class="source-input form-range m-auto" :value="condition.value"/>
-                <span class="m-auto">{{ parseInt(condition.value) / 10 }} / 10</span>
+                <span class="m-auto">{{ (parseInt(condition.value) / 10).toFixed(1) }} / 10</span>
             </span>
             <span v-if="inputType == inputTypes.boolean" style="grid-column: span 2;"></span>
 
@@ -106,7 +106,7 @@
                 </span>
                 <span v-if="inputType == inputTypes.slider" class="center stacked-input input-group flex-column input-group-sm gap-3">
                     <input @input="condition.value = $event.target!.value" type="range" class="source-input form-range m-auto" :value="condition.value"/>
-                    <span class="m-auto">{{ parseInt(condition.value) / 10 }} / 10</span>
+                    <span class="m-auto">{{ (parseInt(condition.value) / 10).toFixed(1) }} / 10</span>
                 </span>
             </template>
         </template>
