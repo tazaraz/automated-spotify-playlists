@@ -32,6 +32,7 @@ services:
     container_name: sp-backend
     command: npm run deploy
     working_dir: /backend
+    restart: always
     volumes:
       - ./backend:/backend
     environment:
