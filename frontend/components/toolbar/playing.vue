@@ -1,11 +1,11 @@
 <template>
     <div v-if="user && player" class="nav flex-shrink-0 flex-grow-1 d-flex align-items-center flex-nowrap ms-2" style="max-width: 16rem;">
         <template v-if="user.info">
-            <span class="now-playing">Now playing</span>
+            <span class="now-playing" data-sidebar-class="tiny-d-none">Now playing</span>
             <url @click="breadcrumbs.clear()" :to="`/info/track/${player.track.id}`" class="loading-container">
                 <Image :src="player"/>
             </url>
-            <span class="multilayer ms-3 pe-3">
+            <span class="multilayer ms-3 pe-3" data-sidebar-class="tiny-d-none">
                 <url @click="breadcrumbs.clear()" :to="`/info/track/${player.track.id}`" class="text-truncate text-white">{{ player.track.name }}</url>
                 <div class="text-truncate">
                     <template v-for="(artist, index) in player.artists">

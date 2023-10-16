@@ -10,19 +10,26 @@
                 </url>
                 <button type="button" id="sidebarClose" class="d-sm-none d-block ms-auto me-3 btn-close" data-bs-dismiss="offcanvas"></button>
             </div>
-            <hr>
-            <ToolbarPlaying class="d-flex d-md-none" @click="tryClose"/>
-            <ol class="d-none d-md-flex mt-3 nav nav-pills flex-column">
-                <li v-for="item in [
-                    {name: 'Library', to: '/library', icon: ['fas', 'heart']},
-                    {name: 'Search', to: '/info', icon: ['fas', 'search']},
-                ]" class="nav-item cursor-pointer">
-                    <url :class="`d-flex align-items-center nav-link ps-0 pe-0${user?.info ? '' : ' disabled'}`" :to="item.to" @click="tryClose">
-                        <h4 class="ms-3 mb-0" style="width: 3rem"><fa-icon :icon="item.icon" style="width: 2rem"></fa-icon></h4>
-                        <h5 class="m-0" data-sidebar-class="normal-d-block tiny-d-none">{{ item.name }}</h5>
-                    </url>
-                </li>
-            </ol>
+
+            <div class="d-block d-md-none">
+                <hr>
+                <ToolbarPlaying @click="tryClose"/>
+            </div>
+
+            <div class="d-none d-md-block">
+                <hr>
+                <ol class="mt-3 nav nav-pills flex-column">
+                    <li v-for="item in [
+                        {name: 'Library', to: '/library', icon: ['fas', 'heart']},
+                        {name: 'Search', to: '/info', icon: ['fas', 'search']},
+                    ]" class="nav-item cursor-pointer">
+                        <url :class="`d-flex align-items-center nav-link ps-0 pe-0${user?.info ? '' : ' disabled'}`" :to="item.to" @click="tryClose">
+                            <h4 class="ms-3 mb-0" style="width: 3rem"><fa-icon :icon="item.icon" style="width: 2rem"></fa-icon></h4>
+                            <h5 class="m-0" data-sidebar-class="normal-d-block tiny-d-none">{{ item.name }}</h5>
+                        </url>
+                    </li>
+                </ol>
+            </div>
         </div>
         <div id="playlists" class="p-2 rounded-3 bg-dark-subtle h-100 overflow-hidden">
             <ol v-if="playlists && user && user.info" class="nav nav-pills d-block overflow-y-auto h-100">
