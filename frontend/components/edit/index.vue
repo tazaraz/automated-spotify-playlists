@@ -299,9 +299,7 @@ export default class Edit extends Vue {
         const textarea = document.getElementById('importConfigTextarea') as HTMLTextAreaElement;
         const config = JSON.parse(atob(textarea.value));
         if (document.getElementById('importOption1')?.checked) {
-            console.log(JSON.stringify(this.playlists.editing.filters.filters.concat(config)))
             this.playlists.editing.filters.filters = this.playlists.editing.filters.filters.concat(config);
-            console.log(this.playlists.editing.filters.filters)
         } else {
             this.playlists.editing.filters.filters = config;
         }

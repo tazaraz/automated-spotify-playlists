@@ -126,14 +126,12 @@ export default class InfoAlbum extends Vue {
         // Get the tracks
         Fetch.get<CTrack[]>(`spotify:/albums/${this.$route.params.id}/tracks`, { pagination: true })
         .then(async response => {
-            console.log(this.playlists.storage)
             this.tracks = await Promise.all(Fetch.format(response.data).map(async t => ({
                 ...t,
                 album: this.album,
                 image: this.album.image,
                 appearsIn: await this.playlists.trackAppearsIn(t.id)
             })));
-            console.log(this.playlists.storage)
         })
 
         this.breadcrumbs.add(`/info/album/${this.album.id}`, this.album.name)
