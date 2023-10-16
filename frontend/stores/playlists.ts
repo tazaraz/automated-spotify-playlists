@@ -133,7 +133,7 @@ export default class Playlists extends Pinia {
 
         // Set the editing playlist
         this.editing = {
-            ...playlist,
+            ...this.copy(playlist),
             index: this.storage.findIndex(p => p.id === id),
             ownership: this.playlistOwnership(playlist),
             // It's not visibile anyways
