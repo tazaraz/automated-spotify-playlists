@@ -41,7 +41,7 @@
 
             <h4 class="mt-4 mb-2">Take a look at an example:</h4>
             <div class="w-0">
-                <button v-if="!playlists.editing" @click="showDemo" class="btn btn-primary">Open example smart playlist configuration</button>
+                <button v-if="!playlists.editing || playlists.editing.id == 'example'" @click="showDemo" class="btn btn-primary">Open example smart playlist configuration</button>
                 <Modal v-else button-text="Open example smart playlist configuration" button-class="btn btn-primary">
                     <div class="modal-header">
                         <h1 class="modal-title fs-5" id="exampleModalLabel">Discard current editor?</h1>
@@ -62,8 +62,8 @@
 
             <h4 class="mt-4 mb-2">This is open source!</h4>
             <div class="w-0">
-                This web app is open source, meaning you can view the source code on <url to="https://github.com/tazaraz/spotify-smart-playlists">github</url>! If you are missing a feature, open a pull request.
-                Note that I am limited to what Spotify allows via their <url to="https://developer.spotify.com/documentation/web-api/">API</url>, and as such cannot implement everything (searching for users for example).
+                This web app is open source, meaning you can view the source code on <url to="https://github.com/tazaraz/spotify-smart-playlists" target="_blank">github</url>! If you are missing a feature, open a pull request.
+                Note that I am limited to what Spotify allows via their <url to="https://developer.spotify.com/documentation/web-api/" target="_blank">API</url>, and as such cannot implement everything (searching for users for example).
             </div>
         </div>
     </article>
@@ -107,7 +107,7 @@ export default class Homepage extends Vue {
     /**
      * Shows the demo editor. Simply creates a fake user and playlist to show the editor.
      */
-    showDemo() {
+    async showDemo() {
         if (!process.client) return;
 
         // Create a fake user to build a smart playlist as example
@@ -139,6 +139,7 @@ export default class Homepage extends Vue {
         this.playlists.editing.index = 999;
         this.playlists.editing.ownership = 'user';
 
+        await this.$nextTick();
         document.getElementById("toolbar")?.lastChild?.lastChild?.lastChild?.click();
     }
 }
