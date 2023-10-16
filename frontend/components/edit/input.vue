@@ -14,7 +14,7 @@
         <div v-else class="input-group">
             <url v-if="isValid"
                  :to="`/info/${kind}/${id}`"
-                 @click="breadcrumbs.clear(); breadcrumbs.add(`/info/${kind}/${id}`, name)"
+                 @click="click(`/info/${kind}/${id}`, name)"
                  class="link-primary text-decoration-underline source-input form-control bg-body-secondary"
             >{{ name }}</url>
             <input v-else ref="input" @focusout="updateInput" @keyup="updateInput" type="text" class="source-input form-control" :placeholder="`Insert ${kind} ID`" :value="name"/>
@@ -69,6 +69,11 @@ export default class EditInput extends Vue {
             this.id = this.value;
             await this.findId();
         })
+    }
+
+    beforeUnmount() {
+        this.isValid = true;
+        this.watcher();
     }
 
     async findId() {
@@ -131,9 +136,12 @@ export default class EditInput extends Vue {
         })
     }
 
-    beforeUnmount() {
-        this.isValid = true;
-        this.watcher();
+    async click(url: string, name: string) {
+        this.breadcrumbs.clear();
+        this.breadcrumbs.add(url, name);
+
+        await this.$nextTick();
+        document.getElementById("toolbar")?.lastChild?.lastChild?.lastChild?.click();
     }
 }
 </script>

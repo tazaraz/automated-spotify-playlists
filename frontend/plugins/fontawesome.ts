@@ -23,6 +23,7 @@ const icons = [
     "faUser",
     "faArrowDownWideShort",
     "faGripVertical",
+    "faArrowUpFromBracket",
 ]
 
 const FaIcons = icons.map((icon) => {

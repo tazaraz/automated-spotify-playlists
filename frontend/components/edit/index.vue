@@ -12,7 +12,7 @@
             </div>
             <div class="h-100 p-1 overflow-y-auto m-auto" data-edit-class="tiny-d-none" style="max-width: 50rem;">
                 <div class="d-flex align-items-center mb-3 mt-2 text-white text-decoration-none">
-                    <h4 class="ms-3 mb-0" style="width: 3rem"><fa-icon :icon="['fas', 'wand-magic']" style="width: 2rem"></fa-icon></h4>
+                    <h4 class="ms-3 me-3 mb-0"><fa-icon :icon="['fas', 'wand-magic']" style="width: 2rem"></fa-icon></h4>
                     <h4 class="m-0">
                         {{ playlists.editing.name }} Config
                     </h4>
@@ -22,11 +22,11 @@
                 <div id="basic" class="d-grid mb-3 p-2 ps-4 pe-4" data-edit-class="small-stacked normal-wide large-wide">
                     <Image :src="playlists.editing" class="h-100 m-auto"></Image>
                     <div class="form-floating">
-                        <input type="text" class="form-control" :value="playlists.editing.name" @input="editstate.name = $event.target?.value">
+                        <input type="text" class="form-control" :value="playlists.editing.name" @input="syncBasic('name', $event.target?.value)">
                         <label>Playlist name</label>
                     </div>
                     <div class="form-floating">
-                        <textarea class="form-control h-100 rounded-2" :value="playlists.editing.description" @input="editstate.description = $event.target?.value"></textarea>
+                        <textarea class="form-control h-100 rounded-2" :value="playlists.editing.description" @input="syncBasic('description', $event.target?.value)"></textarea>
                         <label>Description</label>
                     </div>
                 </div>
@@ -41,7 +41,7 @@
                         </span>
                     </li>
                 </ul>
-                <div :hidden="showLog">
+                <div :hidden="showLog" class="overflow-x-auto">
                     <div class="d-flex">
                         <h5 class="flex-grow-1">Sources</h5>
                         <button class="btn action" @click="editstate.addSource"><fa-icon class="text-primary"
@@ -57,9 +57,11 @@
                     <div class="mt-4 d-flex">
                         <div class="flex-grow-1">
                             <h5 class="d-inline me-3">Filters</h5>
-                            <small>(match <select id="source-select" class="d-inline-flex form-select form-select-sm w-auto" @change="globalStatementChange">
-                            <option v-for="mode in Object.keys(FilterParserOptions)" :value="mode" :selected="editstate.computedFilters.mode == mode">{{ mode }}</option>
-                            </select> 1<sup>st</sup> level filters)</small>
+                            <div>
+                                <small>(match <select id="source-select" class="d-inline-flex form-select form-select-sm w-auto" @change="globalStatementChange">
+                                <option v-for="mode in Object.keys(FilterParserOptions)" :value="mode" :selected="editstate.computedFilters.mode == mode">{{ mode }}</option>
+                                </select> 1<sup>st</sup> level filters)</small>
+                            </div>
                         </div>
                         <button class="btn action" @click="editstate.addFilter('condition')">
                             <fa-icon class="text-primary" :icon="['fas', 'plus']"></fa-icon>
@@ -93,22 +95,97 @@
                 </div>
                 <hr>
                 <small v-if="playlists.editing.id == 'example'" class="text-body-secondary">
-                    'Save' and 'Run' are disabled for the example smart playlist configuration
+                    'Save and apply filters' is disabled for the example smart playlist configuration
                 </small>
+
                 <section class="d-flex flex-wrap">
-                    <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" data-bs-dismiss="offcanvas" @click="save" :disabled="playlists.editing.id == 'example'">
-                        <span>{{ saveState == 0 ? "Save" : saveState == 1 ? "Saving" : "Saved" }}</span>
-                        <Image v-if="editstate.saving && editstate.error == 0 && saveState == 1" class="d-inline shadow-none ms-2" style="width: 1.5rem; height: 1.5rem" src=""></Image>
-                    </button>
+                    <div class="d-flex align-items-end dropdown mt-3 me-3">
+                        <button class="btn" type="button" data-bs-toggle="dropdown">
+                            <h5 class="m-0"><fa-icon :icon="['fas', 'arrow-up-from-bracket']" /></h5>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <Modal button-text="Export" button-class="dropdown-item">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="exampleModalLabel">Export Playlist configuration</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Copy the following code beneath to export the configuration of this playlist:
+                                        <div class="bg-white rounded-2 p-2 pe-1 mt-3">
+                                            <div class="overflow-y-auto" style="max-height: 20rem;">
+                                                <code class="text-black text-break">
+                                                    {{ window.btoa(JSON.stringify(playlists.editing.filters)) }}
+                                                </code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" @click="copyConfig()">
+                                            {{ copied == 0 ? 'Copy' : 'Copied' }}
+                                        </button>
+                                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </Modal>
+                            </li>
+                            <li>
+                                <Modal button-text="Import" button-class="dropdown-item">
+                                    <div class="modal-header">
+                                        <h1 class="modal-title fs-5" id="exampleModalLabel">Import Playlist configuration</h1>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        Import the configuration of this playlist by pasting the exported code beneath:
+                                        <div>
+                                            <textarea id="importConfigTextarea"
+                                                      class="w-100 border-0 bg-white text-black rounded-2 p-2 pe-1 mt-3"
+                                                      style="height: 20rem;"
+                                                      @focusout="checkImportConfig"
+                                                      @keyup="checkImportConfig"
+                                            ></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <div class="me-auto">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="importOptions" id="importOption1" checked>
+                                                <label class="form-check-label" for="importOption1">
+                                                    Append config to current
+                                                </label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="importOptions" id="importOption2">
+                                                <label class="form-check-label" for="importOption2">
+                                                    Overwrite current config
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @click="importConfig" :disabled="!validImportConfig">Import</button>
+                                    </div>
+                                </Modal>
+                            </li>
+                        </ul>
+                    </div>
 
                     <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" data-bs-dismiss="offcanvas" @click="execute" :disabled="playlists.editing.id == 'example'">
-                        <span>{{ executeState == 0 ? "Run" : executeState == 1 ? "Running" : "Done" }}</span>
-                        <Image class="d-inline shadow-none ms-2" style="width: 1.5rem; height: 1.5rem" v-if="executeState == 1" src=""></Image>
+                        <span v-if="saveState == 0 && executeState == 0">
+                            Save and apply filters
+                        </span>
+                        <span v-if="saveState == 1">
+                            Saving
+                        </span>
+                        <span v-if="executeState == 1">
+                            Applying filters
+                        </span>
+                        <span v-if="executeState == 2">
+                            Done
+                        </span>
+                        <Image class="d-inline shadow-none ms-2" style="width: 1.5rem; height: 1.5rem" v-if="saveState == 1 || executeState == 1" src=""></Image>
                     </button>
 
-                    <button type="button" id="editReset" class="btn btn-danger ms-auto mt-3 me-3" data-bs-dismiss="offcanvas" @click="editstate.reset">Reset</button>
+                    <button type="button" id="editReset" class="btn btn-danger ms-auto mt-3 me-3" data-bs-dismiss="offcanvas" @click="resetConfig">Reset</button>
 
-                    <button type="button" id="editDiscard" class="btn btn-danger mt-3 text-nowrap" data-bs-dismiss="offcanvas" @click="(playlists.editing = undefined as any)">Discard changes</button>
                 </section>
             </div>
         </template>
@@ -117,7 +194,7 @@
 
 <script lang="ts">
 import { Vue } from 'vue-property-decorator';
-import Playlists from '~/stores/playlists';
+import Playlists, { CPlaylist } from '~/stores/playlists';
 import User from '~/stores/user';
 import Layout from '~/stores/layout';
 import EditCondition from './condition.vue';
@@ -130,13 +207,21 @@ export default class Edit extends Vue {
     layout: Layout = null as any;
     editstate: EditState = null as any;
 
+    window = window
     FilterParserOptions = FilterParserOptions;
+
+    /** Interval after which basic info change (name & description) will be synced */
+    basicUpdateTimeout: any = 0;
 
     showLog = false;
     /** 0: default, 1: pending, 2: finished */
     saveState = 0;
     /** 0: default, 1: pending, 2: finished */
     executeState = 0;
+    /** 0: uncopied, 1: copied */
+    copied = 0;
+    /** 0: invalid config, 1: valid config */
+    validImportConfig = 0;
 
     created() {
         if (!process.client) return;
@@ -159,8 +244,7 @@ export default class Edit extends Vue {
         this.editstate.refs = this.$refs;
         this.saveState = 1;
         await this.editstate.save();
-        this.saveState = 2;
-        setTimeout(() => this.saveState = 0, 1000);
+        this.saveState = 0;
     }
 
     /** Executes the filters of the playlists */
@@ -175,8 +259,55 @@ export default class Edit extends Vue {
         setTimeout(() => this.executeState = 0, 1000);
     }
 
+    async syncBasic(target: 'name' | 'description', value: string) {
+        if (this.basicUpdateTimeout) clearTimeout(this.basicUpdateTimeout);
+        this.editstate.updateBasic(target, value);
+        this.playlists.editing[target] = value as CPlaylist['name' | 'description'];
+
+        this.basicUpdateTimeout = setTimeout(async () => {
+            await this.playlists.updateBasic(this.playlists.editing)
+            this.basicUpdateTimeout = 0;
+        }, 1000);
+    }
+
+    async resetConfig() {
+        await this.playlists.loadEditingPlaylist(this.playlists.editing.id);
+        this.editstate.reset();
+    }
+
     globalStatementChange(event: Event) {
         this.editstate.computedFilters.mode = (event.target! as HTMLSelectElement).value as keyof typeof FilterParserOptions;
+    }
+
+    async copyConfig() {
+        await navigator.clipboard.writeText(btoa(JSON.stringify(this.playlists.editing.filters)));
+        this.copied = 1;
+        setTimeout(() => this.copied = 0, 1000);
+    }
+
+    checkImportConfig() {
+        try {
+            const textarea = document.getElementById('importConfigTextarea') as HTMLTextAreaElement;
+            JSON.parse(atob(textarea.value));
+            this.validImportConfig = 1;
+        } catch (e) {
+            this.validImportConfig = 0;
+        }
+    }
+
+    async importConfig() {
+        const textarea = document.getElementById('importConfigTextarea') as HTMLTextAreaElement;
+        const config = JSON.parse(atob(textarea.value));
+        if (document.getElementById('importOption1')?.checked) {
+            console.log(JSON.stringify(this.playlists.editing.filters.filters.concat(config)))
+            this.playlists.editing.filters.filters = this.playlists.editing.filters.filters.concat(config);
+            console.log(this.playlists.editing.filters.filters)
+        } else {
+            this.playlists.editing.filters.filters = config;
+        }
+        textarea.value = "";
+        this.validImportConfig = 0;
+        this.editstate.reset();
     }
 }
 </script>
@@ -235,5 +366,9 @@ article{
 #filters .filter-item {
     display: grid;
     grid-auto-rows: 40px;
+}
+
+:deep(#playlist-export) {
+    margin: 0 !important;
 }
 </style>
