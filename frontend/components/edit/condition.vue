@@ -39,25 +39,43 @@
 
         <template v-if="layout && layout.edit.width >= layout.edit.large.min">
             <span v-if="inputType == inputTypes.value" class="center input input-group input-group-sm">
-                <input type="text" class="source-input form-control" :value="condition.value"/>
+                <input @input="condition.value = $event.target!.value"
+                       type="text"
+                       class="source-input form-control"
+                       :value="condition.value"/>
             </span>
             <span v-if="inputType == inputTypes.date" class="center input input-group input-group-sm">
-                <input type="date" class="source-input form-control" :value="condition.value"/>
+                <input @input="condition.value = $event.target!.value"
+                       type="date"
+                       class="source-input form-control"
+                       :value="condition.value"/>
             </span>
             <span v-if="inputType == inputTypes.time" class="center input duration">
                 <div class="input-group input-group-sm">
-                    <input @input="durationInput('minutes', $event)" type="number" class="source-input form-control" min="0" max="60" :value="duration[0]"/>
+                    <input @input="durationInput('minutes', $event)"
+                           type="number"
+                           class="source-input form-control"
+                           min="0" max="60"
+                           :value="duration[0]"/>
                     <span class="source-input form-control">:</span>
-                    <input @input="durationInput('seconds', $event)" type="number" class="source-input form-control" min="0" max="60" :value="duration[1]"/>
+                    <input @input="durationInput('seconds', $event)"
+                           type="number"
+                           class="source-input form-control"
+                           min="0" max="60"
+                           :value="duration[1]"/>
                 </div>
             </span>
             <span v-if="inputType == inputTypes.slider" class="center input input-group flex-column input-group-sm gap-3">
-                <input @input="condition.value = $event.target!.value" type="range" class="source-input form-range m-auto" :value="condition.value"/>
+                <input @input="condition.value = $event.target!.value"
+                       type="range"
+                       class="source-input form-range m-auto"
+                       :value="condition.value"/>
                 <span class="m-auto">{{ (parseInt(condition.value) / 10).toFixed(1) }} / 10</span>
             </span>
-            <span v-if="inputType == inputTypes.boolean" style="grid-column: span 2;"></span>
 
+            <span v-if="inputType == inputTypes.boolean" style="grid-column: span 2;"></span>
             <span style="grid-column: span 2;"></span>
+
             <button class="border-0 bg-transparent" @click="$emit('event', 'delete')">
                 <fa-icon style="color: rgb(155, 0, 0)" :icon="['fas', 'trash-can']"></fa-icon>
             </button>
@@ -92,20 +110,36 @@
             <span v-if="i < indent" class="tree indent"><i></i></span>
             <template v-else>
                 <span v-if="inputType == inputTypes.value" class="center stacked-input input-group input-group-sm ps-4">
-                    <input type="text" class="source-input form-control" :value="condition.value"/>
+                    <input @input="condition.value = $event.target!.value"
+                           type="text"
+                           class="source-input form-control"
+                           :value="condition.value"/>
                 </span>
                 <span v-if="inputType == inputTypes.date" class="center stacked-input input-group input-group-sm ps-4">
-                    <input type="date" class="source-input form-control" :value="condition.value"/>
+                    <input @input="condition.value = $event.target!.value"
+                           type="date"
+                           class="source-input form-control"
+                           :value="condition.value"/>
                 </span>
                 <span v-if="inputType == inputTypes.time" class="center stacked-input duration ps-4">
                     <div class="input-group input-group-sm">
-                        <input @input="durationInput('minutes', $event)" type="number" class="source-input form-control" min="0" max="60" :value="duration[0]"/>
+                        <input @input="durationInput('minutes', $event)"
+                               type="number" class="source-input form-control"
+                               min="0" max="60"
+                               :value="duration[0]"/>
                         <span class="source-input form-control">:</span>
-                        <input @input="durationInput('seconds', $event)" type="number" class="source-input form-control" min="0" max="60" :value="duration[1]"/>
+                        <input @input="durationInput('seconds', $event)"
+                               type="number"
+                               class="source-input form-control"
+                               min="0" max="60"
+                               :value="duration[1]"/>
                     </div>
                 </span>
                 <span v-if="inputType == inputTypes.slider" class="center stacked-input input-group flex-column input-group-sm gap-3">
-                    <input @input="condition.value = $event.target!.value" type="range" class="source-input form-range m-auto" :value="condition.value"/>
+                    <input @input="condition.value = $event.target!.value"
+                           type="range"
+                           class="source-input form-range m-auto"
+                           :value="condition.value"/>
                     <span class="m-auto">{{ (parseInt(condition.value) / 10).toFixed(1) }} / 10</span>
                 </span>
             </template>
