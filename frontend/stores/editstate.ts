@@ -202,17 +202,19 @@ export default class EditState extends Pinia {
             // We require at least one source
             if (this.refs.sources == undefined) this.error += 1;
             for (const source of this.refs.sources || []) {
-                if (!source.isValid())
-                this.error += 1;
+                if (!source.isValid()) {
+                    this.error += 1;
                     break;
+                }
             }
 
             // Filters are optional
             if (this.refs.filters == undefined) this.error += 0;
             for (const filter of this.refs.filters || []) {
-                if (!filter.isValid())
+                if (!filter.isValid()) {
                     this.error += 2;
                     break;
+                }
             }
 
             // Remove the error after 3 seconds
