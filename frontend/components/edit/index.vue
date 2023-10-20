@@ -115,7 +115,10 @@
                                         <div class="bg-white rounded-2 p-2 pe-1 mt-3">
                                             <div class="overflow-y-auto" style="max-height: 20rem;">
                                                 <code class="text-black text-break">
-                                                    {{ window.btoa(JSON.stringify(playlists.editing.filters)) }}
+                                                    {{ window.btoa(JSON.stringify({
+                                                        sources: playlists.editing.sources,
+                                                        filters: playlists.editing.filters,
+                                                    })) }}
                                                 </code>
                                             </div>
                                         </div>
@@ -280,7 +283,10 @@ export default class Edit extends Vue {
     }
 
     async copyConfig() {
-        await navigator.clipboard.writeText(btoa(JSON.stringify(this.playlists.editing.filters)));
+        await navigator.clipboard.writeText(btoa(JSON.stringify({
+            sources: this.playlists.editing.sources,
+            filters: this.playlists.editing.filters,
+        })));
         this.copied = 1;
         setTimeout(() => this.copied = 0, 1000);
     }
@@ -299,12 +305,15 @@ export default class Edit extends Vue {
         const textarea = document.getElementById('importConfigTextarea') as HTMLTextAreaElement;
         const config = JSON.parse(atob(textarea.value));
         if (document.getElementById('importOption1')?.checked) {
-            this.playlists.editing.filters.filters = this.playlists.editing.filters.filters.concat(config);
+            this.playlists.editing.sources = this.playlists.editing.sources.concat(config.sources);
+            this.playlists.editing.filters.filters = this.playlists.editing.filters.filters.concat(config.filters);
         } else {
-            this.playlists.editing.filters.filters = config;
+            this.playlists.editing.sources = config.sources;
+            this.playlists.editing.filters = config.filters;
         }
         textarea.value = "";
         this.validImportConfig = 0;
+        this.$forceUpdate();
         this.editstate.reset();
     }
 }
