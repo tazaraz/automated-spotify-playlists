@@ -181,7 +181,7 @@ export default class Database {
 
     static async addToIncludedTracks(user_id: string, playlist_id: string, included_track: string) {
         const remove = await Database.client.query(
-            `UPDATE playlists SET included_tracks = array_removearray_prepend($1, included_tracks) WHERE id = $2 and user_id = $3`, [included_track, playlist_id, user_id]
+            `UPDATE playlists SET included_tracks = array_prepend($1, included_tracks) WHERE id = $2 and user_id = $3`, [included_track, playlist_id, user_id]
             );
 
             return remove.rowCount > 0 ? true : false;
