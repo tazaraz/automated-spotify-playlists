@@ -235,9 +235,9 @@ export default class EditState extends Pinia {
                 // If published, but the filters or track sources have changed
                 (!this.playlists.unpublished &&
                     (JSON.stringify(this.computedFilters) != JSON.stringify(this.playlists.editing.filters) ||
-                     JSON.stringify(this.computedSources) != JSON.stringify(this.playlists.editing.track_sources)
+                     JSON.stringify(this.computedSources) != JSON.stringify(this.playlists.editing.sources)
         )))) {
-            this.playlists.editing.track_sources = this.computedSources
+            this.playlists.editing.sources = this.computedSources
             this.playlists.editing.filters = this.computedFilters
 
             // If the playlist has been converted to a smart playlist, move the old tracks to the included tracks
@@ -289,7 +289,7 @@ export default class EditState extends Pinia {
 
         if (this.playlists.editing.filters) {
             this.globalFilter    = this.playlists.editing.filters.mode;
-            this.computedSources = JSON.parse(JSON.stringify(this.playlists.editing.track_sources));
+            this.computedSources = JSON.parse(JSON.stringify(this.playlists.editing.sources));
             this.computedFilters = JSON.parse(JSON.stringify(this.playlists.editing.filters));
             this.flattenedFilters = this.flatten(this.computedFilters)
         } else {
