@@ -499,7 +499,7 @@ export default class Playlists extends Pinia {
      * @param playlist Playlist to sync
      */
     async updateBasic(playlist: LoadedPlaylist) {
-        if (!this.unpublished) {
+        if (!this.unpublished && playlist.name !== "" && playlist.description !== "") {
             this.save(playlist)
 
             await Fetch.put(`server:/playlist/${playlist.id}/basic`, { data: {

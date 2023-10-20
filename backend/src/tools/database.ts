@@ -143,7 +143,7 @@ export default class Database {
      */
     static async addToMatchedTracks(user_id: string, playlist_id: string, excluded_track: string) {
         const remove = await Database.client.query(
-            `UPDATE playlists SET excluded_tracks = array_remove(excluded_tracks, $1) WHERE id = $2 and user_id = $3`, [excluded_track, playlist_id, user_id]
+            `UPDATE playlists SET excluded_tracks = array_remove(excluded_tracks, $1) WHERE id = $2 AND user_id = $3`, [excluded_track, playlist_id, user_id]
         );
 
         if (remove.rowCount > 0) {
@@ -165,7 +165,7 @@ export default class Database {
      */
     static async addToExcludedTracks(user_id: string, playlist_id: string, excluded_track: string) {
         const remove = await Database.client.query(
-            `UPDATE playlists SET matched_tracks = array_remove(matched_tracks, $1) WHERE id = $2 and user_id = $3`, [excluded_track, playlist_id, user_id]
+            `UPDATE playlists SET matched_tracks = array_remove(matched_tracks, $1) WHERE id = $2 AND user_id = $3`, [excluded_track, playlist_id, user_id]
         );
 
         if (remove.rowCount > 0) {
@@ -182,13 +182,13 @@ export default class Database {
     static async addToIncludedTracks(user_id: string, playlist_id: string, included_track: string) {
         const remove = await Database.client.query(
             `UPDATE playlists SET included_tracks = array_prepend($1, included_tracks) WHERE id = $2 and user_id = $3`, [included_track, playlist_id, user_id]
-            );
+        );
 
-            return remove.rowCount > 0 ? true : false;
-        }
+        return remove.rowCount > 0 ? true : false;
+    }
 
-        static async removeFromIncludedTracks(user_id: string, playlist_id: string, included_track: string) {
-            const add = await Database.client.query(
+    static async removeFromIncludedTracks(user_id: string, playlist_id: string, included_track: string) {
+        const add = await Database.client.query(
             `UPDATE playlists SET included_tracks = array_remove(included_tracks, $1) WHERE id = $2 and user_id = $3`, [included_track, playlist_id, user_id]
         );
 
