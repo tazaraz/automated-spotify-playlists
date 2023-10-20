@@ -164,24 +164,23 @@ export default class FilterParser {
             if (dryrun) return input
 
             // Store the loved status of each track
-            const loved: boolean[] = []
+            const loved: {[id: string]: boolean} = {}
             // Convert each FilterItem to a STrack and convert and store it again as FilterItem
             const tracks = (await Promise.all(input.map(item => Track.convert(item)))).flat() as FilterItem[]
             tracks.forEach(item => (item as FilterItem).kind = "track")
 
-            for (let i = 0; i < tracks.length; i += 50) {
+            for (let i = 0; i < tracks.length; i += 20) {
+                // ids get sorted in Fetch. This is important as the response relative to the input.
+                const ids = tracks.slice(i, i + 20).map(track => track.id).sort()
                 // Spotify endpoint to check if a track is loved
-                const response = await Fetch.get<boolean[]>('/me/tracks/contains', {
-                    user,
-                    ids: tracks.slice(i, i + 50).map(track => track.id),
-                })
+                const response = await Fetch.get<boolean[]>('/me/tracks/contains', { user, ids })
 
                 // Store more of the info
-                loved.push(...response.data)
+                ids.forEach((id, j) => loved[id] = response.data[j])
             }
 
-            // Filter out the tracks which are loved
-            const loved_tracks = tracks.filter((_, i) => FilterBoolean.matches(condition.operation as keyof typeof FilterBoolean.operation, loved[i]))
+            // Filter out the ids from loved which do not match the condition
+            const loved_tracks = tracks.filter((_, i) => FilterBoolean.matches(condition.operation as keyof typeof FilterBoolean.operation, loved[tracks[i].id]))
 
             task.log.filters.push(`Is loved check present. Converted ${input.length} items to ${tracks.length} tracks and checked if they were loved, leaving ${loved_tracks.length} tracks.`)
 
