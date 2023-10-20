@@ -8,7 +8,7 @@ import FilterParser from './processing/parser';
 import FilterTask from './stores/filtertask';
 import { Playlist } from './shared/types/playlist';
 import { CUser } from './shared/types/client';
-import { LOG } from './main';
+import { LOG, LOG_DEBUG } from './main';
 
 const api = express.Router();
 
@@ -63,6 +63,10 @@ api.post('/user/authorize', async (req, res) => {
 
     // Update or insert the user into the database
     Database.setUser(await Users.get(response.data.id))
+    .catch(error => {
+        LOG_DEBUG("Failed to update user:\n" + error)
+        res.status(400).json({ status: "Failed to update user", error: error })
+    });
 
     // Generate a token for the user
     const server_token = Users.generate_token({
@@ -96,7 +100,12 @@ api.post('/user/refresh', Users.verify_token, async (req, res) => {
  * @returns All smart playlists for the user
  */
 api.get('/playlists', Users.verify_token, async (req, res) => {
-    res.json((await Database.getUserPlaylists(req.user.id) || []));
+    try {
+        res.json((await Database.getUserPlaylists(req.user.id) || []));
+    } catch (error) {
+        LOG_DEBUG("Failed to get playlists:\n" + error)
+        res.status(400).json({ status: "Failed to get playlists", error: error });
+    }
 });
 
 /**
@@ -139,38 +148,43 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
     task.delete();
 
     /** We now update or create the playlist */
-    const dbplaylist = await Database.getPlaylist(req.user.id, playlist.id);
-    if (dbplaylist) {
-        // If something changed, update the playlist
-        if ((playlist.description !== dbplaylist.description && playlist.description !== "") ||
-            playlist.name !== dbplaylist.name
-        ) {
-            // Spotify replies 400 if the description is empty
-            const spdata:any = { name: playlist.name };
-            if (playlist.description) spdata.description = playlist.description;
+    try {
+        const dbplaylist = await Database.getPlaylist(req.user.id, playlist.id);
+        if (dbplaylist) {
+            // If something changed, update the playlist
+            if ((playlist.description !== dbplaylist.description && playlist.description !== "") ||
+                playlist.name !== dbplaylist.name
+            ) {
+                // Spotify replies 400 if the description is empty
+                const spdata:any = { name: playlist.name };
+                if (playlist.description) spdata.description = playlist.description;
 
-            // Update Spotify
-            Fetch.put(`/playlists/${playlist.id}`, { user, query: spdata });
+                // Update Spotify
+                Fetch.put(`/playlists/${playlist.id}`, { user, query: spdata });
+            }
+
+            playlist.matched_tracks = dbplaylist.matched_tracks;
+            playlist.included_tracks = dbplaylist.included_tracks;
+            playlist.excluded_tracks = dbplaylist.excluded_tracks;
         }
 
-        playlist.matched_tracks = dbplaylist.matched_tracks;
-        playlist.included_tracks = dbplaylist.included_tracks;
-        playlist.excluded_tracks = dbplaylist.excluded_tracks;
+        // A new playlist, add it to spotify
+        else {
+            playlist.id = (await Fetch.post(`/users/${req.user.id}/playlists`, {
+                user,
+                data: { name: playlist.name, description: playlist.description }
+            })).data.id;
+        }
+
+        // Upsert the smart playlist
+        await Database.setPlaylist(req.user.id, playlist);
+
+        // Send the response
+        res.status(200).json(playlist.id);
+    } catch (error) {
+        LOG_DEBUG("Failed to save smart playlist:\n" + error)
+        res.status(400).json({ status: "Failed to save smart playlist", error: error })
     }
-
-    // A new playlist, add it to spotify
-    else {
-        playlist.id = (await Fetch.post(`/users/${req.user.id}/playlists`, {
-            user,
-            data: { name: playlist.name, description: playlist.description }
-        })).data.id;
-    }
-
-    // Upsert the smart playlist
-    await Database.setPlaylist(req.user.id, playlist);
-
-    // Send the response
-    res.status(200).json(playlist.id);
 });
 
 /**
@@ -189,10 +203,9 @@ api.delete('/playlist', Users.verify_token, async (req, res) => {
 
         // Delete the playlist from the database
         Database.deletePlaylist(req.user.id, req.body.id)
-        .then(() => {
-            res.sendStatus(200)
-        })
+        .then(() => { res.sendStatus(200)})
         .catch(error => {
+            LOG_DEBUG("Failed to delete smart playlist:\n" + error)
             res.status(400).json({status: "Failed to delete smart playlist", error: error})
         })
     })
@@ -246,8 +259,12 @@ api.put(`/playlist/:playlistid/basic`, Users.verify_token, async (req, res) => {
         if (response.status !== 200)
             return res.status(response.status).json({status: "Spotify Error", error: response.statusText})
 
-        Database.setSmartPlaylistBasic(req.user.id, req.params.playlistid, data.name, data.description);
-        res.sendStatus(200);
+        Database.setSmartPlaylistBasic(req.user.id, req.params.playlistid, data.name, data.description)
+        .then(() => res.sendStatus(200))
+        .catch(error => {
+            LOG_DEBUG("Failed to update smart playlist basic info:\n" + error)
+            res.status(400).json({status: "Failed to update smart playlist basic info", error: error})
+        })
     })
 })
 
@@ -278,10 +295,15 @@ api.delete(`/playlist/:playlistid/matched-tracks`, Users.verify_token, async (re
     }
 
     // Move the tracks
-    for (let trackid of req.body.removed)
-        Database.addToExcludedTracks(req.user.id, req.params.playlistid, trackid);
+    try {
+        for (let trackid of req.body.removed)
+            await Database.addToExcludedTracks(req.user.id, req.params.playlistid, trackid);
 
-    res.sendStatus(200);
+        res.sendStatus(200);
+    } catch (error) {
+        LOG_DEBUG("Failed to move tracks to excluded:\n" + error)
+        res.status(400).json({status: "Failed to move tracks to excluded", error: error})
+    }
 })
 
 /**
@@ -311,10 +333,14 @@ api.delete(`/playlist/:playlistid/excluded-tracks`, Users.verify_token, async (r
     }
 
     // Move the tracks
-    for (let trackid of req.body.removed)
-        Database.addToMatchedTracks(req.user.id, req.params.playlistid, trackid);
-
-    res.sendStatus(200);
+    try {
+        for (let trackid of req.body.removed)
+            Database.addToMatchedTracks(req.user.id, req.params.playlistid, trackid);
+        res.sendStatus(200);
+    } catch (error) {
+        LOG_DEBUG("Failed to move tracks to matched:\n" + error)
+        res.status(400).json({status: "Failed to move tracks to matched", error: error})
+    }
 })
 
 /**
@@ -344,10 +370,15 @@ api.delete(`/playlist/:playlistid/included-tracks`, Users.verify_token, async (r
     }
 
     // Remove the tracks
-    for (let trackid of req.body.removed)
-        Database.removeFromIncludedTracks(req.user.id, req.params.playlistid, trackid);
+    try {
+        for (let trackid of req.body.removed)
+            Database.removeFromIncludedTracks(req.user.id, req.params.playlistid, trackid);
 
-    res.sendStatus(200);
+        res.sendStatus(200);
+    } catch (error) {
+        LOG_DEBUG("Failed to remove tracks from included:\n" + error)
+        res.status(400).json({status: "Failed to remove tracks from included"})
+    }
 })
 
 api.get('/spclient-tokens', Users.verify_token, async (req, res) => {
