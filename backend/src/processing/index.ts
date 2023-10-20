@@ -64,7 +64,7 @@ export default class Filters {
         playlist.description = (spotify_playlist as Playlist).description;
 
         // Get tracks according to the specified sources
-        const source_tracks = await MusicSources.get(playlist.track_sources, user, task);
+        const source_tracks = await MusicSources.get(playlist.sources, user, task);
 
         // Filter out duplicate tracks.
         const input = [...new Map(source_tracks.map(item => [item.id, item])).values()]

@@ -277,7 +277,7 @@ export default class Playlists extends Pinia {
             name:     "Smart Playlist",
             description: '',
             image: '',
-            track_sources: [{origin: "Library", value: ""}],
+            sources: [{origin: "Library", value: ""}],
             filters: {
                 mode: "all",
                 filters: []
@@ -487,7 +487,7 @@ export default class Playlists extends Pinia {
                 name: playlist.name,
                 description: playlist.description ?? "",
                 filters: playlist.filters,
-                track_sources: playlist.track_sources,
+                sources: playlist.sources,
             }
         })
 

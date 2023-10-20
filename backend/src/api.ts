@@ -110,8 +110,8 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
         // Remove newlines from the name
         name: req.body.name.replace(/\n/g,''),
         description: req.body.description,
+        sources: req.body.sources,
         filters: req.body.filters,
-        track_sources: req.body.track_sources,
         matched_tracks: [],
         excluded_tracks: [],
         included_tracks: [],
@@ -127,10 +127,10 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
     const task = new FilterTask(Math.random().toString())
 
     try {
+        // Check if the sources supplied are valid
+        await MusicSources.get(playlist.sources, user, task, true)
         // Check if the filters supplied are valid
         await FilterParser.process(playlist.filters, [], user, task, true);
-        // Check if the sources supplied are valid
-        await MusicSources.get(playlist.track_sources, user, task, true)
     } catch (error) {
         return res.status(400).json({ error: error.message });
     }

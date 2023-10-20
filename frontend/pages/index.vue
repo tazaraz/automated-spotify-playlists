@@ -118,7 +118,7 @@ export default class Homepage extends Vue {
         playlist.id = 'example';
         playlist.description = 'Some values, such as artists, albums, and genres, can only be retrieved when signed in.'
 
-        playlist.track_sources = [
+        playlist.sources = [
             {origin: "Library", value: ""},
             {origin: "Artist's Top Tracks", value: '3koiLjNrgRTNbOwViDipeA'}
         ]

@@ -9,7 +9,7 @@ export interface Playlist {
     name: string;
     description: string;
     image?: string;
-    track_sources:      PlaylistSource[];
+    sources:      PlaylistSource[];
     filters:            PlaylistStatement;
     // Track IDs which are matched and not manually excluded or included
     matched_tracks:     string[];

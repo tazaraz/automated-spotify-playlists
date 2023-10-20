@@ -16,7 +16,7 @@ CREATE TABLE playlists (
     -- Contains the filters
     filters             JSONB            NOT NULL,
     -- Contains the sources
-    track_sources       JSONB[]          NOT NULL,
+    sources             JSONB[]          NOT NULL,
     -- Tracks which are matched by the filters
     matched_tracks      TEXT[]          NOT NULL,
     -- Tracks which manually included by the user
