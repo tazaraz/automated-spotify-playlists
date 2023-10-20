@@ -148,7 +148,7 @@ export default class Database {
 
         if (remove.rowCount > 0) {
             const add = await Database.client.query(
-                `UPDATE playlists SET matched_tracks = array_prepend($1, matched_tracks) WHERE id = $2 and user_id = $3`, [excluded_track, playlist_id, user_id]
+                `UPDATE playlists SET matched_tracks = array_prepend($1, matched_tracks) WHERE id = $2 AND user_id = $3 AND $1 <> ALL(matched_tracks)`, [excluded_track, playlist_id, user_id]
             );
 
             return add.rowCount > 0 ? true : false;
@@ -170,7 +170,7 @@ export default class Database {
 
         if (remove.rowCount > 0) {
             const add = await Database.client.query(
-                `UPDATE playlists SET excluded_tracks = array_prepend($1, excluded_tracks) WHERE id = $2 and user_id = $3`, [excluded_track, playlist_id, user_id]
+                `UPDATE playlists SET excluded_tracks = array_prepend($1, excluded_tracks) WHERE id = $2 AND user_id = $3 AND $1 <> ALL(excluded_tracks)`, [excluded_track, playlist_id, user_id]
             );
 
             return add.rowCount > 0 ? true : false;
