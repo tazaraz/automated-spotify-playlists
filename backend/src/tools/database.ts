@@ -65,6 +65,15 @@ export default class Database {
     }
 
     /**
+     * Deletes a user from the database. Disables updating for all their playlists
+     * @param user User to delete
+     */
+    static async deleteUser(user: SUser | DBUser) {
+        const query = await Database.client.query(`DELETE FROM users WHERE id = $1`, [user.id]);
+        return query.rowCount > 0 ? true : false;
+    }
+
+    /**
      * Saves/updates a playlist to the database
      * @param user_id User id belonging to the playlist
      * @param playlist Playlist to save

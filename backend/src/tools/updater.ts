@@ -84,7 +84,8 @@ export default class Updater {
         const remove: Playlist[] = [];
         for (const playlist of db_playlists) {
             // If the user does not have this playlist anymore
-            if (!users_playlists[playlist.user_id].some(p => p.id === playlist.id)) {
+            if (users_playlists[playlist.user_id] &&
+                !users_playlists[playlist.user_id].some(p => p.id === playlist.id)) {
                 const response = await Fetch.get(`/playlists/${playlist.id}`, {
                     user: await Users.get(playlist.user_id)
                 });
@@ -94,7 +95,7 @@ export default class Updater {
             }
         }
 
-        LOG(`Cleaning database: removing ${remove.length} playlists...`);
+        LOG(`Cleaning database: removed ${remove.length} playlists!`)
 
         // Remove the playlists
         for (const playlist of remove)

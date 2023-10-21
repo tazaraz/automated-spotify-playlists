@@ -1,6 +1,6 @@
 import * as jwt from "jsonwebtoken";
 import Database from "../tools/database";
-import { SUser } from "../shared/types/server";
+import { DBUser, SUser } from "../shared/types/server";
 import Fetch from "../tools/fetch";
 import { THROW_DEBUG_ERROR } from "../main";
 
@@ -23,7 +23,11 @@ export default class Users {
                 return undefined;
 
             // Get a new access token
-            const data = await Users.refreshAccessToken(cuser.refresh_token);
+            const data = await Users.refreshAccessToken(cuser);
+
+            // If the user was deleted from the database, return undefined
+            if (!data)
+                return undefined;
 
             // Store the user in the cache
             Users.users[id] = {
@@ -82,7 +86,7 @@ export default class Users {
         })
     }
 
-    private static async refreshAccessToken(refresh_token: string, retry = 1) {
+    private static async refreshAccessToken(user: DBUser, retry = 1) {
         // Fetch an access token
         const response = await Fetch.post('https://accounts.spotify.com/api/token', {
             headers: {
@@ -91,7 +95,7 @@ export default class Users {
             },
             data: {
                 grant_type: 'refresh_token',
-                refresh_token,
+                refresh_token: user.refresh_token,
             },
         })
 
@@ -100,9 +104,16 @@ export default class Users {
             await new Promise(resolve => setTimeout(resolve, 1000));
 
             if (retry > 0) {
-                return await Users.refreshAccessToken(refresh_token, retry - 1);
+                return await Users.refreshAccessToken(user, retry - 1);
             } else {
-                THROW_DEBUG_ERROR(`Could not refresh access token: ${JSON.stringify(response.data)}`);
+                /* The user has revoked access. Remove the user from the database
+                 * This will keep the playlists in the database, but will not update them anymore */
+                if (response.data.error === 'invalid_grant') {
+                    await Database.deleteUser(user);
+                    return null;
+                } else {
+                    THROW_DEBUG_ERROR(`Could not refresh access token (status: ${response.status}): ${JSON.stringify(response.data)}`);
+                }
             }
         }
 
