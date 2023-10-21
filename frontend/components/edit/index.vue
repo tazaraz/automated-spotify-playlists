@@ -187,8 +187,7 @@
                         <Image class="d-inline shadow-none ms-2" style="width: 1.5rem; height: 1.5rem" v-if="saveState == 1 || executeState == 1" src=""></Image>
                     </button>
 
-                    <button type="button" id="editReset" class="btn btn-danger ms-auto mt-3 me-3" data-bs-dismiss="offcanvas" @click="resetConfig">Reset</button>
-
+                    <button type="button" id="editReset" class="btn btn-danger ms-auto mt-3 me-3" @click="resetConfig">Reset</button>
                 </section>
             </div>
         </template>

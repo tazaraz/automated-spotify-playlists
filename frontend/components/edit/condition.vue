@@ -4,18 +4,18 @@
             <span v-if="i < indent - 1" class="tree indent"><i></i></span>
             <span v-if="i == indent - 1" class="tree branch"><i></i><i></i></span>
             <span v-if="i == indent" :class="`center filter ps-1 f${i - 1}`">
-                <select class="ms-2 form-select form-select-sm w-auto">
+                <select class="ms-2 form-select form-select-sm w-auto"
+                        @change="filterChange($event, 'category')">
                     <option
                         v-for="category in Object.keys(MainFilters)"
-                        @click="filterChange(category, 'category')"
                         :value="category"
                         :selected="condition.category == category">{{ category }}</option>
                 </select>
                 <InfoField :description="SubFilters[condition.filter].description">
-                    <select class="ms-2 form-select form-select-sm w-auto">
+                    <select class="ms-2 form-select form-select-sm w-auto"
+                            @change="filterChange($event, 'filter')">
                         <option
                             v-for="filter in Object.keys(SubFilters)"
-                            @click="filterChange(filter, 'filter')"
                             :value="filter"
                             :selected="condition.filter == filter">{{ filter }}</option>
                     </select>
@@ -26,10 +26,10 @@
 
         <span class="center operation" data-edit-class="small-d-none">
             <InfoField :description="Operations[condition.operation]">
-                <select class="form-select form-select-sm w-auto">
+                <select class="form-select form-select-sm w-auto"
+                        @change="filterChange($event, 'operation')">
                     <option
                         v-for="op in Object.keys(Operations)"
-                        @click="filterChange(op, 'operation')"
                         :value="op"
                         :selected="condition.operation == op">{{ op }}</option>
                 </select>
@@ -92,10 +92,10 @@
             <template v-else>
                 <span class="center stacked-operation">
                     <InfoField :description="Operations[condition.operation]">
-                        <select class="form-select form-select-sm w-auto ms-4">
+                        <select class="form-select form-select-sm w-auto ms-4"
+                            @change="filterChange($event, 'operation')">
                             <option
                                 v-for="op in Object.keys(Operations)"
-                                @click="filterChange(op, 'operation')"
                                 :value="op"
                                 :selected="condition.operation == op">{{ op }}</option>
                         </select>
@@ -210,7 +210,8 @@ export default class EditCondition extends Vue {
         return false;
     }
 
-    filterChange(value: string, kind: "category" | "filter" | "operation") {
+    filterChange(event: Event, kind: "category" | "filter" | "operation") {
+        const value = (event.target! as HTMLSelectElement).value;
         if (kind == "category") {
             this.condition.category = value as any;
         } else if (kind == "filter") {
