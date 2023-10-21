@@ -171,7 +171,7 @@
                         </ul>
                     </div>
 
-                    <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" data-bs-dismiss="offcanvas" @click="execute" :disabled="playlists.editing.id == 'example'">
+                    <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" @click="execute" :disabled="playlists.editing.id == 'example'">
                         <span v-if="saveState == 0 && executeState == 0">
                             Save and apply filters
                         </span>
