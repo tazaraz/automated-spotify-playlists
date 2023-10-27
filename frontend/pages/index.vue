@@ -62,7 +62,7 @@
 
             <h4 class="mt-4 mb-2">This is open source!</h4>
             <div class="w-0">
-                This web app is open source, meaning you can view the source code on <url to="https://github.com/tazaraz/spotify-smart-playlists" target="_blank">github</url>! If you are missing a feature, open a pull request.
+                This web app is open source, meaning you can view the source code on <url to="https://github.com/tazaraz/smart-playlists-for-spotify" target="_blank">github</url>! If you are missing a feature, open a pull request.
                 Note that I am limited to what Spotify allows via their <url to="https://developer.spotify.com/documentation/web-api/" target="_blank">API</url>, and as such cannot implement everything (searching for users for example).
             </div>
         </div>
