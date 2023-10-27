@@ -258,6 +258,8 @@ export default class Edit extends Vue {
         this.executeState = 1;
         await this.editstate.execute();
         this.executeState = 2;
+
+        this.$forceUpdate();
         setTimeout(() => this.executeState = 0, 1000);
     }
 
