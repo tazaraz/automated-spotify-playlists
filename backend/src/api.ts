@@ -113,19 +113,26 @@ api.get('/playlists', Users.verify_token, async (req, res) => {
  */
 api.put('/playlist', Users.verify_token, async (req, res) => {
     // Build the playlist object
-    let playlist: Playlist = {
-        id: req.body.id,
-        user_id: req.user.id,
-        // Remove newlines from the name
-        name: req.body.name.replace(/\n/g,''),
-        description: req.body.description,
-        sources: req.body.sources,
-        filters: req.body.filters,
-        matched_tracks: [],
-        excluded_tracks: [],
-        included_tracks: [],
-        log: { filters: [], sources: [] },
-    };
+    console.log(req.body)
+    let playlist: Playlist;
+    try {
+        playlist = {
+            id: req.body.id,
+            user_id: req.user.id,
+            // Remove newlines from the name
+            name: req.body.name.replace(/\n/g,''),
+            description: req.body.description,
+            sources: req.body.sources,
+            filters: req.body.filters,
+            matched_tracks: [],
+            excluded_tracks: [],
+            included_tracks: [],
+            log: { filters: [], sources: [] },
+        };
+    } catch (error) {
+        LOG_DEBUG(error)
+        return res.status(400).json({ error: "Invalid request" });
+    }
 
     /**make sure that it is not creating a normal playlist */
     if (playlist.filters === undefined)

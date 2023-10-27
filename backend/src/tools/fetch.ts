@@ -1,4 +1,4 @@
-import { THROW_DEBUG_ERROR } from "../main";
+import { LOG, THROW_DEBUG_ERROR } from "../main";
 import Users from "../stores/users";
 import { SUser } from "../shared/types/server";
 
@@ -198,26 +198,26 @@ export default class Fetch {
 
                 break;
 
-            /**Spotify had a hiccough, give it some time */
+            /** Spotify had a hiccough, give it some time */
             case 429:
-                if (options.retry_after > 16000) {
-                    console.log(response.status, response.headers)
-                    throw new Error(`Should fix this. Somehow`);
+                if (options.retry_after > 32000) {
+                    LOG(`Spotify is rate limiting, retrying in ${options.retry_after / 1000}s. url: ${url}, params: ${parameters}, headers: ${JSON.stringify(response.headers)}`);
                 }
-                if (options.retries-- <= 0)
+                if (options.retries-- <= 0) {
                     break;
+                }
             case 500:
             case 502:
             case 504:
                 // Set the default timeout to 2 seconds. If "Retry-After" is set, use that instead
-                options.retry_after = 2000;
+                options.retry_after = options.retry_after || 2000;
                 if (response.headers.has("Retry-After"))
                     options.retry_after = parseInt(response.headers.get("Retry-After")!) * 1000;
 
                 return await new Promise(resolve => {
                     setTimeout(async () => {
                         // Increase the timeout
-                        options.retry_after *= 2;
+                        options.retry_after *= 4;
                         // Retry the request
                         resolve(await Fetch.parseRequest(url, parameters, options));
                     }, options.retry_after)

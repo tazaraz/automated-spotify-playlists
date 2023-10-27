@@ -185,7 +185,13 @@ export default class Metadata {
         // Get the items requested in the track_ids, or just get all items from the url directly
         options.ids  = missing_data_ids;
         options.user = options.user ?? Metadata.API_USER;
-        const data   = (await Fetch.get<any[]>(url, options)).data;
+        let request  = await Fetch.get<any[]>(url, options);
+
+        if (request.status >= 300) {
+            THROW_DEBUG_ERROR(`getMultiple: The endpoint '${url}' returned status code ${request.status}`);
+            return [];
+        }
+        const data = request.data;
 
         // Get the already known tracks
         const items = present_data_ids.map(id => cache[id]);
