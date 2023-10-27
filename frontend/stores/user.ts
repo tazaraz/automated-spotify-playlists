@@ -26,7 +26,6 @@ export default class User extends Pinia {
                 "user-follow-read",
                 "user-library-read",
                 // Frontend only
-                "ugc-image-upload",
                 "user-read-currently-playing"
             ].join(" ")}`;
     }
