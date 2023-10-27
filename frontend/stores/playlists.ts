@@ -378,6 +378,9 @@ export default class Playlists extends Pinia {
                 await Fetch.put(`spotify:/playlists/${playlist.id}/followers`);
                 return false;
             }
+        } else {
+            // Remove the unpublished playlist
+            this.unpublished = null;
         }
 
         // Remove the playlist from the list
@@ -477,6 +480,7 @@ export default class Playlists extends Pinia {
      * @param playlist Playlist to be updated server-side
      */
     async syncPlaylist(playlist: LoadedPlaylist | CPlaylist) {
+        console.log(playlist)
         let response = await Fetch.put("server:/playlist", {
             headers: { 'Content-Type': 'json' },
             data: {

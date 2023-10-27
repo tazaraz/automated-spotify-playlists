@@ -257,9 +257,6 @@ export default class EditState extends Pinia {
             }
         }
 
-        if (this.playlists.unpublished && this.playlists.editing.id == 'unpublished')
-            this.playlists.unpublished = null;
-
         // Update the playlist basic info
         this.playlists.editing.name = this.name
         this.playlists.editing.description = this.description
@@ -267,6 +264,8 @@ export default class EditState extends Pinia {
         // Sync with the server
         await this.playlists.updateBasic(this.playlists.editing)
 
+        this.playlists.save(this.playlists.editing)
+        this.playlists.loadUserPlaylistByID(this.playlists.editing.id);
         this.saving = false;
         this.reset();
     }
