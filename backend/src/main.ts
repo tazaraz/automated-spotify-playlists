@@ -9,7 +9,7 @@ import Fetch from './tools/fetch';
 import Updater from './tools/updater';
 import Metadata from './stores/metadata';
 
-const logfile = fs.createWriteStream('output.log', { flags: 'w+' });
+const logfile = fs.createWriteStream('output.log', { flags: 'a+' });
 
 export function LOG(...log: any[]){
     return new Promise(resolve => {
