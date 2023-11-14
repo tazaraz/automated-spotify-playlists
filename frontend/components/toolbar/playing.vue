@@ -43,7 +43,7 @@ export default class ToolbarPlaying extends Vue {
 
     static interval: NodeJS.Timer | null = null;
 
-    created() {
+    beforeMount() {
         this.user = new User();
         this.breadcrumbs = new BreadCrumbs();
         if (ToolbarPlaying.interval) clearInterval(ToolbarPlaying.interval);

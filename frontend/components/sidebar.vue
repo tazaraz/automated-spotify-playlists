@@ -11,10 +11,12 @@
                 <button type="button" id="sidebarClose" class="d-sm-none d-block ms-auto me-3 btn-close" data-bs-dismiss="offcanvas"></button>
             </div>
 
-            <div class="d-block d-md-none">
-                <hr>
-                <ToolbarPlaying @click="tryClose"/>
-            </div>
+            <ClientOnly>
+                <div class="d-block d-md-none">
+                    <hr>
+                    <ToolbarPlaying @click="tryClose"/>
+                </div>
+            </ClientOnly>
 
             <div class="d-none d-md-block">
                 <hr>
