@@ -257,8 +257,8 @@ export default class Fetch {
                     data = data.map((track: any) => track.track ? track.track : track);
 
             }
-        } catch (_) {
-            THROW_DEBUG_ERROR(`Failed to format data: ${JSON.stringify(data)}`);
+        } catch (e) {
+            THROW_DEBUG_ERROR(`Failed to format data: ${JSON.stringify(data)}\n${e}`);
         }
 
         return data;
