@@ -30,7 +30,12 @@ export async function LOG_DEBUG(...log: any[]){
 export function THROW_DEBUG_ERROR(...log: any[]){
     if (process.env.NODE_ENV === "development") {
         LOG_DEBUG(log);
-        throw new Error(log.join(' '));
+        try {
+            throw new Error(log.join(' '));
+        } catch (e) {
+            console.error(e.stack);
+            throw e;
+        }
     }
 }
 
