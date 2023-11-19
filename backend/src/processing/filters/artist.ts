@@ -3,11 +3,11 @@ import { FilterItem, SAlbum, SArtist, STrack } from "../../shared/types/server";
 import { filter_async, get_by_kind } from ".";
 
 export class Artist {
-    private static async convert(item: FilterItem){
+    private static async convert(item: FilterItem<any>){
         /**
          * This is the config required to usually get the correct data used in this parser
          */
-        return await get_by_kind<SArtist[]>(item,
+        return await get_by_kind<SArtist>(item,
             // Tracks have an artists function to get the artists
             async () => await (item as STrack).artists(),
             // Tracks have an artists function to get the artists
@@ -17,7 +17,7 @@ export class Artist {
         )
     }
 
-    static async Name(items: FilterItem[],
+    static async Name(items: FilterItem<SArtist>[],
                       operation: keyof typeof FilterString.operation,
                       filter: string,
                       dry_run=false){
@@ -33,7 +33,7 @@ export class Artist {
         })
     }
 
-    static async Genres(items: FilterItem[],
+    static async Genres(items: FilterItem<SArtist>[],
                         operation: keyof typeof FilterString.operation,
                         filter: string,
                         dry_run=false){
@@ -49,7 +49,7 @@ export class Artist {
         })
     }
 
-    static async Popularity(items: FilterItem[],
+    static async Popularity(items: FilterItem<SArtist>[],
                             operation: keyof typeof FilterValue.operation,
                             filter: number,
                             dry_run=false){
@@ -65,7 +65,7 @@ export class Artist {
         })
     }
 
-    static async Followers(items: FilterItem[],
+    static async Followers(items: FilterItem<SArtist>[],
                            operation: keyof typeof FilterValue.operation,
                            filter: number,
                            dry_run=false){

@@ -1,4 +1,4 @@
-import { FilterItem } from "../../shared/types/server";
+import { FilterItem, SAlbum, SArtist, STrack } from "../../shared/types/server";
 
 export { Album } from "./album";
 export { Artist } from "./artist";
@@ -13,11 +13,11 @@ export { TrackFeatures } from "./track_features";
  * @param artist The function to execute if the item is an artist
  * @returns Result from the according executed function
  */
- export async function get_by_kind<T>(
-    item: FilterItem,
-    track: (item: FilterItem) => Promise<T>,
-    album: (item: FilterItem) => Promise<T>,
-    artist: (item: FilterItem) => Promise<T>,
+ export async function get_by_kind<T extends STrack | SAlbum | SArtist>(
+    item: FilterItem<T>,
+    track: (item: FilterItem<T>) => Promise<FilterItem<T>[]>,
+    album: (item: FilterItem<T>) => Promise<FilterItem<T>[]>,
+    artist: (item: FilterItem<T>) => Promise<FilterItem<T>[]>,
 ) {
     switch (item.kind) {
         case "track":
@@ -37,10 +37,10 @@ export { TrackFeatures } from "./track_features";
  * @param filter This receives an item from the given items, and requires that same item to be returned if the filter matches. If not returned, the item is discarded.
  * @returns the filtered items
  */
-export async function filter_async<T>(
-    input_items: FilterItem[],
-    getter: (item: FilterItem) => Promise<T[]>,
-    filter: (item: T) => Promise<T | undefined>
+export async function filter_async<T extends STrack | SAlbum | SArtist>(
+    input_items: FilterItem<T>[],
+    getter: (item: FilterItem<T>) => Promise<FilterItem<T>[]>,
+    filter: (item: FilterItem<T>) => Promise<FilterItem<T> | undefined>
 ){
     const matches: any[] = [];
     const tasks = [];
@@ -56,7 +56,7 @@ export async function filter_async<T>(
                 const result = await filter(filter_item);
 
                 if (result)
-                    matches.push(input_item)
+                    matches.push(filter_item)
             }
 
             resolve(true);

@@ -5,7 +5,7 @@ import FilterParser from "./parser";
 import MusicSources from "./sources";
 import { LOG, LOG_DEBUG } from "../main";
 import { Playlist } from "../shared/types/playlist";
-import { FilterItem, SUser } from "../shared/types/server";
+import { FilterItem, STrack, SUser } from "../shared/types/server";
 import FilterTask from "../stores/filtertask";
 
 export interface FilterResult {
@@ -95,7 +95,7 @@ export default class Filters {
      * @param playlist  The playlist config
      * @param tracks    Tracks to match
      */
-    static async process(playlist: Playlist, input : FilterItem[], user: SUser, task: FilterTask, dryrun=false) {
+    static async process(playlist: Playlist, input : FilterItem<any>[], user: SUser, task: FilterTask, dryrun=false) {
         /** We must account for the following things:
          * - Nothing changed
          * - Included and/or excluded changed
@@ -124,13 +124,12 @@ export default class Filters {
             await Metadata.getMultipleTracks(`/playlists/${playlist.id}/tracks`,{
                 user,
                 pagination: true
-            }) as FilterItem[];
+            }) as FilterItem<STrack>[];
 
         // Get the tracks that are in the playlist
         let playlist_tracks = Filters.merge(playlist.matched_tracks, playlist.included_tracks)
             playlist_tracks = Filters.subtract(playlist_tracks, playlist.excluded_tracks)
 
-        spotify_tracks.forEach(item => (item as FilterItem).kind = "track");
         LOG_DEBUG(`0: spotify tracks: ${spotify_tracks.length}, old tracks: ${playlist_tracks.length}`)
 
         // 1. Match the tracks
@@ -187,13 +186,13 @@ export default class Filters {
      * @param dedupe If true, removes duplicate tracks from the input list
      * @returns Filtered track list
      */
-    static subtract(items: FilterItem[] | string[], remove: FilterItem[] | string[], dedupe = true): string[] {
+    static subtract(items: FilterItem<any>[] | string[], remove: FilterItem<any>[] | string[], dedupe = true): string[] {
         /**If there are no tracks to filter OR
          * no tracks to remove, return nothing */
         if (items.length === 0)
             return [];
         if (remove.length === 0)
-            return typeof items[0] === "string" ? (items as string[]) : (items as FilterItem[]).map(track => track.id);
+            return typeof items[0] === "string" ? (items as string[]) : (items as FilterItem<any>[]).map(track => track.id);
 
         // Convert STrack[] to string[]
         items  = Filters.getIds(items);
@@ -222,13 +221,13 @@ export default class Filters {
      * @param dedupe If true, removes duplicate tracks from the input list
      * @returns Filtered track list
      */
-    static common(list1: FilterItem[] | string[], list2: FilterItem[] | string[], dedupe = true): string[] {
+    static common(list1: FilterItem<any>[] | string[], list2: FilterItem<any>[] | string[], dedupe = true): string[] {
         /**If there are no tracks to filter OR
          * no tracks to remove, return nothing */
         if (list1.length === 0 || list2.length === 0)
             return [];
 
-        // Convert FilterItem[] to string[]
+        // Convert FilterItem<any>[] to string[]
         list1 = Filters.getIds(list1);
         list2 = Filters.getIds(list2);
 
@@ -244,8 +243,8 @@ export default class Filters {
      * @param dedupe If true, removes duplicate tracks from the input list
      * @returns Merged list
      */
-     static merge(list1: FilterItem[] | string[], list2: FilterItem[] | string[], dedupe = true): string[] {
-        // Convert FilterItem[] to string[]
+     static merge(list1: FilterItem<any>[] | string[], list2: FilterItem<any>[] | string[], dedupe = true): string[] {
+        // Convert FilterItem<any>[] to string[]
         list1 = Filters.getIds(list1);
         list2 = Filters.getIds(list2);
 
@@ -315,13 +314,13 @@ export default class Filters {
     }
 
     /**
-     * Converts a list of FilterItems to a list of ids. If the input was already a string[], it will be returned
+     * Converts a FilterItem<any>[] to a list of ids. If the input was already a string[], it will be returned
      * @param list Items to get the ids from. Can be just a string[]
      */
-    static getIds(list: FilterItem[] | string[]): string[] {
+    static getIds(list: FilterItem<any>[] | string[]): string[] {
         if (typeof list[0] === "string")
             return list as string[];
 
-        return (list as FilterItem[]).map(t => t.id);
+        return (list as FilterItem<any>[]).map(t => t.id);
     }
 }

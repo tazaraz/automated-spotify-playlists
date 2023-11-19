@@ -18,11 +18,11 @@ export default class FilterParser {
      * @returns         Whether the rule is matched
      */
     public static async process(statement: PlaylistStatement,
-        items: FilterItem[],
+                                items: FilterItem<any>[],
                                 user: SUser,
                                 task: FilterTask,
-                                dryrun=false): Promise<FilterItem[]> {
-        let result: FilterItem[];
+                                dryrun=false): Promise<FilterItem<any>[]> {
+        let result: FilterItem<any>[];
 
         // If the user specified no filters at all
         if (statement.filters.length === 0) {
@@ -33,13 +33,13 @@ export default class FilterParser {
         }
 
         // Convert the FilterItems to STracks and flatten (FilterItem can always map to a STrack[])
-        const tracks = ([] as STrack[]).concat(...await Promise.all(result.map(item => Track.convert(item))))
-              tracks.forEach(item => (item as FilterItem).kind = "track")
+        const tracks: FilterItem<STrack>[] = (await Promise.all(result.map(item => Track.convert(item)))).flat()
+              tracks.forEach(item => (item as FilterItem<STrack>).kind = "track")
 
         task.log.filters.push(`Converted ${result.length} items to ${tracks.length} tracks`)
 
         // Now they are STracks but stored as a FilterItem
-        return tracks as FilterItem[]
+        return tracks;
     }
 
     /**
@@ -49,11 +49,11 @@ export default class FilterParser {
      * @param log       nD log array
      */
     private static async checkStatement(statement: PlaylistStatement,
-                                        items: FilterItem[],
+                                        items: FilterItem<any>[],
                                         user: SUser,
                                         task: FilterTask,
                                         dryrun=false
-    ): Promise<FilterItem[]>{
+    ): Promise<FilterItem<any>[]>{
         // If the filter is not an object or does not have the required entries
         if (!FilterParser.isStatement(statement)) {
             task.log.filters.push(`Invalid statement: ${JSON.stringify(statement)}`)
@@ -62,11 +62,11 @@ export default class FilterParser {
         }
 
         // Store the matches and original input
-        const matches = {} as { [key: string]: FilterItem },
+        const matches = {} as { [key: string]: FilterItem<any> },
               original = items;
 
         let input = items;
-        let result: FilterItem[] | undefined;
+        let result: FilterItem<any>[] | undefined;
 
         for (const f of statement.filters){
             // If the filter is an statement
@@ -91,9 +91,11 @@ export default class FilterParser {
                     task,
                     dryrun
                 )
-
                 if (result === undefined)
                     continue
+
+                // Filter out duplicate ids from the result: the result from a filter is always one kind of FilterItem
+                result = result.filter((item, i) => result.findIndex(t => t.id === item.id) === i)
 
                 task.log.filters.push(`Filter '${(f as any).category} ${(f as any).filter}' matched ${result.length} of ${input.length} items (${result.length - input.length})`);
             }
@@ -144,10 +146,10 @@ export default class FilterParser {
      * @returns         Whether the condition rule is valid on the given input
      */
     private static async checkCondition(condition: PlaylistCondition,
-                                        input: FilterItem[],
+                                        input: FilterItem<any>[],
                                         user: SUser,
                                         task: FilterTask,
-                                        dryrun=false): Promise<FilterItem[] | undefined> {
+                                        dryrun=false): Promise<FilterItem<any>[] | undefined> {
         if (!FilterParser.isCondition(condition)) {
             task.log.filters.push(`Invalid condition: ${JSON.stringify(condition)}`)
             THROW_DEBUG_ERROR(`Invalid condition: ${JSON.stringify(condition)}`);
@@ -166,8 +168,8 @@ export default class FilterParser {
             // Store the loved status of each track
             const loved: {[id: string]: boolean} = {}
             // Convert each FilterItem to a STrack and convert and store it again as FilterItem
-            const tracks = (await Promise.all(input.map(item => Track.convert(item)))).flat() as FilterItem[]
-            tracks.forEach(item => (item as FilterItem).kind = "track")
+            const tracks = (await Promise.all(input.map(item => Track.convert(item)))).flat() as FilterItem<any>[]
+            tracks.forEach(item => (item as FilterItem<any>).kind = "track")
 
             for (let i = 0; i < tracks.length; i += 20) {
                 // ids get sorted in Fetch. This is important as the response relative to the input.
@@ -187,7 +189,7 @@ export default class FilterParser {
             return loved_tracks
         } else {
             return (await (Filters as any)[condition.category][condition.filter]
-                    .filter(input, condition.operation, condition.value, dryrun)) as FilterItem[];
+                    .filter(input, condition.operation, condition.value, dryrun)) as FilterItem<any>[];
         }
     }
 

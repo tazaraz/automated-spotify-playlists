@@ -3,11 +3,11 @@ import { FilterItem, SAlbum, SArtist } from "../../shared/types/server";
 import { filter_async, get_by_kind } from ".";
 
 export class Album {
-    private static async convert(item: FilterItem) {
+    private static async convert(item: FilterItem<any>) {
         /**
          * This is the config required to usually get the correct data used in this parser
          */
-        return await get_by_kind<SAlbum[]>(item,
+        return await get_by_kind<SAlbum>(item,
             // Tracks have an album function to get the albums
             async () => [await item.album()],
             // Albums are on their own adequate
@@ -17,7 +17,7 @@ export class Album {
         )
     }
 
-    static async Artists(items: FilterItem[],
+    static async Artists(items: FilterItem<SAlbum>[],
                          operation: keyof typeof FilterString.operation,
                          filter: string,
                          dry_run=false){
@@ -26,22 +26,16 @@ export class Album {
             return [];
         }
 
-        return await filter_async<SArtist>(
-            items,
-            (item: FilterItem) => get_by_kind<SArtist[]>(item,
-                async () => await (await item.album()).artists(),
-                async () => await item.artists(),
-                async () => [],
-            ),
-            async item => {
-                // Get the item album artists
-                if (FilterString.matches(operation, filter, item.name))
+        return await filter_async(items, Album.convert, async item => {
+            // Get the item album artists
+            for (const artist of await item.artists()) {
+                if (FilterString.matches(operation, filter, artist.name))
                     return item;
             }
-        )
+        })
     }
 
-    static async Name(items: FilterItem[],
+    static async Name(items: FilterItem<SAlbum>[],
                       operation: keyof typeof FilterString.operation,
                       filter: string,
                       dry_run=false){
@@ -57,7 +51,7 @@ export class Album {
         })
     }
 
-    static async ReleaseDate(items: FilterItem[],
+    static async ReleaseDate(items: FilterItem<SAlbum>[],
                              operation: keyof typeof FilterValue.operation,
                              filter: number,
                              dry_run=false){
@@ -73,7 +67,7 @@ export class Album {
         })
     }
 
-    static async TrackCount(items: FilterItem[],
+    static async TrackCount(items: FilterItem<SAlbum>[],
                             operation: keyof typeof FilterValue.operation,
                             filter: number,
                             dry_run=false){
@@ -89,7 +83,7 @@ export class Album {
         })
     }
 
-    static async Genres(items: FilterItem[],
+    static async Genres(items: FilterItem<SAlbum>[],
                         operation: keyof typeof FilterString.operation,
                         filter: string,
                         dry_run=false){
@@ -106,7 +100,7 @@ export class Album {
         })
     }
 
-    static async Popularity(items: FilterItem[],
+    static async Popularity(items: FilterItem<SAlbum>[],
                             operation: keyof typeof FilterValue.operation,
                             filter: number,
                             dry_run=false){

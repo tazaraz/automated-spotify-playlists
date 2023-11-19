@@ -1,6 +1,6 @@
 import { THROW_DEBUG_ERROR } from "../main";
 import Fetch, { FetchOptions } from "../tools/fetch";
-import { SUser } from "../shared/types/server";
+import { FilterItem, SUser } from "../shared/types/server";
 import { SAlbum, SArtist, STrack, STrackFeatures } from "../shared/types/server";
 
 /**
@@ -146,16 +146,22 @@ export default class Metadata {
         return cache[id];
     }
 
-    static getTrack(track_id: string): Promise<STrack> {
-        return Metadata.getItem(Metadata.tracks, Metadata.track_queue, track_id);
+    static async getTrack(track_id: string): Promise<FilterItem<STrack>> {
+        const item = await Metadata.getItem(Metadata.tracks, Metadata.track_queue, track_id) as FilterItem<STrack>;
+              item.kind = "track";
+        return item;
     }
 
-    static getAlbum(album_id: string): Promise<SAlbum> {
-        return Metadata.getItem(Metadata.albums, Metadata.album_queue, album_id);
+    static async getAlbum(album_id: string): Promise<FilterItem<SAlbum>> {
+        const item = await Metadata.getItem(Metadata.albums, Metadata.album_queue, album_id) as FilterItem<SAlbum>;
+              item.kind = "album";
+        return item;
     }
 
-    static getArtist(artist_id: string): Promise<SArtist> {
-        return Metadata.getItem(Metadata.artists, Metadata.artist_queue, artist_id);
+    static async getArtist(artist_id: string): Promise<FilterItem<SArtist>> {
+        const item = await Metadata.getItem(Metadata.artists, Metadata.artist_queue, artist_id) as FilterItem<SArtist>;
+              item.kind = "artist";
+        return item;
     }
 
     static getTrackFeatures(track_id: string): Promise<STrackFeatures> {
@@ -236,16 +242,22 @@ export default class Metadata {
         return await Promise.all(items);
     }
 
-    static getMultipleTracks(url="/tracks", options: FetchOptions = {}): Promise<STrack[]> {
-        return Metadata.getMultiple(url, Metadata.tracks, options);
+    static async getMultipleTracks(url="/tracks", options: FetchOptions = {}): Promise<FilterItem<STrack>[]> {
+        const items = await Metadata.getMultiple(url, Metadata.tracks, options) as FilterItem<STrack>[];
+              items.forEach(item => item.kind = "track");
+        return items;
     }
 
-    static getMultipleAlbums(url="/albums", options: FetchOptions = {}): Promise<SAlbum[]> {
-        return Metadata.getMultiple(url, Metadata.albums, options);
+    static async getMultipleAlbums(url="/albums", options: FetchOptions = {}): Promise<FilterItem<SAlbum>[]> {
+        const items = await Metadata.getMultiple(url, Metadata.albums, options) as FilterItem<SAlbum>[];
+              items.forEach(item => item.kind = "album");
+        return items;
     }
 
-    static getMultipleArtists(url="/artists", options: FetchOptions = {}): Promise<SArtist[]> {
-        return Metadata.getMultiple(url, Metadata.artists, options);
+    static async getMultipleArtists(url="/artists", options: FetchOptions = {}): Promise<FilterItem<SArtist>[]> {
+        const items = await Metadata.getMultiple(url, Metadata.artists, options) as FilterItem<SArtist>[];
+              items.forEach(item => item.kind = "artist");
+        return items;
     }
 
     static getMultipleTrackFeatures(url="/audio-features", options: FetchOptions = {}) {
@@ -266,7 +278,7 @@ export default class Metadata {
         kind: "track" | "album" | "artist",
         expires: number,
         options: FetchOptions,
-    ): Promise<T[]> {
+    ): Promise<FilterItem<T>[]> {
         let items: any;
 
         // If the user is not yet defined, create the object
@@ -287,13 +299,13 @@ export default class Metadata {
 
         switch (kind) {
             case "track":
-                items = await Metadata.getMultiple<STrack>(url, Metadata.tracks, options);
+                items = await Metadata.getMultipleTracks(url, options);
                 break;
             case "album":
-                items = await Metadata.getMultiple<SAlbum>(url, Metadata.albums, options);
+                items = await Metadata.getMultipleAlbums(url, options);
                 break;
             case "artist":
-                items = await Metadata.getMultiple<SArtist>(url, Metadata.artists, options);
+                items = await Metadata.getMultipleArtists(url, options);
                 break;
         }
 
@@ -302,7 +314,7 @@ export default class Metadata {
             items: items.map(item => item.id),
         }
 
-        return items as T[];
+        return items as FilterItem<T>[];
     }
 
     private static delete(target: { [id: string]: any }, prop: string){
@@ -352,7 +364,18 @@ export default class Metadata {
             id: data.id,
             genres: data.genres,
             popularity: data.popularity,
-            tracks: async () => Promise.all(data.tracks.items.map((item: any) => Metadata.getTrack(item.id))),
+            tracks: async () => {
+                // If the album was only partially loaded (e.g. missing tracks)
+                if (data.tracks === undefined) {
+                    // Delete the album and reload it
+                    delete albums[key];
+                    await Metadata.getAlbum(data.id);
+                    // Return the tracks
+                    return albums[key].tracks();
+                }
+
+                return Promise.all(data.tracks.items.map((item: any) => Metadata.getTrack(item.id)))
+            },
             artists: () => Promise.all(data.artists.map((artist: any) => Metadata.getArtist(artist.id))),
         }
 

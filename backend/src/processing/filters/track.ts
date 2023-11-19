@@ -8,8 +8,8 @@ export class Track {
      * @param item Converts a FilterItem into a STrack
      * @returns track
      */
-    static async convert(item: FilterItem) {
-        return await get_by_kind<STrack[]>(item,
+    static async convert(item: FilterItem<any>) {
+        return await get_by_kind<STrack>(item,
             // Albums are on their own adequate
             async () => [item],
             // Albums can easily get all their tracks
@@ -18,7 +18,7 @@ export class Track {
              * By converting an artist to their tracks, we get a 2D array:
              * * artist -> [album, album, ...] -> [[track, track, ...], [track, track, ...], ...] */
             // Concat merges a 2D array into a 1D one.
-            async () => ([] as STrack[]).concat(
+            async () => ([] as FilterItem<STrack>[]).concat(
                 /**We can await the first step with a simple 'await', but from albums to tracks we get a
                  * Promise<STrack>[], thus requiring a Promise.all(...)*/
                 ...await Promise.all(
@@ -28,7 +28,7 @@ export class Track {
         )
     }
 
-    static async Name(items: FilterItem[],
+    static async Name(items: FilterItem<STrack>[],
                       operation: keyof typeof FilterString.operation,
                       filter: string,
                       dry_run=false){
@@ -43,7 +43,7 @@ export class Track {
         })
     }
 
-    static async Popularity(items: FilterItem[],
+    static async Popularity(items: FilterItem<STrack>[],
                             operation: keyof typeof FilterSlider.operation,
                             filter: number,
                             dry_run=false){
@@ -59,7 +59,7 @@ export class Track {
         })
     }
 
-    static async Duration(items: FilterItem[],
+    static async Duration(items: FilterItem<STrack>[],
                           operation: keyof typeof FilterValue.operation,
                           filter: number,
                           dry_run=false){

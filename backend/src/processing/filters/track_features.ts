@@ -1,10 +1,10 @@
 import { FilterValue, FilterSlider } from "../../shared/matching";
-import { FilterItem, STrack } from "../../shared/types/server";
+import { FilterItem, SAlbum, SArtist, STrack } from "../../shared/types/server";
 import { filter_async, get_by_kind } from ".";
 
 export class TrackFeatures {
-    private static async convert(item: FilterItem) {
-        return await get_by_kind<STrack[]>(item,
+    private static async convert(item: FilterItem<any>) {
+        return await get_by_kind<STrack>(item,
             // Albums are on their own adequate
             async () => [item],
             // Albums can easily get all their tracks
@@ -14,7 +14,7 @@ export class TrackFeatures {
              * By converting an artist to their tracks, we get a 2D array:
              * * artist -> [album, album, ...] -> [[track, track, ...], [track, track, ...], ...] */
             // Concat merges a 2D array into a 1D one.
-            async () => ([] as STrack[]).concat(
+            async () => ([] as FilterItem<STrack>[]).concat(
                 /**We can await the first step with a simple 'await', but from albums to tracks we get a
                  * Promise<STrack>[], thus requiring a Promise.all(...)*/
                 ...await Promise.all(
@@ -24,7 +24,7 @@ export class TrackFeatures {
         )
     }
 
-    static async Acoustic(items: FilterItem[],
+    static async Acoustic(items: FilterItem<STrack>[],
                       operation: keyof typeof FilterSlider.operation,
                       filter: number,
                       dry_run=false){
@@ -39,7 +39,7 @@ export class TrackFeatures {
         })
     }
 
-    static async Danceability(items: FilterItem[],
+    static async Danceability(items: FilterItem<STrack>[],
                               operation: keyof typeof FilterSlider.operation,
                               filter: number,
                               dry_run=false){
@@ -55,7 +55,7 @@ export class TrackFeatures {
         })
     }
 
-    static async Energy(items: FilterItem[],
+    static async Energy(items: FilterItem<STrack>[],
                         operation: keyof typeof FilterSlider.operation,
                         filter: number,
                         dry_run=false){
@@ -70,7 +70,7 @@ export class TrackFeatures {
         })
     }
 
-    static async Vocality(items: FilterItem[],
+    static async Vocality(items: FilterItem<STrack>[],
                               operation: keyof typeof FilterSlider.operation,
                               filter: number,
                               dry_run=false){
@@ -86,7 +86,7 @@ export class TrackFeatures {
         })
     }
 
-    static async Loudness(items: FilterItem[],
+    static async Loudness(items: FilterItem<STrack>[],
                           operation: keyof typeof FilterValue.operation,
                           filter: number,
                           dry_run=false){
@@ -101,7 +101,7 @@ export class TrackFeatures {
         })
     }
 
-    static async Live(items: FilterItem[],
+    static async Live(items: FilterItem<STrack>[],
                       operation: keyof typeof FilterSlider.operation,
                       filter: number,
                       dry_run=false){
@@ -116,7 +116,7 @@ export class TrackFeatures {
         })
     }
 
-    static async BPM(items: FilterItem[],
+    static async BPM(items: FilterItem<STrack>[],
                        operation: keyof typeof FilterValue.operation,
                        filter: number,
                        dry_run=false){
@@ -131,7 +131,7 @@ export class TrackFeatures {
         })
     }
 
-    static async Positivity(items: FilterItem[],
+    static async Positivity(items: FilterItem<STrack>[],
                             operation: keyof typeof FilterSlider.operation,
                             filter: number,
                             dry_run=false){

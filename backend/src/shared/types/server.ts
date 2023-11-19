@@ -8,7 +8,7 @@ import { CAlbum, CArtist, CTrack, CTrackFeatures } from "./client";
  * album name immediately (album.name) instead of first getting all the tracks of the album, after which we get the
  * name (album.tracks() -> track.album().name).
  */
-export interface FilterItem extends STrack, SAlbum, SArtist {
+export type FilterItem<T extends STrack | SAlbum | SArtist> = T & {
     kind: "track" | "album" | "artist"
 }
 
@@ -34,9 +34,9 @@ export interface STrack extends CTrack {
     // Whether the track is a local file
     is_local: boolean
     // Album the track belongs to
-    album: () => Promise<SAlbum>
+    album: () => Promise<FilterItem<SAlbum>>
     // Artists who made the song
-    artists: () => Promise<SArtist[]>
+    artists: () => Promise<FilterItem<SArtist>[]>
     // The track's features
     features: () => Promise<STrackFeatures>;
 }
@@ -44,18 +44,18 @@ export interface STrack extends CTrack {
 // @ts-ignore
 export interface SAlbum extends CAlbum {
     // Tracks in this album
-    tracks: () => Promise<STrack[]>
+    tracks: () => Promise<FilterItem<STrack>[]>
     // Artists who created this album
-    artists: () => Promise<SArtist[]>
+    artists: () => Promise<FilterItem<SArtist>[]>
 }
 
 export interface SArtist extends CArtist {
     // Album the track belongs to
-    albums: () => Promise<SAlbum[]>
+    albums: () => Promise<FilterItem<SAlbum>[]>
     // The top tracks of the artist
-    top_tracks: () => Promise<STrack[]>
+    top_tracks: () => Promise<FilterItem<STrack>[]>
     // Related artists:
-    related_artists: () => Promise<SArtist[]>
+    related_artists: () => Promise<FilterItem<SArtist>[]>
 }
 
 export interface STrackFeatures extends CTrackFeatures {}

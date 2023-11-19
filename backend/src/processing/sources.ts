@@ -13,9 +13,9 @@ export default class MusicSources {
         user: SUser,
         task: FilterTask,
         dry_run=false
-    ): Promise<FilterItem[]> {
-        let tracks: STrack[], albums: SAlbum[], artists, parsed: any[],
-            filteritems: FilterItem[] = [];
+    ): Promise<FilterItem<any>[]> {
+        let tracks: STrack[], albums: SAlbum[], artists, items: any[],
+            filteritems: FilterItem<any>[] = [];
 
         Metadata.API_USER = user;
 
@@ -32,25 +32,19 @@ export default class MusicSources {
             switch (source.origin) {
                 case "Library":
                     // The library requires a user specific endpoint. We NEED a special axios instance for this.
-                    tracks = await Metadata.getUserData(
+                    items = await Metadata.getUserData<STrack>(
                         `/me/tracks`,
                         "track",
                         60 * 60 * 2, // 2 hours
                         { user, pagination: true },
                     );
-                    tracks.map(item => (item as FilterItem).kind = "track");
-                    parsed = tracks
                     break;
 
                 case "Playlist tracks":
-                    tracks = await Metadata.getMultipleTracks(
+                    items = await Metadata.getMultipleTracks(
                         `/playlists/${source.value}/tracks`,
                         { user, pagination: true }
                     );
-
-                    // Convert to FilterItem
-                    tracks.map(item => (item as FilterItem).kind = "track");
-                    parsed = tracks
                     break;
 
                 /**
@@ -60,27 +54,18 @@ export default class MusicSources {
                  */
                 case "Artist's Tracks":
                 case "Artist's Albums":
-                    albums = await Metadata.getMultipleAlbums(
+                    items = await Metadata.getMultipleAlbums(
                         `/artists/${source.value}/albums`,
                         { user, pagination: true, query: { market: user.country, include_groups: "album,single" } }
                     );
-
-                    // Convert to FilterItem
-                    albums.map(item =>
-                        (item as FilterItem).kind = "album");
-                    parsed = albums
                     break;
 
                 case "Artist's Top Tracks":
                     // This endpoint
-                    tracks = await Metadata.getMultipleTracks(
+                    items = await Metadata.getMultipleTracks(
                         `/artists/${source.value}/top-tracks`,
                         { user, pagination: true, query: { market: user.country } }
                     );
-
-                    // Convert to FilterItem
-                    tracks.map(item => (item as FilterItem).kind = "track");
-                    parsed = tracks
                     break;
 
                 /**
@@ -99,19 +84,19 @@ export default class MusicSources {
 
                 //     // Convert to FilterItem
                 //     artists.map(item => (item as FilterItem).kind = "artist");
-                //     parsed = artists
+                //     items = artists
                 //     break;
             }
 
-            filteritems.push(...(parsed as FilterItem[]))
-            task.log.sources.push(MusicSources.as_log(index, parsed.length));
+            filteritems.push(...items)
+            task.log.sources.push(MusicSources.as_log(index, items.length, items[0]?.kind || "item"));
         }
 
         task.log.sources.push(`All given sources resulted in ${filteritems.length} items`);
         return filteritems;
     }
 
-    private static as_log(index: number, count: number) {
-        return `Source ${index + 1} yielded ${count} items`;
+    private static as_log(index: number, count: number, kind: string) {
+        return `Source ${index + 1} yielded ${count} ${kind}${count !== 1 ? "s" : ""}`;
     }
 }
