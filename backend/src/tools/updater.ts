@@ -11,9 +11,9 @@ export default class Updater {
      */
     static schedule(){
         // Run the updater every hour
-        setInterval(async () => Updater.updatePlaylists, 1000 * 60 * 60);
+        setInterval(() => Updater.updatePlaylists(), 1000 * 60 * 60);
         // Clean up the database every 4 days
-        setInterval(async () => Updater.cleanDatabase, 1000 * 60 * 60 * 24 * 4);
+        setInterval(() => Updater.cleanDatabase(), 1000 * 60 * 60 * 24 * 4);
         Updater.cleanDatabase();
     }
 

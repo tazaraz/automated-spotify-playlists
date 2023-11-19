@@ -22,11 +22,11 @@ export default class User extends Pinia {
                 "playlist-modify-public",
                 "playlist-modify-private",
                 "playlist-read-private",
+                "playlist-read-collaborative",
                 "user-read-private",
                 "user-follow-read",
                 "user-library-read",
                 // Frontend only
-                "ugc-image-upload",
                 "user-read-currently-playing"
             ].join(" ")}`;
     }
