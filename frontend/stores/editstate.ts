@@ -4,6 +4,7 @@ import { PlaylistCondition, PlaylistSource, PlaylistStatement } from "../../back
 import { CTrack } from "../../backend/src/shared/types/client";
 import { SourceDescription as Sources } from "../../backend/src/shared/types/descriptions";
 import Fetch from "./fetch";
+import FetchError from "./error";
 
 /**
  * README
@@ -237,8 +238,9 @@ export default class EditState extends Pinia {
                     (JSON.stringify(this.computedFilters) != JSON.stringify(this.playlists.editing.filters) ||
                      JSON.stringify(this.computedSources) != JSON.stringify(this.playlists.editing.sources)
         )))) {
-            this.playlists.editing.sources = this.computedSources
-            this.playlists.editing.filters = this.computedFilters
+            const temp_playlist = this.playlists.copy(this.playlists.editing)
+            temp_playlist.sources = this.computedSources
+            temp_playlist.filters = this.computedFilters
 
             // If the playlist has been converted to a smart playlist, move the old tracks to the included tracks
             if (this.includedTracks.length > 0)
@@ -246,7 +248,16 @@ export default class EditState extends Pinia {
 
             // Sync with the server
             const old_id = this.playlists.editing.id
-            this.playlists.editing.id = await this.playlists.syncPlaylist(this.playlists.convertToCPlaylist(this.playlists.editing))
+            const result = await this.playlists.syncPlaylist(this.playlists.convertToCPlaylist(this.playlists.editing))
+
+            if (result.status > 300) {
+                FetchError.create({status: result.status, message: result.data.error, duration: 5000})
+                return false;
+            }
+
+            // Updating succeeded, update the real playlist
+            this.playlists.editing = temp_playlist
+            this.playlists.editing.id = result.data
 
             // Reset the unpublished smart playlist boolean
             if (old_id === 'unpublished') {
@@ -268,6 +279,7 @@ export default class EditState extends Pinia {
         this.playlists.loadUserPlaylistByID(this.playlists.editing.id);
         this.saving = false;
         this.reset();
+        return true;
     }
 
     async execute() {

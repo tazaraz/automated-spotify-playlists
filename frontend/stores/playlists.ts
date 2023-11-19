@@ -480,8 +480,7 @@ export default class Playlists extends Pinia {
      * @param playlist Playlist to be updated server-side
      */
     async syncPlaylist(playlist: LoadedPlaylist | CPlaylist) {
-        console.log(playlist)
-        let response = await Fetch.put("server:/playlist", {
+        return Fetch.put("server:/playlist", {
             headers: { 'Content-Type': 'json' },
             data: {
                 id: playlist.id,
@@ -492,8 +491,6 @@ export default class Playlists extends Pinia {
                 sources: playlist.sources,
             }
         })
-
-        return response.data as string
     }
 
     /**
