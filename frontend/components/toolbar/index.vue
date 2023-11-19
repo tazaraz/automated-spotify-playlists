@@ -1,7 +1,7 @@
 <template>
     <nav id="toolbar" class="d-flex gap-3 bg-dark-subtle justify-content-between align-items-center rounded-3 mb-2 p-2 ps-3 pe-3">
         <ClientOnly>
-            <button class="navbar-toggler d-sm-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
+            <button class="navbar-toggler d-sm-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" @click="player.update()">
                 <h2 class="p-1 m-0"><fa-icon :icon="['fas', 'bars']"></fa-icon></h2>
             </button>
             <ToolbarPlaying class="d-none d-md-flex"/>
@@ -33,6 +33,7 @@
 <script lang="ts">
 import { Vue } from 'vue-property-decorator';
 import BreadCrumbs from '~/stores/breadcrumbs';
+import NowPlaying from '~/stores/player';
 import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
@@ -40,12 +41,14 @@ export default class Sidebar extends Vue {
     user: User = null as any;
     breadcrumbs: BreadCrumbs = null as any;
     playlists: Playlists = null as any;
+    player: NowPlaying = null as any;
     options: { name: string, icon: string[], click: any }[] = []
 
     async created() {
         if (!process.client) return;
 
         this.user = new User();
+        this.player = new NowPlaying();
         this.breadcrumbs = new BreadCrumbs();
         this.playlists = new Playlists();
         const code = this.$route.query?.code;
