@@ -145,10 +145,15 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
     try {
         // Check if the sources supplied are valid
         await MusicSources.get(playlist.sources, user, task, true)
+    } catch (error) {
+        return res.status(400).json({ error: "Source error: " + error.message });
+    }
+
+    try {
         // Check if the filters supplied are valid
         await FilterParser.process(playlist.filters, [], user, task, true);
     } catch (error) {
-        return res.status(400).json({ error: error.message });
+        return res.status(400).json({ error: "Processing error: " + error.message });
     }
 
     // Delete the log
