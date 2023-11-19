@@ -11,14 +11,16 @@
                 <h4 class="text-nowrap" style="writing-mode:vertical-rl;">{{ playlists.editing.name }}</h4>
             </div>
             <div class="h-100 p-1 overflow-y-auto m-auto" data-edit-class="tiny-d-none" style="max-width: 50rem;">
-                <div class="d-flex align-items-center mb-3 mt-2 text-white text-decoration-none">
-                    <h4 class="ms-3 me-3 mb-0"><fa-icon :icon="['fas', 'wand-magic']" style="width: 2rem"></fa-icon></h4>
-                    <h4 class="m-0">
-                        {{ playlists.editing.name }} Config
-                    </h4>
-                    <button type="button" id="editClose" class="d-block d-sm-none ms-auto me-3 btn-close" data-bs-dismiss="offcanvas"></button>
+                <div class="position-sticky bg-dark-subtle z-3" style="top: -0.25rem;">
+                    <div class="d-flex align-items-center pt-2 pb-3 text-white text-decoration-none" >
+                        <h4 class="ms-3 me-3 mb-0"><fa-icon :icon="['fas', 'wand-magic']" style="width: 2rem"></fa-icon></h4>
+                        <h4 class="m-0">
+                            {{ playlists.editing.name }} Config
+                        </h4>
+                        <button type="button" id="editClose" class="d-block d-sm-none ms-auto me-3 btn-close" data-bs-dismiss="offcanvas"></button>
+                    </div>
+                    <hr class="m-0">
                 </div>
-                <hr>
                 <div id="basic" class="d-grid mb-3 p-2 ps-4 pe-4" data-edit-class="small-stacked normal-wide large-wide">
                     <Image :src="playlists.editing" class="h-100 m-auto"></Image>
                     <div class="form-floating">
