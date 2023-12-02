@@ -9,37 +9,41 @@
                 <div class="flex-fill d-flex flex-column text-white">
                     <span v-if="!track" class="mt-auto mb-auto placeholder rounded-2" style="width: 17rem; height: 2rem"></span>
                     <h1 v-else class="mt-auto mb-auto">{{ track.name }}</h1>
-                    <div v-if="!track || !track.album" class="d-flex mt-3 mb-3">
-                        <span class="placeholder rounded-5 bg-light" style="width: 3rem; height: 3rem"></span>
-                        <div class="multilayer ms-3">
-                            <span>Album</span>
-                            <span class="placeholder rounded-2" style="width: 7rem;"></span>
-                        </div>
-                    </div>
-                    <div v-else class="d-flex mt-3 mb-3">
-                        <div class="multilayer ms-3">
-                            <span>Album</span>
-                            <url :to="`/info/album/${track.album.id}`" class="rounded-2">{{ track.album.name }}</url>
-                        </div>
-                    </div>
+                    <Spotify v-if="track" :to="`https://open.spotify.com/track/${track.id}`" class="mb-3">SHOW IN SPOTIFY</Spotify>
                 </div>
             </header>
-            <h4 v-if="track && track.artists" class="text-white mt-3 ms-3 p-2 pb-0">Artist{{ track.artists.length == 1 ? 's' : '' }}</h4>
-            <ol class="m-4 mt-0 d-flex nav row">
-                <li v-if="!track || !track.artists" class="col-12">
-                    <span class="placeholder rounded-5 bg-light" style="width: 3rem; height: 3rem"></span>
-                    <span class="placeholder rounded-2 ms-3" style="width: 7rem;"></span>
-                </li>
-                <li v-else v-for="artist of track.artists" class="col-auto p-2 d-flex">
-                    <Image :src="artist" class="border rounded-5" style="width: 3rem; height: 3rem" />
-                    <url :to="`/info/artist/${artist.id}`" class="rounded-2 ms-3 m-auto">{{ artist.name }}</url>
-                </li>
-            </ol>
+            <div class="d-flex mb-4 flex-wrap">
+                <div class="m-4 mt-0">
+                    <h4 v-if="track && track.album" class="text-white p-2 pb-0">Album</h4>
+                    <ul class="d-flex m-0 nav row flex-nowrap">
+                        <li v-if="!track || !track.album" class="col-12">
+                            <span class="placeholder bg-light" style="width: 3rem; height: 3rem"></span>
+                            <span class="placeholder ms-3" style="width: 7rem;"></span>
+                        </li>
+                        <li v-else class="col-auto p-2 d-flex">
+                            <Image :src="track.album" class="border" style="width: 3rem; height: 3rem" />
+                            <url :to="`/info/track.album/${track.album.id}`" class="ms-3 m-auto">{{ track.album.name }}</url>
+                        </li>
+                    </ul>
+                </div>
+                <div class="m-4 mt-0">
+                    <h4 v-if="track && track.artists" class="text-white p-2 pb-0">Artist{{ track.artists.length == 1 ? 's' : '' }}</h4>
+                    <ul class="d-flex m-0 nav row" data-main-class="sm-flex-wrap flex-nowrap">
+                        <li v-if="!track || !track.artists" class="col-12">
+                            <span class="placeholder rounded-5 bg-light" style="width: 3rem; height: 3rem"></span>
+                            <span class="placeholder rounded-2 ms-3" style="width: 7rem;"></span>
+                        </li>
+                        <li v-else v-for="artist of track.artists" class="col-auto p-2 d-flex">
+                            <Image :src="artist" class="border rounded-5" style="width: 3rem; height: 3rem" />
+                            <url :to="`/info/artist/${artist.id}`" class="rounded-2 ms-3 m-auto">{{ artist.name }}</url>
+                        </li>
+                    </ul>
+                </div>
+            </div>
             <div class="row placeholder-glow" style="max-width: 60rem;" data-main-class="large-m-5 large-mt-3 normal-m-5 normal-mt-3 tiny-m-4 tiny-mt-3">
                 <div class="col-12 mb-2 multilayer">
                     <span>
-                        Track ID&nbsp;&nbsp;━&nbsp;&nbsp;
-                        <url v-if="track" :to="`https://open.spotify.com/track/${track.id}`" :direct="true" target="_blank" class="text-primary">Spotify</url>
+                        Track ID
                     </span>
                     <span v-if="!track" class="placeholder rounded-1"></span>
                     <span v-else>{{ track.id }} </span>

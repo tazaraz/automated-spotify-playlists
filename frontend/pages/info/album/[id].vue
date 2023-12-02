@@ -21,6 +21,7 @@
                             <span class="rounded-2">{{ new Date(album.release_date).getFullYear() }}</span>
                             &nbsp;&nbsp;━&nbsp;&nbsp;
                             <span class="rounded-2">{{ album.total_tracks }} track{{ album.total_tracks == 1 ? '' : 's' }}</span>
+                            <Spotify :to="`https://open.spotify.com/album/${album.id}`" class="mt-3 mb-3">SHOW IN SPOTIFY</Spotify>
                         </div>
                     </template>
                 </div>
@@ -42,8 +43,7 @@
             <div class="m-lg-5 mt-lg-3 m-4 mt-3 row placeholder-glow">
                 <div class="col-12 mb-2 multilayer">
                     <span>
-                        Album ID&nbsp;&nbsp;━&nbsp;&nbsp;
-                        <url v-if="album" :to="`https://open.spotify.com/album/${album.id}`" :direct="true" target="_blank" class="text-primary">Spotify</url>
+                        Album ID
                     </span>
                     <span v-if="!album" class="placeholder rounded-1"></span>
                     <span v-else>{{ album.id }} </span>

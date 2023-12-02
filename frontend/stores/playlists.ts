@@ -10,7 +10,7 @@ export type { CPlaylist };
 /**
  * Contains ids beloning to tracks (unloaded), or tracks themselves (loaded)
  */
-type partialTrackList = (CTrack | string)[];
+export type partialTrackList = (CTrack | string)[];
 
 export interface LoadedPlaylist extends CPlaylist {
     index: number;

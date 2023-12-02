@@ -17,15 +17,15 @@
                     </template>
                     <template v-else>
                         <h1 class="mt-auto rounded-2">{{ artist.name }}</h1>
-                        <span class="mt-4 mb-3 rounded-2">Popularity score: {{ artist.popularity }}</span>
+                        <span class="mt-43 mb-3 rounded-2">Popularity score: {{ artist.popularity }}</span>
+                        <Spotify :to="`https://open.spotify.com/artist/${artist.id}`" class="mt-3 mb-3">SHOW IN SPOTIFY</Spotify>
                     </template>
                 </div>
             </header>
             <div class="m-lg-5 mt-lg-3 m-4 mt-3 row placeholder-glow">
                 <div class="col-12 mb-2 multilayer">
                     <span>
-                        Artist ID&nbsp;&nbsp;━&nbsp;&nbsp;
-                        <url v-if="artist" :to="`https://open.spotify.com/artist/${artist.id}`" :direct="true" target="_blank" class="text-primary">Spotify</url>
+                        Artist ID
                     </span>
                     <span v-if="!artist" class="placeholder rounded-1"></span>
                     <span v-else>{{ artist.id }} </span>

@@ -78,15 +78,15 @@
             <div>
                 <template v-if="info.searchResult.artists">
                     <h5 class="text-white mt-3 p-2 pb-0">Artists</h5>
-                    <div class="d-flex overflow-auto gap-3 m-3 mt-4">
+                    <ol class="nav flex-nowrap overflow-auto ps-2">
                         <Card v-for="artist of info.searchResult.artists" :card="{image: artist.image, title: artist.name, url: `/info/artist/${artist.id}`}">
                             <span>Genres</span>
                             <span class="word-wrap text-body-secondary" style="font-size: 85%;">
                                 {{ artist.description![0].name || 'No known genres' }}
                             </span>
                         </Card>
-                    </div>
-                    <h6 v-if="info.searchResult.artists.length == 0">Artisn't. Can't find any artist matching your artistic search</h6>
+                        <h6 v-if="info.searchResult.artists.length == 0">Artisn't. Can't find any artist matching your artistic search</h6>
+                    </ol>
                 </template>
                 <template v-if="info.searchResult.tracks">
                     <h5 class="text-white mt-3 p-2 pb-0">Tracks</h5>
@@ -107,23 +107,23 @@
                 </template>
                 <template v-if="info.searchResult.albums">
                     <h5 class="text-white mt-3 p-2 pb-0">Albums</h5>
-                    <div class="d-flex overflow-auto gap-3 m-3 mt-4">
+                    <ol class="nav flex-nowrap overflow-auto ps-2">
                         <Card v-for="album of info.searchResult.albums" :card="{image: album.image, title: album.name, url: `/info/album/${album.id}`}">
                             <span class="word-wrap text-body-secondary">{{ album.description?.map(a => a.name).join(', ') }}</span>
                         </Card>
-                    </div>
-                    <h6 v-if="info.searchResult.albums.length == 0">Spotify says no</h6>
+                        <h6 v-if="info.searchResult.albums.length == 0">Spotify says no</h6>
+                    </ol>
                 </template>
                 <template v-if="info.searchResult.playlists">
                     <h5 class="text-white mt-3 p-2 pb-0">Playlists</h5>
-                    <div class="d-flex overflow-auto gap-3 m-3 mt-4">
+                    <ol class="nav flex-nowrap overflow-auto ps-2">
                         <Card v-for="playlist of info.searchResult.playlists" :card="{image: playlist.image, title: playlist.name, url: `/info/playlist/${playlist.id}`}">
                             <span class="word-wrap text-body-secondary" style="font-size: 85%;">
                                 {{ playlist.description![0].name }}
                             </span>
                         </Card>
-                    </div>
-                    <h6 v-if="info.searchResult.playlists.length == 0">It does not seem to exist...</h6>
+                        <h6 v-if="info.searchResult.playlists.length == 0">It does not seem to exist...</h6>
+                    </ol>
                 </template>
             </div>
         </div>

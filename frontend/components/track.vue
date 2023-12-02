@@ -1,7 +1,7 @@
 <template>
     <div class="accordion-item border-0 border-bottom">
-        <h2 class="accordion-header">
-            <button v-if="(typeof track == 'string')" class="accordion-button shadow-none collapsed" type="button" data-bs-toggle="collapse" data-bs-target="undefined">
+        <h2 v-if="(typeof track !== 'object')" class="accordion-header">
+            <div class="accordion-button shadow-none collapsed">
                 <div class="container ms-0 d-flex gap-3 align-items-center ps-0 placeholder-glow">
                     <span class="placeholder image flex-shrink-0"></span>
                     <div class="flex-grow-1 multilayer m-0 d-grid gap-1">
@@ -20,110 +20,114 @@
                         <span class="placeholder rounded-1 ms-auto d-block" :style="`width: ${randomBetween(2, 3)}rem`"></span>
                     </div>
                 </div>
-            </button>
-            <button v-else class="accordion-button shadow-none collapsed" type="button" @click="getFeatures()" data-bs-toggle="collapse" :data-bs-target="`#track:${track.id}`">
-                <div class="container ms-0 d-flex gap-3 align-items-center ps-0">
-                    <Image :src="track" />
-                    <div class="flex-grow-1 multilayer m-0 gap-1">
-                        <div class="text-truncate">
-                            <url @click="follow" class="text-white" :to="`/info/track/${track.id}`">{{ track.name }}</url>
+            </div>
+        </h2>
+        <template v-else>
+            <h2>
+                <button class="accordion-button shadow-none collapsed" type="button" @click="getFeatures()" data-bs-toggle="collapse" :data-bs-target="`#track:${track.id}`">
+                    <div class="container ms-0 d-flex gap-3 align-items-center ps-0">
+                        <Image :src="track" />
+                        <div class="flex-grow-1 multilayer m-0 gap-1">
+                            <div class="text-truncate">
+                                <url @click="follow" class="text-white" :to="`/info/track/${track.id}`">{{ track.name }}</url>
+                            </div>
+                            <div class="text-truncate">
+                                <template v-for="(artist, index) in track.artists">
+                                    {{ index > 0 ? ", " : "" }}
+                                    <url @click="follow" :to="`/info/artist/${artist.id}`">{{ artist.name }}</url>
+                                </template>
+                            </div>
                         </div>
-                        <div class="text-truncate">
-                            <template v-for="(artist, index) in track.artists">
-                                {{ index > 0 ? ", " : "" }}
-                                <url @click="follow" :to="`/info/artist/${artist.id}`">{{ artist.name }}</url>
+                        <div v-if="track.appearsIn" class="flex-grow-0 multilayer text-truncate gap-0" data-main-class="normal-d-block tiny-d-none" style="width: 40%;">
+                            <template v-if="track.appearsIn.length > 0">
+                                <div class="text-truncate">
+                                    Appears in
+                                </div>
+                                <div class="text-truncate">
+                                    <template v-for="(appearsIn, index) in track.appearsIn">
+                                        {{ index > 0 ? ", " : "" }}
+                                        <url @click="follow" :to="`/playlist/${appearsIn.id}`">{{ appearsIn.name }}</url>
+                                    </template>
+                                </div>
                             </template>
                         </div>
+                        <div v-else-if="track.album" class="flex-shrink-0 text-truncate" data-main-class="normal-d-block tiny-d-none" style="width: 40%;">
+                            <url @click="follow" class="text-truncate d-inline-block text-body" :to="`/info/album/${track.album.id}`">{{ track.album.name }}</url>
+                        </div>
+                        <div class="flex-shrink-0" style="width: 10%;">{{ track.duration }}</div>
+                        <i v-if="deleteable" @click="$emit('delete', track)" data-bs-toggle="collapse" data-bs-target=""><fa-icon style="color: rgb(155, 0, 0)" :icon="['fas', 'trash-can']"></fa-icon></i>
                     </div>
-                    <div v-if="track.appearsIn" class="flex-grow-0 multilayer text-truncate gap-0" data-main-class="normal-d-block tiny-d-none" style="width: 40%;">
-                        <template v-if="track.appearsIn.length > 0">
-                            <div class="text-truncate">
-                                Appears in
-                            </div>
-                            <div class="text-truncate">
-                                <template v-for="(appearsIn, index) in track.appearsIn">
-                                    {{ index > 0 ? ", " : "" }}
-                                    <url @click="follow" :to="`/playlist/${appearsIn.id}`">{{ appearsIn.name }}</url>
-                                </template>
-                            </div>
-                        </template>
-                    </div>
-                    <div v-else-if="track.album" class="flex-shrink-0 text-truncate" data-main-class="normal-d-block tiny-d-none" style="width: 40%;">
-                        <url @click="follow" class="text-truncate d-inline-block text-body" :to="`/info/album/${track.album.id}`">{{ track.album.name }}</url>
-                    </div>
-                    <div class="flex-shrink-0" style="width: 10%;">{{ track.duration }}</div>
-                    <i v-if="deleteable" @click="$emit('delete', track)" data-bs-toggle="collapse" data-bs-target=""><fa-icon style="color: rgb(155, 0, 0)" :icon="['fas', 'trash-can']"></fa-icon></i>
-                </div>
-            </button>
-        </h2>
-        <div v-if="(typeof track != 'string')" :id="`track:${track.id}`" class="accordion-collapse collapse">
-            <div class="accordion-body">
-                <div class="row placeholder-glow">
-                    <div class="col-12 mb-2 multilayer" data-main-class="normal-d-none">
-                        <span>Album</span>
-                        <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <url v-else :to="`/info/album/${track.album!.id}`" class="text-decoration-underline">{{
-                            track.album!.name }}</url>
-                    </div>
-                    <div v-if="track.appearsIn" class="mb-2 multilayer" data-main-class="normal-d-none tiny-d-grid">
-                        <template v-if="track.appearsIn.length > 0">
-                            <span>Appears in</span>
-                            <span>
-                                <template v-for="(appearsIn, index) in track.appearsIn">
-                                    {{ index > 0 ? ", " : "" }}
-                                    <url @click="follow" :to="`/playlist/${appearsIn.id}`">{{ appearsIn.name }}</url>
-                                </template>
-                            </span>
-                        </template>
-                    </div>
-                    <div class="mb-2 multilayer" data-main-class="normal-col-6 tiny-col-9">
-                        <span>Genres</span>
-                        <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ trackGenres }} </span>
-                    </div>
-                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                        <InfoField :description="Filters.Track.BPM.description">BPM</InfoField>
-                        <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ Math.round(track.features.tempo) }}</span>
-                    </div>
-                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                        <InfoField :description="Filters.Track.Popularity.description">Popularity</InfoField>
-                        <span v-if="!track.album" class="placeholder rounded-1"></span>
-                        <span v-else>{{ (track.popularity || track.album.popularity) / 10 || '?' }} / 10</span>
-                    </div>
-                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                        <InfoField :description="Filters.Track.Danceability.description">Danceability</InfoField>
-                        <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ Math.round(track.features.danceability * 100) / 10 }} / 10</span>
-                    </div>
-                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                        <InfoField :description="Filters.Track.Positivity.description">Positivity</InfoField>
-                        <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ Math.round(track.features.valence * 100) / 10 }} / 10</span>
-                    </div>
-                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                        <InfoField :description="Filters.Track.Energy.description">Energy</InfoField>
-                        <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ Math.round(track.features.energy * 100) / 10 }} / 10</span>
-                    </div>
-                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                        <InfoField :description="Filters.Track.Accousticness.description">Acoustic</InfoField>
-                        <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ Math.round(track.features.acousticness * 100) / 10 }} / 10</span>
-                    </div>
-                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                        <InfoField :description="Filters.Track.Vocality.description">Vocals</InfoField>
-                        <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ Math.round((1 - track.features.instrumentalness) * 100) / 10 }} / 10</span>
-                    </div>
-                    <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                        <InfoField :description="Filters.Track.Liveness.description">Live</InfoField>
-                        <span v-if="!track.features" class="placeholder rounded-1"></span>
-                    <span v-else>{{ Math.round(track.features.liveness * 100) / 10 }} / 10</span>
+                </button>
+            </h2>
+            <div v-if="(typeof track != 'string')" :id="`track:${track.id}`" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                    <div class="row placeholder-glow">
+                        <div class="col-12 mb-2 multilayer" data-main-class="normal-d-none">
+                            <span>Album</span>
+                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                            <url v-else :to="`/info/album/${track.album!.id}`" class="text-decoration-underline">{{
+                                track.album!.name }}</url>
+                        </div>
+                        <div v-if="track.appearsIn" class="mb-2 multilayer" data-main-class="normal-d-none tiny-d-grid">
+                            <template v-if="track.appearsIn.length > 0">
+                                <span>Appears in</span>
+                                <span>
+                                    <template v-for="(appearsIn, index) in track.appearsIn">
+                                        {{ index > 0 ? ", " : "" }}
+                                        <url @click="follow" :to="`/playlist/${appearsIn.id}`">{{ appearsIn.name }}</url>
+                                    </template>
+                                </span>
+                            </template>
+                        </div>
+                        <div class="mb-2 multilayer" data-main-class="normal-col-6 tiny-col-9">
+                            <span>Genres</span>
+                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                            <span v-else>{{ trackGenres }} </span>
+                        </div>
+                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                            <InfoField :description="Filters.Track.BPM.description">BPM</InfoField>
+                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                            <span v-else>{{ Math.round(track.features.tempo) }}</span>
+                        </div>
+                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                            <InfoField :description="Filters.Track.Popularity.description">Popularity</InfoField>
+                            <span v-if="!track.album" class="placeholder rounded-1"></span>
+                            <span v-else>{{ (track.popularity || track.album.popularity) / 10 || '?' }} / 10</span>
+                        </div>
+                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                            <InfoField :description="Filters.Track.Danceability.description">Danceability</InfoField>
+                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                            <span v-else>{{ Math.round(track.features.danceability * 100) / 10 }} / 10</span>
+                        </div>
+                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                            <InfoField :description="Filters.Track.Positivity.description">Positivity</InfoField>
+                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                            <span v-else>{{ Math.round(track.features.valence * 100) / 10 }} / 10</span>
+                        </div>
+                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                            <InfoField :description="Filters.Track.Energy.description">Energy</InfoField>
+                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                            <span v-else>{{ Math.round(track.features.energy * 100) / 10 }} / 10</span>
+                        </div>
+                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                            <InfoField :description="Filters.Track.Accousticness.description">Acoustic</InfoField>
+                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                            <span v-else>{{ Math.round(track.features.acousticness * 100) / 10 }} / 10</span>
+                        </div>
+                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                            <InfoField :description="Filters.Track.Vocality.description">Vocals</InfoField>
+                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                            <span v-else>{{ Math.round((1 - track.features.instrumentalness) * 100) / 10 }} / 10</span>
+                        </div>
+                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
+                            <InfoField :description="Filters.Track.Liveness.description">Live</InfoField>
+                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                        <span v-else>{{ Math.round(track.features.liveness * 100) / 10 }} / 10</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </template>
     </div>
 </template>
 
