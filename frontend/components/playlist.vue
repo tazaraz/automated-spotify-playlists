@@ -112,15 +112,17 @@
                         </ul>
                     </div>
                 </div>
-                <div class="accordion rounded-5">
+                <div class="accordion rounded-5" :style="`min-height: ${rendered.min_height}px;`">
                     <Track v-if="loading || !playlists.loaded || !playlists.loaded.all_tracks"
                            v-for="index in 20" track="" :id="index" class="playlist-track"/>
-                    <Track v-else-if="shown.tracks.length > 0"
-                           v-for="track, index of shown.tracks"
-                        :track="track"
-                        :id="index" class="playlist-track"
-                        :deleteable="shown.kind !== 'all'"
-                        @delete="removeTrack"/>
+                    <template v-else-if="shown.tracks.length > 0"
+                              v-for="track, index of shown.tracks.slice(0, rendered.total)">
+                                <Track
+                                    :track="isVisibleTrack(index) ? track : index"
+                                    :id="index" class="playlist-track"
+                                    :deleteable="shown.kind !== 'all'"
+                                    @delete="removeTrack"/>
+                    </template>
                     <h4 v-else class="m-5">
                         No tracks here.
                     </h4>
@@ -134,7 +136,7 @@
 import { Prop, Vue } from 'vue-property-decorator';
 import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
-import Playlists, { LoadedPlaylist } from '~/stores/playlists';
+import Playlists, { LoadedPlaylist, partialTrackList } from '~/stores/playlists';
 import User from '~/stores/user';
 import { CTrack } from '../../backend/src/shared/types/client';
 import Layout from '~/stores/layout';
@@ -150,9 +152,9 @@ export default class PlaylistDisplay extends Vue {
     breadcrumbs: BreadCrumbs = null as any;
     layout: Layout = null as any;
 
-    observerTimeout: any = null;
     observer: IntersectionObserver = null as any;
-
+    /** The amount of tracks to load at once */
+    batchLoadingSize: number = 25;
     loading: boolean = true;
 
     /** Contains the watchers function to stop watching */
@@ -161,8 +163,27 @@ export default class PlaylistDisplay extends Vue {
     /**Tracks which should be shown. Only possible if the playlist is a smart playlist */
     shown: {
         kind: "all" | "matched" | "excluded" | "included";
-        tracks: CTrack[];
-    } = { kind: 'all', tracks: [] };
+        /** Tracks which are actually rendered.
+         * The invisible items are just their ID and will be loaded once scrolled into view to prevent
+         * slowing down the DOM */
+        tracks: partialTrackList;
+        /** List of visible indexes */
+        visible: number[];
+    } = { kind: 'all', tracks: [], visible: [] };
+
+
+    rendered: {
+        /** Min height of the track list. Is a lower bound estimation of the total required height */
+        min_height: number;
+        /** Represents the amount of Track Components rendered, as a lot of these slow down the DOM
+         *  This number increases by at `rendered.total - rendered.threshold` with `rendered.increase` every time
+         */
+        total: number;
+        /** The threshold before increasing the `rendered.total` again */
+        threshold: number;
+        /** The amount to increase the `rendered.total` by */
+        increase: number;
+    } = { min_height: 0, total: 150, threshold: 200, increase: 200 };
 
     async mounted() {
         if (!process.client) return;
@@ -174,13 +195,7 @@ export default class PlaylistDisplay extends Vue {
         this.layout = new Layout();
 
         /** This observer keeps track of which tracks are visible */
-        this.observer = new IntersectionObserver((elements) => {
-            // If we already have a timeout, stop that one
-            if (this.observerTimeout)
-                clearTimeout(this.observerTimeout);
-
-            this.observerTimeout = setTimeout(() => this.loadVisibleTracks(elements), 100);
-        }, {
+        this.observer = new IntersectionObserver(elements => {this.loadVisibleTracks(elements);}, {
             root: document.getElementById("playlist-wrapper")!,
         });
 
@@ -224,13 +239,14 @@ export default class PlaylistDisplay extends Vue {
         this.loading = false;
         await this.layout.render(null, true);
 
-        // Store the unwatch handlers
-        this.watchers = [
-            watch(() => this.playlists.loaded.all_tracks, () => this.showTracks(this.shown.kind)),
-            watch(() => this.playlists.loaded.matched_tracks, () => this.showTracks(this.shown.kind)),
-            watch(() => this.playlists.loaded.excluded_tracks, () => this.showTracks(this.shown.kind)),
-            watch(() => this.playlists.loaded.included_tracks, () => this.showTracks(this.shown.kind))
-        ];
+
+        // // Store the unwatch handlers
+        // this.watchers = [
+        //     watch(() => this.playlists.loaded.all_tracks, () => this.showTracks(this.shown.kind)),
+        //     watch(() => this.playlists.loaded.matched_tracks, () => this.showTracks(this.shown.kind)),
+        //     watch(() => this.playlists.loaded.excluded_tracks, () => this.showTracks(this.shown.kind)),
+        //     watch(() => this.playlists.loaded.included_tracks, () => this.showTracks(this.shown.kind))
+        // ];
     }
 
     beforeUnmount() {
@@ -266,6 +282,7 @@ export default class PlaylistDisplay extends Vue {
                 break;
             case "matched":
                 this.shown.tracks = this.playlists.loaded.matched_tracks = tracks.matched;
+
                 break;
             case "excluded":
                 this.shown.tracks = this.playlists.loaded.excluded_tracks = tracks.excluded;
@@ -275,6 +292,8 @@ export default class PlaylistDisplay extends Vue {
                 break;
         }
 
+        this.rendered.min_height = (document.getElementsByClassName("playlist-track")[0].clientHeight || 50)
+                                    * this.shown.tracks.length;
         this.loading = false;
 
         this.$nextTick(() => {
@@ -355,35 +374,57 @@ export default class PlaylistDisplay extends Vue {
         this.layout.render(null, true)
     }
 
-
     loadVisibleTracks(elements: IntersectionObserverEntry[]) {
         // If for some reason there are no elements, stop
         if (elements.length == 0) return;
 
-        // Get the lowest and highest id
-        let min = parseInt(
-            elements.reduce((prev, curr) => curr.target.id < prev.target.id ? curr : prev, elements[0]).target.id
-        )
-        let max = parseInt(
-            elements.reduce((prev, curr) => curr.target.id > prev.target.id ? curr : prev, elements[0]).target.id
-        )
+        // If there are as much elements as there are tracks, load only those who are intersecting
+        if (elements.length == this.shown.tracks.length) {
+            // Get the indexes of the visible elements
+            this.shown.visible = elements.filter(e => e.isIntersecting).map(e => parseInt(e.target.id));
+        }
 
-        // We load tracks in batches of 50. Calculate if the next and previous 5 tracks are loaded
-        const prev = Math.max(min - 10, 0);
-        const next = Math.min(max + 10, this.shown.tracks.length - 1);
+        // For each element, if intersecting, add, else remove
+        else {
+            for (const element of elements) {
+                const index = parseInt(element.target.id);
+                if (element.isIntersecting && !this.shown.visible.includes(index))
+                    this.shown.visible.push(index);
+                else if (!element.isIntersecting && this.shown.visible.includes(index))
+                    this.shown.visible.splice(this.shown.visible.indexOf(index), 1);
+            }
+        }
+
+        // We load tracks in batches of batchLoadingSize. Calculate if the next and previous 5 tracks are loaded
+        const prev = Math.max(Math.min(...this.shown.visible) - 10, 0);
+        const next = Math.min(Math.max(...this.shown.visible) + 10, this.shown.tracks.length - 1);
+
+        // If the next track is `rendered.total - rendered.threshold` away from the end, increase the amount of rendered tracks
+        if (next > this.rendered.total - this.rendered.threshold) {
+            this.rendered.total += this.rendered.increase;
+
+            // The InteractionObserver needs to know of the new elements. Call this function to do that
+            this.showTracks(this.shown.kind);
+        }
+
         let offset;
-
         // If the previous tracks are not loaded, load them
         if (typeof this.shown.tracks[prev] === 'string') {
-            offset = Math.floor(prev / 50) * 50;
+            offset = Math.floor(prev / this.batchLoadingSize) * this.batchLoadingSize;
             this.playlists.loadPlaylistTracks(this.shown.kind, offset);
         }
 
         // If the next tracks are not loaded, load them
         if (typeof this.shown.tracks[next] === 'string') {
-            offset = Math.floor(next / 50) * 50;
+            offset = Math.floor(next / this.batchLoadingSize) * this.batchLoadingSize;
             this.playlists.loadPlaylistTracks(this.shown.kind, offset);
         }
+    }
+
+    isVisibleTrack(index: number, margin: number = 8) {
+        return this.shown.visible.includes(index) ||
+                 (index > Math.min(...this.shown.visible) - margin &&
+                  index < Math.max(...this.shown.visible) + margin);
     }
 
     remove() {
