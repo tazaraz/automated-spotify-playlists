@@ -168,14 +168,14 @@ export default class Fetch {
         } catch (error) {
             // If the api.spotify.com lookup fails
             switch (error.cause.code) {
+                default:
+                    THROW_DEBUG_ERROR(JSON.stringify(error));
                 case "EAI_AGAIN":
                 /* Random timeout */
                 case "UND_ERR_CONNECT_TIMEOUT":
                 /* Socket closed randomly */
                 case "UND_ERR_SOCKET":
-                default:
                     /** Log the error and try again */
-                    console.log(JSON.stringify(error));
                     return this.parseRequest(url, parameters, options);
             }
         }
