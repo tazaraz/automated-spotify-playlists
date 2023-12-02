@@ -31,5 +31,6 @@ export default class Image extends Vue {
 <style lang="scss" scoped>
 .image {
     aspect-ratio: 1;
+    border: none !important;
 }
 </style>
