@@ -248,7 +248,7 @@ export default class EditState extends Pinia {
 
             // Sync with the server
             const old_id = this.playlists.editing.id
-            const result = await this.playlists.syncPlaylist(this.playlists.convertToCPlaylist(this.playlists.editing))
+            const result = await this.playlists.syncPlaylist(this.playlists.convertToCPlaylist(temp_playlist))
 
             if (result.status > 300) {
                 FetchError.create({status: result.status, message: result.data.error, duration: 5000})

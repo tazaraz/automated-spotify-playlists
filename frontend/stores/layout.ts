@@ -133,7 +133,7 @@ export default class Layout extends Pinia {
             }
 
             /** Update the view */
-            this.mainElement = this.appElement.getElementsByTagName('article')[0] as HTMLElement;
+            this.mainElement = document.getElementById('main-view')!.getElementsByTagName('article')[0] as HTMLElement;
             /** Prevent text selection */
             window.getSelection()?.removeAllRanges();
 

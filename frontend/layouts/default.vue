@@ -23,28 +23,30 @@
         </div>
         <template v-else>
             <Sidebar></Sidebar>
-            <span class="resize-handle d-sm-flex d-none" style="grid-row: span 2; grid-column: span 1"
+            <span class="resize-handle d-sm-flex d-none"
                 @touchstart="layout.setResizing('sidebar', true)"
                 @mousedown="layout.setResizing('sidebar', true)"><i class="rounded-5"></i></span>
         </template>
 
         <toolbar />
-
-        <div class="d-flex flex-column overflow-auto">
+        <div id="alerts">
             <ErrorAlerts />
+        </div>
+
+        <div id="main-view" class="d-flex flex-column overflow-auto">
             <slot></slot>
         </div>
 
         <template v-if="(user && user.info && playlists && playlists.editing) || playlists?.editing?.id == 'example'">
             <div v-if="layout.app.width > 0 && layout.app.width < layout.app.mobile" class="offcanvas offcanvas-end bg-black d-sm-flex w-100 p-3"
                 tabindex="-1" id="edit">
-                <Edit @open="layout.open('edit')" />
+                <Edit id="edit-view" @open="layout.open('edit')" />
             </div>
             <template v-else>
-                <span class="resize-handle d-sm-flex d-none" style="grid-row: span 2; grid-column: span 1"
+                <span class="resize-handle d-sm-flex d-none"
                     @touchstart="layout.setResizing('edit', true)"
                     @mousedown="layout.setResizing('edit', true)"><i class="rounded-5"></i></span>
-                <Edit @open="layout.open('edit')" />
+                <Edit id="edit-view" @open="layout.open('edit')" />
             </template>
         </template>
     </main>
@@ -91,7 +93,7 @@ export default class App extends Vue {
     mounted() {
         // Initialize some variables
         this.layout.appElement = this.$refs.wrapper as HTMLElement;
-        this.layout.mainElement = this.layout.appElement.getElementsByTagName('article')[0] as HTMLElement;
+        this.layout.mainElement = document.getElementById('main-view')!.getElementsByTagName('article')[0] as HTMLElement;
         this.layout.app.width = this.layout.appElement.clientWidth;
         this.layout.playlistEditing = this.playlists.editing != null;
 
@@ -107,7 +109,7 @@ export default class App extends Vue {
         watch(() => this.$route.fullPath, async () => {
             /** When the url changes, the info view changes. Update it */
             await this.$nextTick();
-            this.layout.mainElement = this.layout.appElement.getElementsByTagName('article')[0] as HTMLElement;
+            this.layout.mainElement = document.getElementById('main-view')!.getElementsByTagName('article')[0] as HTMLElement;
             this.layout.render(null, true);
         })
 
@@ -157,6 +159,8 @@ $app_padding: 1rem;
     padding: 0 4px;
     align-items: center;
     cursor: col-resize;
+    grid-row: span 3;
+    grid-column: span 1;
 
     i {
         display: block;
@@ -169,14 +173,14 @@ $app_padding: 1rem;
 main {
     display: grid;
     grid-template-columns: 20rem $handle 1fr 0px 0px;
-    grid-template-rows: 4rem 1fr;
+    grid-template-rows: 4rem min-content 1fr;
     width: 100vw;
     height: 100%;
     position: fixed;
     padding: $app_padding;
 
     nav {
-        grid-row: span 2;
+        grid-row: span 3;
     }
 
     &:deep(#toolbar) {
@@ -197,7 +201,7 @@ main {
 @include media-breakpoint-down(sm) {
     main {
         grid-template-columns: 1fr;
-        grid-template-rows: 4rem calc(100% - 4rem);
+        grid-template-rows: 4rem min-content calc(100% - 4rem);
 
         nav {
             grid-row-start: 2;
