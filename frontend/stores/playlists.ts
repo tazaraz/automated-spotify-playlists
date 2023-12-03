@@ -579,7 +579,12 @@ export default class Playlists extends Pinia {
         this.save(playlist)
 
         if (!this.unpublished) {
-            await Fetch.delete(`server:/playlist/${playlist!.id}/${what}-tracks`, { data: { removed: removed } })
+            // Do a call for every 500 tracks
+            for (let i = 0; i < removed.length; i += 500) {
+                await Fetch.delete(`server:/playlist/${playlist!.id}/${what}-tracks`, {
+                    data: { removed: removed.slice(i, i + 500) }
+                })
+            }
         }
     }
 
