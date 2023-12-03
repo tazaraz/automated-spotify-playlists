@@ -1,4 +1,4 @@
-import { FilterItem, SAlbum, SArtist, STrack } from "../../shared/types/server";
+import { FilterItem, Generic } from "../../shared/types/server";
 
 export { Album } from "./album";
 export { Artist } from "./artist";
@@ -13,11 +13,11 @@ export { TrackFeatures } from "./track_features";
  * @param artist The function to execute if the item is an artist
  * @returns Result from the according executed function
  */
- export async function get_by_kind<T extends STrack | SAlbum | SArtist>(
-    item: FilterItem<T>,
-    track: (item: FilterItem<T>) => Promise<FilterItem<T>[]>,
-    album: (item: FilterItem<T>) => Promise<FilterItem<T>[]>,
-    artist: (item: FilterItem<T>) => Promise<FilterItem<T>[]>,
+export async function get_by_kind<T extends Generic>(
+    item: FilterItem<Generic>,
+    track: (item: FilterItem<Generic>) => Promise<FilterItem<T>[]>,
+    album: (item: FilterItem<Generic>) => Promise<FilterItem<T>[]>,
+    artist: (item: FilterItem<Generic>) => Promise<FilterItem<T>[]>,
 ) {
     switch (item.kind) {
         case "track":
@@ -32,17 +32,36 @@ export { TrackFeatures } from "./track_features";
 }
 
 /**
+ * This function returns the item lowest in the hierarchical order. The order is as follows: `artist -> album -> track`.
+ * @param item1 The first item to compare
+ * @param item2 The second item to compare
+ */
+export async function lowest_kind(item1: FilterItem<Generic>, item2: FilterItem<Generic>) {
+    // First try to return the track
+    if (item1.kind == "track") return item1;
+    if (item2.kind == "track") return item2;
+
+    // Then try to return the album
+    if (item1.kind == "album") return item1;
+    if (item2.kind == "album") return item2;
+
+    // Both are artists, return the first one
+    return item1;
+}
+
+/**
  * Filters items based on the filter function in an asynchronous way. This function should only be used if the filter contains an await in order to process items.
  * @param items The items to filter
+ * @param getter Converts an item to the target kind
  * @param filter This receives an item from the given items, and requires that same item to be returned if the filter matches. If not returned, the item is discarded.
  * @returns the filtered items
  */
-export async function filter_async<T extends STrack | SAlbum | SArtist>(
-    input_items: FilterItem<T>[],
-    getter: (item: FilterItem<T>) => Promise<FilterItem<T>[]>,
-    filter: (item: FilterItem<T>) => Promise<FilterItem<T> | undefined>
+export async function filter_async<T extends Generic>(
+    input_items: FilterItem<Generic>[],
+    getter: (item: FilterItem<Generic>) => Promise<FilterItem<T>[]>,
+    filter: (filter_item: FilterItem<T>) => Promise<boolean | undefined>
 ){
-    const matches: any[] = [];
+    const matches: FilterItem<Generic>[] = [];
     const tasks = [];
 
     for (const input_item of input_items) {
@@ -56,7 +75,7 @@ export async function filter_async<T extends STrack | SAlbum | SArtist>(
                 const result = await filter(filter_item);
 
                 if (result)
-                    matches.push(filter_item)
+                    matches.push(await lowest_kind(input_item, filter_item))
             }
 
             resolve(true);

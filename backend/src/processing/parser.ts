@@ -92,12 +92,13 @@ export default class FilterParser {
                     dryrun
                 )
                 if (result === undefined)
-                    continue
+                    continue;
 
-                // Filter out duplicate ids from the result: the result from a filter is always one kind of FilterItem
-                result = result.filter((item, i) => result.findIndex(t => t.id === item.id) === i)
+                // Count the kinds of FilterItems
+                const counts = {} as {[key: string]: number}
+                result.forEach(item => counts[item.kind] = (counts[item.kind] || 0) + 1)
 
-                task.log.filters.push(`Filter '${(f as any).category} ${(f as any).filter}' matched ${result.length} of ${input.length} items (${result.length - input.length})`);
+                task.log.filters.push(`Filter '${(f as any).category} ${(f as any).filter}' matched ${result.length} of ${input.length} items (${Object.entries(counts).map(([kind, count]) => `${count} ${kind}${count == 1 ? '' : 's'}`).join(", ")})`);
             }
 
             /**Otherwise pipe the output into the next input, in effect filtering out all

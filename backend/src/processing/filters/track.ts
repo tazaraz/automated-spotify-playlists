@@ -1,5 +1,5 @@
 import { FilterSlider, FilterString, FilterValue } from "../../shared/matching";
-import { FilterItem, STrack } from "../../shared/types/server";
+import { FilterItem, Generic, SAlbum, SArtist, STrack } from "../../shared/types/server";
 import { filter_async, get_by_kind } from ".";
 
 export class Track {
@@ -8,27 +8,27 @@ export class Track {
      * @param item Converts a FilterItem into a STrack
      * @returns track
      */
-    static async convert(item: FilterItem<any>) {
+    static async convert(item: FilterItem<Generic>) {
         return await get_by_kind<STrack>(item,
             // Albums are on their own adequate
-            async () => [item],
+            async () => [item as FilterItem<STrack>],
             // Albums can easily get all their tracks
-            async () => item.tracks(),
+            async () => (item as SAlbum).tracks(),
             /**This is the tricky and expensive one. Pray we the items are already cached.
              * By converting an artist to their tracks, we get a 2D array:
              * * artist -> [album, album, ...] -> [[track, track, ...], [track, track, ...], ...] */
             // Concat merges a 2D array into a 1D one.
-            async () => ([] as FilterItem<STrack>[]).concat(
+            async () => [].concat(
                 /**We can await the first step with a simple 'await', but from albums to tracks we get a
                  * Promise<STrack>[], thus requiring a Promise.all(...)*/
                 ...await Promise.all(
-                    (await item.albums()).map(async album => await album.tracks())
+                    (await (item as SArtist).albums()).map(async album => await album.tracks())
                 )
             ),
         )
     }
 
-    static async Name(items: FilterItem<STrack>[],
+    static async Name(items: FilterItem<Generic>[],
                       operation: keyof typeof FilterString.operation,
                       filter: string,
                       dry_run=false){
@@ -37,13 +37,13 @@ export class Track {
             return [];
         }
 
-        return await filter_async(items, Track.convert, async item => {
-            if (FilterString.matches(operation, filter, item.name))
-                return item
+        return await filter_async(items, Track.convert, async filter_item => {
+            if (FilterString.matches(operation, filter, filter_item.name))
+                return true;
         })
     }
 
-    static async Popularity(items: FilterItem<STrack>[],
+    static async Popularity(items: FilterItem<Generic>[],
                             operation: keyof typeof FilterSlider.operation,
                             filter: number,
                             dry_run=false){
@@ -52,14 +52,14 @@ export class Track {
             return [];
         }
 
-        return await filter_async(items, Track.convert, async item => {
+        return await filter_async(items, Track.convert, async filter_item => {
             // Popularity ranges from 0 - 100
-            if (FilterSlider.matches(operation, filter, item.popularity))
-                return item;
+            if (FilterSlider.matches(operation, filter, filter_item.popularity))
+                return true;
         })
     }
 
-    static async Duration(items: FilterItem<STrack>[],
+    static async Duration(items: FilterItem<Generic>[],
                           operation: keyof typeof FilterValue.operation,
                           filter: number,
                           dry_run=false){
@@ -68,10 +68,10 @@ export class Track {
             return [];
         }
 
-        return await filter_async(items, Track.convert, async item => {
+        return await filter_async(items, Track.convert, async filter_item => {
             // Convert milliseconds to seconds
-            if (FilterValue.matches(operation, filter, item.duration_ms / 1000))
-                return item;
+            if (FilterValue.matches(operation, filter, filter_item.duration_ms / 1000))
+                return true;
         })
     }
 }

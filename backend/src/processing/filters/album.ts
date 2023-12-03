@@ -1,23 +1,23 @@
 import { FilterString, FilterValue } from "../../shared/matching";
-import { FilterItem, SAlbum, SArtist } from "../../shared/types/server";
+import { FilterItem, Generic, SAlbum, SArtist, STrack } from "../../shared/types/server";
 import { filter_async, get_by_kind } from ".";
 
 export class Album {
-    private static async convert(item: FilterItem<any>) {
+    static async convert(item: FilterItem<Generic>) {
         /**
          * This is the config required to usually get the correct data used in this parser
          */
         return await get_by_kind<SAlbum>(item,
             // Tracks have an album function to get the albums
-            async () => [await item.album()],
+            async () => [await (item as STrack).album()],
             // Albums are on their own adequate
-            async () => [item],
+            async () => [item as FilterItem<SAlbum>],
             // Artists have multiple albums
-            async () => await item.albums(),
+            async () => await (item as SArtist).albums(),
         )
     }
 
-    static async Artists(items: FilterItem<SAlbum>[],
+    static async Artists(items: FilterItem<Generic>[],
                          operation: keyof typeof FilterString.operation,
                          filter: string,
                          dry_run=false){
@@ -26,16 +26,16 @@ export class Album {
             return [];
         }
 
-        return await filter_async(items, Album.convert, async item => {
+        return await filter_async(items, Album.convert, async filter_item => {
             // Get the item album artists
-            for (const artist of await item.artists()) {
+            for (const artist of await filter_item.artists()) {
                 if (FilterString.matches(operation, filter, artist.name))
-                    return item;
+                    return true;
             }
         })
     }
 
-    static async Name(items: FilterItem<SAlbum>[],
+    static async Name(items: FilterItem<Generic>[],
                       operation: keyof typeof FilterString.operation,
                       filter: string,
                       dry_run=false){
@@ -44,14 +44,14 @@ export class Album {
             return [];
         }
 
-        return await filter_async(items, Album.convert, async item => {
+        return await filter_async(items, Album.convert, async filter_item => {
             // Get the track album name
-            if (FilterString.matches(operation, filter, item.name))
-                return item;
+            if (FilterString.matches(operation, filter, filter_item.name))
+                return true;
         })
     }
 
-    static async ReleaseDate(items: FilterItem<SAlbum>[],
+    static async ReleaseDate(items: FilterItem<Generic>[],
                              operation: keyof typeof FilterValue.operation,
                              filter: number,
                              dry_run=false){
@@ -60,14 +60,14 @@ export class Album {
             return [];
         }
 
-        return await filter_async(items, Album.convert, async item => {
+        return await filter_async(items, Album.convert, async filter_item => {
             // Get the track album release date
-            if (FilterValue.matches(operation, filter, item.release_date))
-                    return item;
+            if (FilterValue.matches(operation, filter, filter_item.release_date))
+                    return true;
         })
     }
 
-    static async TrackCount(items: FilterItem<SAlbum>[],
+    static async TrackCount(items: FilterItem<Generic>[],
                             operation: keyof typeof FilterValue.operation,
                             filter: number,
                             dry_run=false){
@@ -76,14 +76,14 @@ export class Album {
             return [];
         }
 
-        return await filter_async(items, Album.convert, async item => {
+        return await filter_async(items, Album.convert, async filter_item => {
             // Get the track album total tracks
-            if (FilterValue.matches(operation, filter, item.total_tracks))
-                return item;
+            if (FilterValue.matches(operation, filter, filter_item.total_tracks))
+                return true;
         })
     }
 
-    static async Genres(items: FilterItem<SAlbum>[],
+    static async Genres(items: FilterItem<Generic>[],
                         operation: keyof typeof FilterString.operation,
                         filter: string,
                         dry_run=false){
@@ -92,15 +92,15 @@ export class Album {
             return [];
         }
 
-        return await filter_async(items, Album.convert, async item => {
-            if (!item.genres || item.genres.length > 0) return item;
+        return await filter_async(items, Album.convert, async filter_item => {
+            if (!filter_item.genres || filter_item.genres.length > 0) return true;
 
-            if (FilterString.matches(operation, filter, item.genres.toString()))
-                return item;
+            if (FilterString.matches(operation, filter, filter_item.genres.toString()))
+                return true;
         })
     }
 
-    static async Popularity(items: FilterItem<SAlbum>[],
+    static async Popularity(items: FilterItem<Generic>[],
                             operation: keyof typeof FilterValue.operation,
                             filter: number,
                             dry_run=false){
@@ -109,9 +109,9 @@ export class Album {
             return [];
         }
 
-        return await filter_async(items, Album.convert, async item => {
-            if (FilterValue.matches(operation, filter, item.popularity))
-                return item;
+        return await filter_async(items, Album.convert, async filter_item => {
+            if (FilterValue.matches(operation, filter, filter_item.popularity))
+                return true;
         })
     }
 }
