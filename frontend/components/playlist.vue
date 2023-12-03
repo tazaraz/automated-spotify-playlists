@@ -240,13 +240,13 @@ export default class PlaylistDisplay extends Vue {
         await this.layout.render(null, true);
 
 
-        // // Store the unwatch handlers
-        // this.watchers = [
-        //     watch(() => this.playlists.loaded.all_tracks, () => this.showTracks(this.shown.kind)),
-        //     watch(() => this.playlists.loaded.matched_tracks, () => this.showTracks(this.shown.kind)),
-        //     watch(() => this.playlists.loaded.excluded_tracks, () => this.showTracks(this.shown.kind)),
-        //     watch(() => this.playlists.loaded.included_tracks, () => this.showTracks(this.shown.kind))
-        // ];
+        // Store the unwatch handlers
+        this.watchers = [
+            watch(() => this.playlists.loaded.all_tracks, () => this.showTracks(this.shown.kind)),
+            watch(() => this.playlists.loaded.matched_tracks, () => this.showTracks(this.shown.kind)),
+            watch(() => this.playlists.loaded.excluded_tracks, () => this.showTracks(this.shown.kind)),
+            watch(() => this.playlists.loaded.included_tracks, () => this.showTracks(this.shown.kind))
+        ];
     }
 
     beforeUnmount() {

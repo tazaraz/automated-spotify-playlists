@@ -5,7 +5,7 @@
             <span v-if="i > 1 && i == indent" class="tree branch"><i></i><i></i></span>
             <span v-if="i == indent" :class="`d-flex align-items-center text-truncate ps-1 s${i - 1}`">
                 If
-                <select id="source-select" class="ms-3 me-3 form-select form-select-sm w-auto" @change="statementChange">
+                <select class="ms-3 me-3 form-select form-select-sm w-auto" @change="statementChange">
                     <option v-for="mode in Object.keys(FilterParserOptions)" :value="mode" :selected="statement.mode == mode">{{ mode }}</option>
                 </select>
                 <i></i>

@@ -1,5 +1,5 @@
 <template>
-    <select ref="source" id="source-select" class="form-select form-select-md" @change="sourceChange">
+    <select ref="source" class="source-select form-select form-select-md" @change="sourceChange">
         <option v-for="s in SourceDescription" :value="s" :selected="source.origin == s">{{ s }}</option>
     </select>
     <template v-if="kind == 'library'">
@@ -174,7 +174,7 @@ export default class EditSource extends Vue {
 </script>
 
 <style lang="scss" scoped>
-#source-select {
+.source-select {
     height: fit-content;
 }
 span.two-layer {

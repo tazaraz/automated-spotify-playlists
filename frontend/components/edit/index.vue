@@ -60,7 +60,7 @@
                         <div class="flex-grow-1">
                             <h5 class="d-inline me-3">Filters</h5>
                             <div>
-                                <small>(match <select id="source-select" class="d-inline-flex form-select form-select-sm w-auto" @change="globalStatementChange">
+                                <small>(match <select class="source-select d-inline-flex form-select form-select-sm w-auto" @change="globalStatementChange">
                                 <option v-for="mode in Object.keys(FilterParserOptions)" :value="mode" :selected="editstate.computedFilters.mode == mode">{{ mode }}</option>
                                 </select> 1<sup>st</sup> level filters)</small>
                             </div>
