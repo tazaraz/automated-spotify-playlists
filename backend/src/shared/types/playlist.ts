@@ -17,7 +17,7 @@ export interface Playlist {
     excluded_tracks:    string[];
     // Track IDs which are included from the smart playlists manually
     included_tracks:    string[];
-    log: { sources: string[], filters: string[] };
+    logs: PlaylistLog[];
 }
 
 export interface PlaylistStatement {
@@ -43,4 +43,20 @@ export interface PlaylistSource {
     origin: keyof typeof Sources;
     // Contains any extra data needed for the source
     value: string;
+}
+
+export interface PlaylistLog {
+    /**
+     * Format of '(auto) `date`-`time`'. '(auto)' is present if the playlist was auto updated.
+     * Date is in the format of `dd.mm.yyyy` and time is in the format of `hh:mm` of 24 hours.
+     */
+    name: string;
+    /**
+     * Sources used to create the playlist.
+     */
+    sources: string[];
+    /**
+     * Filters used to create the playlist.
+     */
+    filters: string[];
 }

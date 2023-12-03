@@ -286,7 +286,7 @@ export default class Playlists extends Pinia {
             matched_tracks: [],
             excluded_tracks: [],
             included_tracks: [],
-            log: { sources: [], filters: []},
+            logs: [],
             owner: { id: user!.id, display_name: user!.name, country: user!.country }
         } as CPlaylist;
     }
@@ -442,11 +442,11 @@ export default class Playlists extends Pinia {
         const response = await Fetch.patch(`server:/playlist/${playlist.id}`, { retries: 0 });
 
         if (response.status === 302) {
-            this.editing.log = response.data.log;
+            this.editing.logs = [response.data.log];
             return true;
         } else if (response.status === 200) {
             // Store the log
-            this.editing.log = response.data.log;
+            this.editing.logs = response.data.logs;
 
             const all_tracks_length = response.data.matched_tracks.length + response.data.included_tracks.length - response.data.excluded_tracks.length;
 

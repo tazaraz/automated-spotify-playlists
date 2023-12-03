@@ -19,10 +19,11 @@ export default class Filters {
 
     /**
      *                          Runs one filters for a playlist
-     * @param playlist   Either a Playlist or a playlist_id
+     * @param playlist          Either a Playlist or a playlist_id
      * @param user_id           The user_id of the user
+     * @param auto              Whether the playlist was auto updated
      */
-    static async execute(playlist: Playlist | string, user: SUser): Promise<void> {
+    static async execute(playlist: Playlist | string, user: SUser, auto: boolean = false): Promise<void> {
         // If the playlist is already being processed, return
         if (FilterTask.exists((playlist as any).id || playlist))
             return;
@@ -78,7 +79,26 @@ export default class Filters {
             Filters.removeTracksFromSpotify(user, resulting_playlist.id, to_be_removed)
         ]);
 
-        resulting_playlist.log = task.log;
+        // If manual, keep only this log. Delete the rest
+        if (!auto)
+            resulting_playlist.logs = [task.log];
+
+        // If auto, keep only the last 10 '(auto)' logs which are not duplicates
+        else {
+            // If the playlist did not change
+            const previous_log = resulting_playlist.logs.slice(-1)[0];
+            if (previous_log.name.startsWith("(auto)") &&
+                JSON.stringify(previous_log.sources) === JSON.stringify(task.log.sources) &&
+                JSON.stringify(previous_log.filters) === JSON.stringify(task.log.filters))
+                return task.finalize({ message: `Playlist ${playlist.id} did not change`, status: 304 });
+
+            // Get the first log (which is a user log)
+            const user_log = resulting_playlist.logs.slice(-1)[0];
+            // Get the last 10 logs
+            const most_recent_logs = resulting_playlist.logs.slice(-10);
+            // Store the new log
+            resulting_playlist.logs = [user_log, ...most_recent_logs.filter(log => !log.name.startsWith("(auto)"))];
+        }
 
         // Update the database
         if (!(await Database.setPlaylist(user.id, resulting_playlist))) {

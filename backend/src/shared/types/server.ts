@@ -1,5 +1,7 @@
 import { CAlbum, CArtist, CTrack, CTrackFeatures } from "./client";
 
+export type Generic = STrack | SAlbum | SArtist;
+
 /**
  * Filtering can use multiple types and thus it is not efficient to parse everything down to a track. This interface
  * represents multiple input types for the filter mechanism, allowing us to directly operate on data from Spotify,
@@ -8,7 +10,7 @@ import { CAlbum, CArtist, CTrack, CTrackFeatures } from "./client";
  * album name immediately (album.name) instead of first getting all the tracks of the album, after which we get the
  * name (album.tracks() -> track.album().name).
  */
-export type FilterItem<T extends STrack | SAlbum | SArtist> = T & {
+export type FilterItem<T extends Generic> = T & {
     kind: "track" | "album" | "artist"
 }
 

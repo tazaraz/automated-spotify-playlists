@@ -80,15 +80,15 @@ export default class Database {
      */
     static async setPlaylist(user_id: string, playlist: Playlist) {
         const query = await Database.client.query(`
-            INSERT INTO playlists (id, user_id, name, description, sources, filters, matched_tracks, included_tracks, excluded_tracks, log)
+            INSERT INTO playlists (id, user_id, name, description, sources, filters, matched_tracks, included_tracks, excluded_tracks, logs)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             ON CONFLICT (id, user_id) DO UPDATE
-                SET name = $11, description = $12, sources = $13, filters = $14, matched_tracks = $15, included_tracks = $16, excluded_tracks = $17, log = $18`,
+                SET name = $11, description = $12, sources = $13, filters = $14, matched_tracks = $15, included_tracks = $16, excluded_tracks = $17, logs = $18`,
             [
                 playlist.id, user_id,
 
-                playlist.name, playlist.description, playlist.sources, playlist.filters, playlist.matched_tracks, playlist.included_tracks, playlist.excluded_tracks, playlist.log,
-                playlist.name, playlist.description, playlist.sources, playlist.filters, playlist.matched_tracks, playlist.included_tracks, playlist.excluded_tracks, playlist.log,
+                playlist.name, playlist.description, playlist.sources, playlist.filters, playlist.matched_tracks, playlist.included_tracks, playlist.excluded_tracks, playlist.logs,
+                playlist.name, playlist.description, playlist.sources, playlist.filters, playlist.matched_tracks, playlist.included_tracks, playlist.excluded_tracks, playlist.logs,
             ]);
 
         return query.rowCount > 0 ? true : false;

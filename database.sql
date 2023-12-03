@@ -24,6 +24,6 @@ CREATE TABLE playlists (
     -- Tracks which manually are excluded by the user
     excluded_tracks     TEXT[]          NOT NULL,
     -- Shows the output of each step in the source and filtering process
-    log                 JSON            NOT NULL,
+    logs                JSON[]          NOT NULL,
     PRIMARY KEY(id, user_id)
 );

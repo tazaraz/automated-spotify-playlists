@@ -38,7 +38,7 @@ export default class Updater {
                         timer = process.hrtime();
                         /** We wait for each playlist to be processed.
                          * This should get faster and faster as more metadata is cached */
-                        await Filters.execute(playlist.id, user);
+                        await Filters.execute(playlist.id, user, true);
                         performance.push(process.hrtime(timer)[1] / 1000000);
                     } catch (e) {
                         LOG(`Something went wrong while updating playlist with id: ${playlist.id}: \n${e}`);

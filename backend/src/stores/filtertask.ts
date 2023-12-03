@@ -1,5 +1,5 @@
 import { FilterResult } from "../processing";
-import { Playlist } from "../shared/types/playlist";
+import { PlaylistLog } from "../shared/types/playlist";
 
 /**
  * FilterTask allows storing logs, but adds a listener to the log to detect when it updates.
@@ -13,19 +13,22 @@ export default class FilterTask {
     logChangeResolver: ((value: FilterTask) => void) | undefined;
 
     // Contains the actual logs
-    log: Playlist['log'];
+    log: PlaylistLog;
     // Whether the log is finalized
     finalized = false;
     // Result of the task
     result: FilterResult;
 
-    constructor(playlist_id: string) {
+    constructor(playlist_id: string, auto: boolean = false) {
         this.playlist_id = playlist_id;
 
         this.log = {
+            name: `${new Date().toLocaleDateString()}-${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}`,
             sources: [],
             filters: []
         }
+
+        if (auto) this.log.name = '(auto) ' + this.log.name;
 
         // Store the log
         FilterTask.logs[playlist_id] = this;

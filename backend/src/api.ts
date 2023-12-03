@@ -127,7 +127,7 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
             matched_tracks: [],
             excluded_tracks: [],
             included_tracks: [],
-            log: { filters: [], sources: [] },
+            logs: [],
         };
     } catch (error) {
         LOG_DEBUG(error)
