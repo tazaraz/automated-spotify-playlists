@@ -204,7 +204,7 @@ export default class Fetch {
             /** Spotify had a hiccough, give it some time */
             case 429:
                 if (options.retry_after > 32000) {
-                    LOG(`Spotify is rate limiting, retrying in ${options.retry_after / 1000}s. url: ${url}, params: ${parameters}, headers: ${JSON.stringify(response.headers)}`);
+                    LOG(`Spotify is rate limiting, retrying in ${options.retry_after / 1000}s. url: ${url}, params: ${JSON.stringify(parameters)}, headers: ${JSON.stringify(response.headers)}`);
                 }
                 if (options.retries-- <= 0) {
                     break;
