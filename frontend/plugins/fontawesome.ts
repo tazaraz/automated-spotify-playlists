@@ -1,36 +1,49 @@
 import { library, config } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import * as fas from '@fortawesome/free-solid-svg-icons'
-import * as far from '@fortawesome/free-regular-svg-icons'
+import {
+    faQuestion as faSQuestion,
+    faGear as faSGear,
+    faHeart as faSHeart,
+    faSearch as faSSearch,
+    faPlus as faSPlus,
+    faCodeBranch as faSCodeBranch,
+    faAngleLeft as faSAngleLeft,
+    faAngleRight as faSAngleRight,
+    faTrashCan as faSTrashCan,
+    faWandMagic as faSWandMagic,
+    faBars as faSBars,
+    faUser as faSUser,
+    faArrowDownWideShort as faSArrowDownWideShort,
+    faGripVertical as faSGripVertical,
+    faArrowUpFromBracket as faSArrowUpFromBracket,
+} from '@fortawesome/free-solid-svg-icons'
+import {
+    faUser as faRUser,
+    faHeart as faRHeart,
+} from '@fortawesome/free-regular-svg-icons'
 
 // This is important, we are going to let Nuxt worry about the CSS
 config.autoAddCss = false
 
-// You can add your icons directly in this plugin. See other examples for how you
-// can add other styles or just individual icons.
-const icons = [
-    "faQuestion",
-    "faGear",
-    "faHeart",
-    "faSearch",
-    "faPlus",
-    "faCodeBranch",
-    "faAnglesLeft",
-    "faAnglesRight",
-    "faTrashCan",
-    "faWandMagic",
-    "faBars",
-    "faUser",
-    "faArrowDownWideShort",
-    "faGripVertical",
-    "faArrowUpFromBracket",
-]
-
-const FaIcons = icons.map((icon) => {
-    return [fas[icon], far[icon]]
-}).flat().filter((icon) => icon != undefined)
-
-library.add(FaIcons)
+library.add(
+    faSQuestion,
+    faSGear,
+    faSHeart,
+    faSSearch,
+    faSPlus,
+    faSCodeBranch,
+    faSAngleLeft,
+    faSAngleRight,
+    faSTrashCan,
+    faSWandMagic,
+    faSBars,
+    faSUser,
+    faSArrowDownWideShort,
+    faSGripVertical,
+    faSArrowUpFromBracket,
+    faRUser,
+    faRHeart,
+)
 
 export default defineNuxtPlugin((nuxtApp) => {
     nuxtApp.vueApp.component('fa-icon', FontAwesomeIcon)
