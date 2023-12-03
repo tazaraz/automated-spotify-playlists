@@ -91,7 +91,7 @@
                         </template>
                     </section>
                 </div>
-                <EditLog :hidden="!showLog" :log="playlists.editing.log"></EditLog>
+                <EditLog :hidden="!showLog" :logs="playlists.editing.logs"></EditLog>
                 <div v-if="editstate.error > 0" class="alert alert-primary" role="alert">
                     Some {{ editstate.error == 1 ? 'sources' : editstate.error == 2 ? 'filters' : 'filters and sources'}} are not filled in correctly
                 </div>
@@ -255,7 +255,7 @@ export default class Edit extends Vue {
     /** Executes the filters of the playlists */
     async execute() {
         if (this.saveState > 0 || this.executeState > 0) return false;
-        this.playlists.editing.log = { sources: [], filters: [] };
+        this.playlists.editing.logs = [];
         if (!await this.save())
             return false;
 
@@ -263,6 +263,7 @@ export default class Edit extends Vue {
         await this.editstate.execute();
         this.executeState = 2;
 
+        this.editstate.reset();
         this.$forceUpdate();
         setTimeout(() => this.executeState = 0, 1000);
     }

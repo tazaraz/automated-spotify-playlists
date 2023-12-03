@@ -103,6 +103,9 @@ export default class Fetch {
             // Do the first request. This will also tell us how many items there will be in total
             response = await Fetch.parseRequest(`${url}${options.query ? '&' : '?'}limit=${limit}&offset=0`, parameters, options);
 
+            if (response.status >= 300)
+                THROW_DEBUG_ERROR(`Failed to fetch ${url} with status ${response.status}`);
+
             const total = response.data.total;
             const requests: any[] = Fetch.format(response.data);
 
