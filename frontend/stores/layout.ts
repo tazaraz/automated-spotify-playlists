@@ -133,7 +133,7 @@ export default class Layout extends Pinia {
             }
 
             /** Update the view */
-            this.mainElement = document.getElementById('main-view')!.getElementsByTagName('article')[0] as HTMLElement;
+            this.mainElement = this.appElement.getElementsByTagName('main')[0].firstElementChild as HTMLElement;
             /** Prevent text selection */
             window.getSelection()?.removeAllRanges();
 
@@ -467,7 +467,8 @@ export default class Layout extends Pinia {
         if (esave) this.edit.width = editWidth;
 
         /** Set the grid */
-        this.appElement.style.gridTemplateColumns = `${sidebar} 1fr ${edit}`;
+        if (this.appElement)
+            this.appElement.style.gridTemplateColumns = `${sidebar} 1fr ${edit}`;
     }
 
     /**

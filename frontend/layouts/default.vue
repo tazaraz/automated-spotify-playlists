@@ -12,7 +12,7 @@
     <Meta name="apple-mobile-web-app-capable" content="yes"></Meta>
     <Meta name="theme-color" content="#0d6efd"></Meta>
 
-    <main v-if="layout" class="bg-black overflow-hidden" ref="wrapper"
+    <div v-if="layout" id="app" class="bg-black overflow-hidden" ref="app"
         @touchend="layout.setResizing('sidebar', false); layout.setResizing('edit', false)"
         @mouseup="layout.setResizing('sidebar', false); layout.setResizing('edit', false)"
         @touchmove="layout.render($event)"
@@ -29,13 +29,13 @@
         </template>
 
         <toolbar />
-        <div id="alerts">
+        <article id="alerts">
             <ErrorAlerts />
-        </div>
+        </article>
 
-        <div id="main-view" class="d-flex flex-column overflow-auto">
+        <main id="main-view" class="d-flex flex-column overflow-auto">
             <slot></slot>
-        </div>
+        </main>
 
         <template v-if="(user && user.info && playlists && playlists.editing) || playlists?.editing?.id == 'example'">
             <div v-if="layout.app.width > 0 && layout.app.width < layout.app.mobile" class="offcanvas offcanvas-end bg-black d-sm-flex w-100 p-3"
@@ -49,7 +49,7 @@
                 <Edit id="edit-view" @open="layout.open('edit')" />
             </template>
         </template>
-    </main>
+    </div>
 </template>
 
 <script lang="ts">
@@ -92,9 +92,9 @@ export default class App extends Vue {
 
     mounted() {
         // Initialize some variables
-        this.layout.appElement = this.$refs.wrapper as HTMLElement;
-        this.layout.mainElement = document.getElementById('main-view')!.getElementsByTagName('article')[0] as HTMLElement;
+        this.layout.appElement = this.$refs.app as HTMLElement;
         this.layout.app.width = this.layout.appElement.clientWidth;
+        this.layout.mainElement = this.layout.appElement.getElementsByTagName('main')[0].firstElementChild as HTMLElement;
         this.layout.playlistEditing = this.playlists.editing != null;
 
         const offcanvasElementList = document.querySelectorAll('.offcanvas')
@@ -109,8 +109,9 @@ export default class App extends Vue {
         watch(() => this.$route.fullPath, async () => {
             /** When the url changes, the info view changes. Update it */
             await this.$nextTick();
-            this.layout.mainElement = document.getElementById('main-view')!.getElementsByTagName('article')[0] as HTMLElement;
+            this.layout.mainElement = this.layout.appElement.getElementsByTagName('main')[0].firstElementChild as HTMLElement;
             this.layout.render(null, true);
+
         })
 
         /** When we start/stop editing */
@@ -170,7 +171,7 @@ $app_padding: 1rem;
     }
 }
 
-main {
+#app {
     display: grid;
     grid-template-columns: 20rem $handle 1fr 0px 0px;
     grid-template-rows: 4rem min-content 1fr;
@@ -193,13 +194,13 @@ main {
         grid-column: span 3;
     }
 
-    &> :nth-last-child(3) {
+    &> :nth-last-child(5) {
         grid-column: span 1 !important;
     }
 }
 
 @include media-breakpoint-down(sm) {
-    main {
+    #app {
         grid-template-columns: 1fr;
         grid-template-rows: 4rem min-content calc(100% - 4rem);
 
