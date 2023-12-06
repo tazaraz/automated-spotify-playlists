@@ -1,6 +1,6 @@
 <template>
     <template v-for="error of errors">
-        <article class="alert alert-info m-4 mt-2" role="alert">
+        <section class="alert alert-info m-4 mt-2" role="alert">
             <template v-if="error.status == 401">
                 <h5 class="alert-heading">Unauthorized</h5>
                 <span>{{ error.message }}</span>
@@ -13,7 +13,7 @@
                 <h5 class="alert-heading">Error {{ error.status }}</h5>
                 <span>{{ error.message }}</span>
             </template>
-        </article>
+        </section>
     </template>
 </template>
 
