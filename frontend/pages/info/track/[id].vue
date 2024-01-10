@@ -27,7 +27,7 @@
                     </ul>
                 </div>
                 <div class="m-4 mt-0">
-                    <h4 v-if="track && track.artists" class="text-white p-2 pb-0">Artist{{ track.artists.length == 1 ? 's' : '' }}</h4>
+                    <h4 v-if="track && track.artists" class="text-white p-2 pb-0">Artist{{ track.artists.length == 1 ? '' : 's' }}</h4>
                     <ul class="d-flex m-0 nav row" data-main-class="sm-flex-wrap flex-nowrap">
                         <li v-if="!track || !track.artists" class="col-12">
                             <span class="placeholder rounded-5 bg-light" style="width: 3rem; height: 3rem"></span>
