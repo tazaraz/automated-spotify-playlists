@@ -57,7 +57,7 @@ export const FilterDescriptions = {
         },
         "Genres": {
             type: FilterString,
-            description: "A list of the genres the album is associated with. If not yet classified, the array is empty."
+            description: "The genres of all the artists of the album. Spotify does provide genres for albums, but they are most often empty."
         },
         "Popularity": {
             type: FilterSlider,
