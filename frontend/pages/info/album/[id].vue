@@ -51,7 +51,7 @@
                 <div class="col-12 mb-2 multilayer">
                     <InfoField :description="Filters.Album.Genres.description">Genres</InfoField>
                     <span v-if="!album" class="placeholder rounded-1"></span>
-                    <span v-else>{{ album.genres.join(', ') || "No genres. Try an artist." }}</span>
+                    <span v-else>{{ albumGenres }}</span>
                 </div>
                 <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
                     <InfoField :description="Filters.Album['Release date'].description">Release date</InfoField>
@@ -94,6 +94,7 @@ export default class InfoAlbum extends Vue {
     playlists: Playlists = null as any;
 
     album: CAlbum = null as any;
+    albumGenres = '';
     tracks: ({
         appearsIn: CPlaylist[]
     } & CTrack)[] = [];
@@ -121,6 +122,8 @@ export default class InfoAlbum extends Vue {
         .then(response => {
             this.album!.artists = response.data;
             this.album!.artists?.forEach(artist => artist.image = Fetch.bestImage(artist.images))
+            const genres = response.data.map(a => a.genres).flat().filter((v, i, a) => a.indexOf(v) === i);
+            this.albumGenres = genres.join(', ') || "No genres. Try an artist."
         })
 
         // Get the tracks

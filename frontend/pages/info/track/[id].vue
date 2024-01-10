@@ -49,9 +49,9 @@
                     <span v-else>{{ track.id }} </span>
                 </div>
                 <div class="col-12 mb-2 multilayer">
-                    <span>Genres</span>
+                    <InfoField description="Genres of all artists who contributed to the album this track belongs to.">Album Genres</InfoField>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
-                    <span v-else>{{ trackGenres }} </span>
+                    <span v-else>{{ albumGenres }}</span>
                 </div>
                 <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
                     <InfoField :description="Filters.Track.BPM.description">BPM</InfoField>
@@ -126,7 +126,7 @@ export default class InfoTrack extends Vue {
     layout: Layout = null as any;
 
     track: CTrack = null as any;
-    trackGenres!: string
+    albumGenres!: string
     appearsIn: CPlaylist[] = [];
 
     Filters = Filters;
@@ -156,9 +156,12 @@ export default class InfoTrack extends Vue {
         // Get the artists, their images, and calculate the genres
         Fetch.get<CArtist[]>(`spotify:/artists`, { ids: this.track.artists!.map(artist => artist.id) })
         .then(response => {
+            // Resort the artists to match the order of the track
+            response.data.sort((a, b) => this.track!.artists!.findIndex(artist => artist.id === a.id) - this.track!.artists!.findIndex(artist => artist.id === b.id))
             this.track!.artists = response.data;
             this.track!.artists?.forEach(artist => artist.image = Fetch.bestImage(artist.images))
-            this.trackGenres = response.data[0].genres.join(', ') || "No genres have been found";
+            const genres = response.data.map(a => a.genres).flat().filter((v, i, a) => a.indexOf(v) === i);
+            this.albumGenres = genres.join(', ') || "No genres have been found";
 
             // Get the track features
             Fetch.get<CTrackFeatures>(`spotify:/audio-features/${this.$route.params.id}`).then(response => {

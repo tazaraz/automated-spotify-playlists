@@ -93,9 +93,13 @@ export class Album {
         }
 
         return await filter_async(items, Album.convert, async filter_item => {
-            if (!filter_item.genres || filter_item.genres.length > 0) return true;
+            // Get all artists genres
+            const artists = await Promise.all(await filter_item.artists());
+            const genres  = artists.flat().join(", ");
 
-            if (FilterString.matches(operation, filter, filter_item.genres.toString()))
+            if (!genres || genres.length > 0) return true;
+
+            if (FilterString.matches(operation, filter, genres))
                 return true;
         })
     }

@@ -80,9 +80,9 @@
                             </template>
                         </div>
                         <div class="mb-2 multilayer" data-main-class="normal-col-6 tiny-col-9">
-                            <span>Genres</span>
+                            <InfoField :description="Filters.Album.Genres.description">Album Genres</InfoField>
                             <span v-if="!track.features" class="placeholder rounded-1"></span>
-                            <span v-else>{{ trackGenres }} </span>
+                            <span v-else>{{ albumGenres }} </span>
                         </div>
                         <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
                             <InfoField :description="Filters.Track.BPM.description">BPM</InfoField>
@@ -144,7 +144,7 @@ export default class Track extends Vue {
     @Prop({ default: false }) deleteable!: boolean;
 
     expanded = false;
-    trackGenres = '';
+    albumGenres = '';
 
     Filters = Filters;
 
@@ -159,7 +159,12 @@ export default class Track extends Vue {
      * @param state State of the accordion. If undefined, it will be toggled
      */
     async getFeatures(state: boolean | undefined = undefined) {
-        this.trackGenres = (await Fetch.get<CArtist>(`spotify:/artists/${(this.track as CTrack).artists![0].id}`)).data.genres.join(', ') || "No genres have been found";
+        Fetch.get<CArtist[]>(`spotify:/artists`, { ids: (this.track as CTrack).artists!.map(artist => artist.id) })
+        .then(response => {
+            // Get the genres of the artists. Remove duplicates
+            const genres = response.data.map(a => a.genres).flat().filter((v, i, a) => a.indexOf(v) === i);
+            this.albumGenres = genres.join(', ') || "No genres have been found";
+        })
 
         if (!(this.track as CTrack).features) {
             (this.track as CTrack).features = (await Fetch.get<CTrackFeatures>(`spotify:/audio-features/${(this.track as CTrack).id}`)).data;
