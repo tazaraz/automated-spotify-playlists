@@ -22,7 +22,7 @@
                         </li>
                         <li v-else class="col-auto p-2 d-flex">
                             <Image :src="track.album" class="border" style="width: 3rem; height: 3rem" />
-                            <url :to="`/info/track.album/${track.album.id}`" class="ms-3 m-auto">{{ track.album.name }}</url>
+                            <url :to="`/info/album/${track.album.id}`" class="ms-3 m-auto">{{ track.album.name }}</url>
                         </li>
                     </ul>
                 </div>
