@@ -1,5 +1,6 @@
 .multilayer {
     display: grid;
+    grid-template-rows: repeat(2, max-content);
     align-items: center;
     gap: 0;
     color: $white;
