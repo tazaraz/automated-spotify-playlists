@@ -13,9 +13,9 @@ export interface Playlist {
     filters:            PlaylistStatement;
     // Track IDs which are matched and not manually excluded or included
     matched_tracks:     string[];
-    // Track IDs which are excluded from the smart playlists manually
+    // Track IDs which are excluded from the automated playlists manually
     excluded_tracks:    string[];
-    // Track IDs which are included from the smart playlists manually
+    // Track IDs which are included from the automated playlists manually
     included_tracks:    string[];
     logs: PlaylistLog[];
 }

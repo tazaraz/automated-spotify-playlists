@@ -96,8 +96,8 @@ api.post('/user/refresh', Users.verify_token, async (req, res) => {
 });
 
 /**
- * Gets smart playlists for the user
- * @returns All smart playlists for the user
+ * Gets automated playlists for the user
+ * @returns All automated playlists for the user
  */
 api.get('/playlists', Users.verify_token, async (req, res) => {
     try {
@@ -109,7 +109,7 @@ api.get('/playlists', Users.verify_token, async (req, res) => {
 });
 
 /**
- * Saves a smart playlist for the user
+ * Saves an automated playlist for the user
  */
 api.put('/playlist', Users.verify_token, async (req, res) => {
     // Build the playlist object
@@ -136,7 +136,7 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
 
     /**make sure that it is not creating a normal playlist */
     if (playlist.filters === undefined)
-        return res.status(400).json({ error: "Playlist is not a smart playlist" });
+        return res.status(400).json({ error: "Playlist is not an automated playlist" });
 
     /**We now verify the validity of the filters and sources */
     const user = await Users.get(req.user.id)
@@ -188,19 +188,19 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
             })).data.id;
         }
 
-        // Upsert the smart playlist
+        // Upsert the automated playlist
         await Database.setPlaylist(req.user.id, playlist);
 
         // Send the response
         res.status(200).json(playlist.id);
     } catch (error) {
-        LOG_DEBUG("Failed to save smart playlist:\n" + error)
-        res.status(400).json({ status: "Failed to save smart playlist", error: error })
+        LOG_DEBUG("Failed to save automated playlist:\n" + error)
+        res.status(400).json({ status: "Failed to save automated playlist", error: error })
     }
 });
 
 /**
- * Deletes a smart playlist for the user
+ * Deletes an automated playlist for the user
  */
 api.delete('/playlist', Users.verify_token, async (req, res) => {
     /**Spotify does not do 'deleting', it just unfollows
@@ -217,8 +217,8 @@ api.delete('/playlist', Users.verify_token, async (req, res) => {
         Database.deletePlaylist(req.user.id, req.body.id)
         .then(() => { res.sendStatus(200)})
         .catch(error => {
-            LOG_DEBUG("Failed to delete smart playlist:\n" + error)
-            res.status(400).json({status: "Failed to delete smart playlist", error: error})
+            LOG_DEBUG("Failed to delete automated playlist:\n" + error)
+            res.status(400).json({status: "Failed to delete automated playlist", error: error})
         })
     })
 });
@@ -271,11 +271,11 @@ api.put(`/playlist/:playlistid/basic`, Users.verify_token, async (req, res) => {
         if (response.status !== 200)
             return res.status(response.status).json({status: "Spotify Error", error: response.statusText})
 
-        Database.setSmartPlaylistBasic(req.user.id, req.params.playlistid, data.name, data.description)
+        Database.setAutomatedPlaylistBasic(req.user.id, req.params.playlistid, data.name, data.description)
         .then(() => res.sendStatus(200))
         .catch(error => {
-            LOG_DEBUG("Failed to update smart playlist basic info:\n" + error)
-            res.status(400).json({status: "Failed to update smart playlist basic info", error: error})
+            LOG_DEBUG("Failed to update automated playlist basic info:\n" + error)
+            res.status(400).json({status: "Failed to update automated playlist basic info", error: error})
         })
     })
 })

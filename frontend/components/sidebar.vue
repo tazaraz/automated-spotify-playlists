@@ -5,7 +5,7 @@
                 <url to="/" class="d-flex text-white" @click="tryClose">
                     <h4 class="ms-3 mb-0" style="width: 3rem"><fa-icon :icon="['fas', 'gear']" style="width: 2rem"></fa-icon></h4>
                     <h4 class="m-0" data-sidebar-class="normal-d-block tiny-d-none">
-                        Smart Playlists
+                        Automated Playlists
                     </h4>
                 </url>
                 <button type="button" id="sidebarClose" class="d-sm-none d-block ms-auto me-3 btn-close" data-bs-dismiss="offcanvas"></button>
@@ -48,8 +48,8 @@
                 <hr class="d-md-none d-block ms-3 me-3">
 
                 <div id="playlist-sp-header" class="d-flex flex-row align-items-center gap-3 p-2" data-sidebar-class="tiny-flex-column normal-flex-row">
-                    <span class="lh-base flex-grow-1">Smart playlists</span>
-                    <url @click="addSmartPlaylist" class="rounded-3 text-white p-0 fs-5" data-sidebar-class="normal-d-block tiny-d-none"><i><fa-icon :icon="['fas', 'plus']" style="width:2rem;"></fa-icon></i></url>
+                    <span class="lh-base flex-grow-1">Automated playlists</span>
+                    <url @click="addAutomatedPlaylist" class="rounded-3 text-white p-0 fs-5" data-sidebar-class="normal-d-block tiny-d-none"><i><fa-icon :icon="['fas', 'plus']" style="width:2rem;"></fa-icon></i></url>
                 </div>
 
                 <template v-for="(playlist, index) in playlists.storage" :key="index">
@@ -63,13 +63,13 @@
                 </template>
                 <li class="nav-item cursor-pointer" data-sidebar-class="tiny-d-none">
                     <div v-if="playlists.storage?.filter(p => p.filters).length == 0" class="nav-link bg-light-subtle p-3">
-                        <span class="me-2 text-body-secondary">You don't have any smart playlists yet.</span>
+                        <span class="me-2 text-body-secondary">You don't have any automated playlists yet.</span>
                         <br><br>
-                        <button @click="addSmartPlaylist" class="btn bg-white text-black ps-1"><i><fa-icon :icon="['fas', 'plus']" style="width:2rem;"></fa-icon></i>Create one now</button>
+                        <button @click="addAutomatedPlaylist" class="btn bg-white text-black ps-1"><i><fa-icon :icon="['fas', 'plus']" style="width:2rem;"></fa-icon></i>Create one now</button>
                     </div>
                 </li>
                 <div id="playlist-sp-header" class="flex-column align-items-center gap-3 mt-2 d-none" data-sidebar-class="tiny-d-flex normal-d-none">
-                    <url @click="addSmartPlaylist" class="d-block border rounded-3 text-white p-2 fs-5" data-sidebar-class="normal-m-0"><i><fa-icon :icon="['fas', 'plus']" style="width:2rem;"></fa-icon></i></url>
+                    <url @click="addAutomatedPlaylist" class="d-block border rounded-3 text-white p-2 fs-5" data-sidebar-class="normal-m-0"><i><fa-icon :icon="['fas', 'plus']" style="width:2rem;"></fa-icon></i></url>
                 </div>
                 <h6 class="lh-base mt-3 p-1 pb-0">Normal playlists</h6>
                 <template v-for="(playlist, index) in playlists.storage" :key="index">
@@ -141,8 +141,8 @@ export default class Sidebar extends Vue {
         }
     }
 
-    async addSmartPlaylist() {
-        this.playlists.addSmartPlaylist();
+    async addAutomatedPlaylist() {
+        this.playlists.addAutomatedPlaylist();
         await navigateTo('/playlist/unpublished');
         await this.playlists.loadUserPlaylistByID('unpublished');
         await this.playlists.loadEditingPlaylist('unpublished');

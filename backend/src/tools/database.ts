@@ -138,7 +138,7 @@ export default class Database {
      * @param name Name of the playlist
      * @param description Description of the playlist
      */
-    static async setSmartPlaylistBasic(user_id: string, id: string, name: string, description: string) {
+    static async setAutomatedPlaylistBasic(user_id: string, id: string, name: string, description: string) {
         const query = await Database.client.query(`UPDATE playlists SET name = $1, description = $2 WHERE id = $3 and user_id = $4`, [name, description, id, user_id]);
 
         return query.rowCount > 0 ? true : false;

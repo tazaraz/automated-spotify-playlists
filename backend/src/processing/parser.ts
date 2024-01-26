@@ -13,7 +13,7 @@ export default class FilterParser {
 
     /**
      *                  Finds filteritems match which the set rules.
-     * @param statement The main smart playlist operation wrapper
+     * @param statement The main automated playlist operation wrapper
      * @param items     Filteritems to check
      * @returns         Whether the rule is matched
      */

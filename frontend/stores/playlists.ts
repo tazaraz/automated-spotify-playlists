@@ -41,13 +41,13 @@ export default class Playlists extends Pinia {
     storage!: CPlaylist[];
     /** The playlist which is currently in view. Different functionality from the editing variable */
     loaded!: LoadedPlaylist;
-    /** The smart playlist the user is currently editing */
+    /** The automated playlist the user is currently editing */
     editing!: LoadedPlaylist;
-    /** If the user already has a smart playlist which is not yet pushed. Stored here for components to access */
+    /** If the user already has an automated playlist which is not yet pushed. Stored here for components to access */
     unpublished: CPlaylist | null = null;
 
-    // If there are any smart playlists
-    hasSmartPlaylists: boolean = false;
+    // If there are any automated playlists
+    hasAutomatedPlaylists: boolean = false;
 
     private loadingUserPlaylists: boolean | Promise<any> = false;
     // Whether all the playlist have their track ids loaded
@@ -91,29 +91,29 @@ export default class Playlists extends Pinia {
                 } as CPlaylist)
             });
 
-            // Get smart playlists
+            // Get automated playlists
             const res_s = await Fetch.get<CPlaylist[]>('server:/playlists');
             if (res_s.status !== 200) {
-                FetchError.create({ status: res_s.status, message: 'The server did not respond accordingly when retrieving your smart playlists' });
+                FetchError.create({ status: res_s.status, message: 'The server did not respond accordingly when retrieving your automated playlists' });
                 return resolve(false);
             }
 
-            if (res_s.data.length > 0) this.hasSmartPlaylists = true;
+            if (res_s.data.length > 0) this.hasAutomatedPlaylists = true;
 
-            /**Overwrite the playlists with the smart playlists
-             * NOTE: Not all playlists are actually smart playlists, but for typing we treat them as if
+            /**Overwrite the playlists with the automated playlists
+             * NOTE: Not all playlists are actually automated playlists, but for typing we treat them as if
              *       Hence we check everywhere there is a distinction */
             this.storage = playlists.map(playlist => {
-                const smartPlaylist = res_s.data.find(smart => smart.id === playlist.id);
-                if (smartPlaylist) {
+                const automatedPlaylist = res_s.data.find(automated => automated.id === playlist.id);
+                if (automatedPlaylist) {
                     // Set some basic stuff
-                    smartPlaylist.image = playlist.image;
-                    smartPlaylist.owner = playlist.owner;
+                    automatedPlaylist.image = playlist.image;
+                    automatedPlaylist.owner = playlist.owner;
                     // Keep this one present as well
-                    smartPlaylist.all_tracks = Array(playlist.all_tracks.length).fill("");
+                    automatedPlaylist.all_tracks = Array(playlist.all_tracks.length).fill("");
                 }
 
-                return smartPlaylist || playlist;
+                return automatedPlaylist || playlist;
             });
 
             resolve({ status: 200 });
@@ -218,7 +218,7 @@ export default class Playlists extends Pinia {
         if (this.loaded.id === "unpublished")
             return { all, matched, included, excluded };
 
-        /** If it is not a smart playlist, use the Spotify playlist endpoint */
+        /** If it is not an automated playlist, use the Spotify playlist endpoint */
         if (kind == 'all' || this.loaded.filters === undefined) {
             const url = this.loaded.id == 'library' ? '/me/tracks' : `/playlists/${this.loaded.id}/tracks`;
 
@@ -230,7 +230,7 @@ export default class Playlists extends Pinia {
                 // Insert the tracks into the all_tracks at the offset
                 all.splice(offset, limit, ...tracks);
 
-                // Check if the playlist is a smart playlist. If so update the other track lists as well
+                // Check if the playlist is an automated playlist. If so update the other track lists as well
                 if (this.loaded.filters !== undefined) {
                     // For all track lists, replace the ids with the tracks
                     for (const target of [all, matched, excluded, included]) {
@@ -268,13 +268,13 @@ export default class Playlists extends Pinia {
     }
 
     /**
-     * Builds a new smart playlist
+     * Builds a new automated playlist
      */
-    buildSmartPlaylist(user: User['info']) {
+    buildAutomatedPlaylist(user: User['info']) {
         return {
             id:       "unpublished",
             user_id:  user!.id,
-            name:     "Smart Playlist",
+            name:     "Automated Playlist",
             description: '',
             image: '',
             sources: [{origin: "Library", value: ""}],
@@ -292,17 +292,17 @@ export default class Playlists extends Pinia {
     }
 
     /**
-     * Adds a new smart playlist to the storage array
+     * Adds a new automated playlist to the storage array
      */
-    addSmartPlaylist() {
-        // If the user already has a smart playlist, return it
+    addAutomatedPlaylist() {
+        // If the user already has an automated playlist, return it
         if (this.unpublished)
             return this.storage.findIndex(p => p.id === this.unpublished!.id);
 
-        const playlist = this.buildSmartPlaylist(this.user.info);
+        const playlist = this.buildAutomatedPlaylist(this.user.info);
 
         this.unpublished = playlist;
-        this.hasSmartPlaylists = true;
+        this.hasAutomatedPlaylists = true;
         return this.storage.push(playlist) - 1;
     }
 
@@ -361,7 +361,7 @@ export default class Playlists extends Pinia {
     }
 
     /**
-     * Deletes a playlist on the server if smart and unfollows it on Spotify
+     * Deletes a playlist on the server if automated and unfollows it on Spotify
      * @param playlist Playlist to delete
      */
     async delete(playlist: LoadedPlaylist) {
@@ -386,8 +386,8 @@ export default class Playlists extends Pinia {
         // Remove the playlist from the list
         this.storage = this.storage.filter(item => item.id !== playlist.id);
 
-        // If there are more smart playlists
-        this.hasSmartPlaylists = this.storage.some(playlist => playlist.filters !== undefined);
+        // If there are more automated playlists
+        this.hasAutomatedPlaylists = this.storage.some(playlist => playlist.filters !== undefined);
         return true;
     }
 
@@ -531,7 +531,7 @@ export default class Playlists extends Pinia {
         if (!this.loadingPlaylistsTrackIds || this.storage[0].all_tracks === undefined) {
             // Try to get all the track ids for each playlist
             this.loadingPlaylistsTrackIds = Promise.all(this.storage.map(async (playlist, index) => {
-                // If the playlist is not a smart playlist, we need to load the track ids
+                // If the playlist is not an automated playlist, we need to load the track ids
                 if (playlist.filters === undefined) {
                     const tracks = (await Fetch.get<any[]>(`spotify:/playlists/${playlist.id}/tracks`, {pagination: true})).data;
                     this.storage[index].all_tracks = tracks.map(track => track.id);
@@ -553,7 +553,7 @@ export default class Playlists extends Pinia {
                 return playlist;
             }
 
-            // If the playlist is a smart playlist, check if the track is in the matched or included tracks
+            // If the playlist is an automated playlist, check if the track is in the matched or included tracks
             if (playlist.filters !== undefined) {
                 if ((playlist.matched_tracks.find(t => t === trackId) &&
                      !playlist.excluded_tracks.find(t => t === trackId)) ||

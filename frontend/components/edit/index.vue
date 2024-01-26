@@ -97,7 +97,7 @@
                 </div>
                 <hr>
                 <small v-if="playlists.editing.id == 'example'" class="text-body-secondary">
-                    'Save and apply filters' is disabled for the example smart playlist configuration
+                    'Save and apply filters' is disabled for the example automated playlist configuration
                 </small>
 
                 <section class="d-flex flex-wrap">

@@ -35,7 +35,7 @@ export default class EditState extends Pinia {
     computedFilters: PlaylistStatement = null as any;
     flattenedFilters: PlaylistFilterEntry[] = [];
 
-    /**If the playlist is converted to a smart playlist, upon saving, we need to move the tracks in the playlist
+    /**If the playlist is converted to an automated playlist, upon saving, we need to move the tracks in the playlist
      * to the manually included tracks */
     includedTracks: CTrack[] = [];
 
@@ -198,7 +198,7 @@ export default class EditState extends Pinia {
         if (this.error > 0) return;
         this.saving = true;
 
-        // First we check if, if it is a smart playlist, the sources and filters are valid
+        // First we check if, if it is an automated playlist, the sources and filters are valid
         if (this.computedFilters) {
             // We require at least one source
             if (this.refs.sources == undefined) this.error += 1;
@@ -242,7 +242,7 @@ export default class EditState extends Pinia {
             temp_playlist.sources = this.computedSources
             temp_playlist.filters = this.computedFilters
 
-            // If the playlist has been converted to a smart playlist, move the old tracks to the included tracks
+            // If the playlist has been converted to an automated playlist, move the old tracks to the included tracks
             if (this.includedTracks.length > 0)
                 this.playlists.editing.included_tracks = this.includedTracks
 
@@ -259,7 +259,7 @@ export default class EditState extends Pinia {
             this.playlists.editing = temp_playlist
             this.playlists.editing.id = result.data
 
-            // Reset the unpublished smart playlist boolean
+            // Reset the unpublished automated playlist boolean
             if (old_id === 'unpublished') {
                 this.playlists.unpublished = null;
                 // Update the URL, but prevent a dom rerender

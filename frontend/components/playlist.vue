@@ -30,7 +30,7 @@
                                 </span>
                             </div>
                             <span v-if="playlists.loaded.id != 'unpublished' && playlists.loaded.id != 'library'">ID: {{ playlists.loaded.id }}</span>
-                            <span v-if="playlists.loaded.filters">Smart playlist</span>
+                            <span v-if="playlists.loaded.filters">Automated playlist</span>
                         </template>
                     </div>
                 </header>
@@ -47,7 +47,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div v-if="playlists.loaded.filters" class="modal-body">
-                            This will delete the smart playlist and remove it in spotify. People following the playlist will still have it, however it will not be updated anymore.
+                            This will delete the automated playlist and remove it in spotify. People following the playlist will still have it, however it will not be updated anymore.
                         </div>
                         <div v-else class="modal-body">
                             This will remove the playlist from spotify. People following the playlist will still have it.
@@ -83,7 +83,7 @@
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
-                                You are currently already editing a smart playlist. If you open this smart playlist configuration, your current changes will be discarded. Are you sure you want to continue?
+                                You are currently already editing an automated playlist. If you open this automated playlist configuration, your current changes will be discarded. Are you sure you want to continue?
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -160,7 +160,7 @@ export default class PlaylistDisplay extends Vue {
     /** Contains the watchers function to stop watching */
     watchers: WatchStopHandle[] = [];
 
-    /**Tracks which should be shown. Only possible if the playlist is a smart playlist */
+    /**Tracks which should be shown. Only possible if the playlist is an automated playlist */
     shown: {
         kind: "all" | "matched" | "excluded" | "included";
         /** Tracks which are actually rendered.

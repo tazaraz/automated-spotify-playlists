@@ -36,7 +36,7 @@ export default class Filters {
 
         // Get the playlist if only an id is given
         if (typeof playlist === "string") {
-            // Get the specific smart playlist
+            // Get the specific automated playlist
             playlist = await Database.getPlaylist(user.id, playlist);
 
             // If it does not exist, return

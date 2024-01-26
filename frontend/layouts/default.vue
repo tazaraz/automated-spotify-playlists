@@ -6,8 +6,8 @@
     <Link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"></Link>
     <Link rel="manifest" href="/site.webmanifest"></Link>
     <Link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5"></Link>
-    <Meta name="apple-mobile-web-app-title" content="Smart Playlists"></Meta>
-    <Meta name="application-name" content="Smart Playlists"></Meta>
+    <Meta name="apple-mobile-web-app-title" content="Automated Playlists"></Meta>
+    <Meta name="application-name" content="Automated Playlists"></Meta>
     <Meta name="msapplication-TileColor" content="#da532c"></Meta>
     <Meta name="apple-mobile-web-app-capable" content="yes"></Meta>
     <Meta name="theme-color" content="#0d6efd"></Meta>

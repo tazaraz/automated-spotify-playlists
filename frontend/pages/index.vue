@@ -2,7 +2,7 @@
     <article key="album" class="rounded-2 p-2 bg-dark-subtle flex-grow-1 overflow-hidden">
         <SmallHeader :item="{name: 'Homepage'}"></SmallHeader>
         <div v-if="playlists" class="h-100 p-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
-            <Title>Smart playlists</Title>
+            <Title>Automated playlists</Title>
             <template v-if="user?.info">
                 <h1>Hello,&nbsp; {{ user.info.name.split(' ')[0] }}</h1>
                 <hr>
@@ -10,10 +10,10 @@
 
             <p class="mt-2 mb-2">
                 <h2 class="text-white">
-                    Smart playlists for Spotify
+                    Automated playlists for Spotify
                 </h2>
                 <small>
-                    Create smart playlists for Spotify like you can on iTunes / Apple Music.
+                    Create automated playlists for Spotify like you can on iTunes / Apple Music.
                 </small>
             </p>
 
@@ -21,11 +21,11 @@
             <h4 class="mt-4">What is this?</h4>
 
             <span class="mt-2">
-                This web app allows you to create smart playlists based on a variety of sources your liked songs, albums of artists, or other playlist you or other people have created.
+                This web app allows you to create automated playlists based on a variety of sources your liked songs, albums of artists, or other playlist you or other people have created.
             </span>
 
             <span class="mt-2">
-                Now, given a source (or sources), you can enhance your smart playlists based on a variety of filters, such as:
+                Now, given a source (or sources), you can enhance your automated playlists based on a variety of filters, such as:
                 <ul>
                     <li>Track name</li>
                     <li>Release date</li>
@@ -36,19 +36,19 @@
             </span>
 
             <span class="mt-2">
-                These playlists are updated about every hour, so if you change another playlist or an artist releases a new album, and your smart playlist has this as a source, it will be updated automatically. Isn't that convenient?
+                These playlists are updated about every hour, so if you change another playlist or an artist releases a new album, and your automated playlist has this as a source, it will be updated automatically. Isn't that convenient?
             </span>
 
             <h4 class="mt-4 mb-2">Take a look at an example:</h4>
             <div class="w-0">
-                <button v-if="!playlists.editing || playlists.editing.id == 'example'" @click="showDemo" class="btn btn-primary">Open example smart playlist configuration</button>
-                <Modal v-else button-text="Open example smart playlist configuration" button-class="btn btn-primary">
+                <button v-if="!playlists.editing || playlists.editing.id == 'example'" @click="showDemo" class="btn btn-primary">Open example automated playlist configuration</button>
+                <Modal v-else button-text="Open example automated playlist configuration" button-class="btn btn-primary">
                     <div class="modal-header">
                         <h1 class="modal-title fs-5" id="exampleModalLabel">Discard current editor?</h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        You are currently already editing a smart playlist. If you open the example smart playlist configuration, your current changes will be discarded. Are you sure you want to continue?
+                        You are currently already editing an automated playlist. If you open the example automated playlist configuration, your current changes will be discarded. Are you sure you want to continue?
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
@@ -62,7 +62,7 @@
 
             <h4 class="mt-4 mb-2">This is open source!</h4>
             <div class="w-0">
-                This web app is open source, meaning you can view the source code on <url to="https://github.com/tazaraz/smart-playlists-for-spotify" target="_blank">github</url>! If you are missing a feature, open a pull request.
+                This web app is open source, meaning you can view the source code on <url to="https://github.com/tazaraz/automated-playlists-for-spotify" target="_blank">github</url>! If you are missing a feature, open a pull request.
                 Note that I am limited to what Spotify allows via their <url to="https://developer.spotify.com/documentation/web-api/" target="_blank">API</url>, and as such cannot implement everything (searching for users for example).
             </div>
         </div>
@@ -110,11 +110,11 @@ export default class Homepage extends Vue {
     async showDemo() {
         if (!process.client) return;
 
-        // Create a fake user to build a smart playlist as example
-        const playlist = this.playlists.buildSmartPlaylist(
-            {id: 'example', name: 'Example smart playlist', country: 'somewhere'} as any
+        // Create a fake user to build an automated playlist as example
+        const playlist = this.playlists.buildAutomatedPlaylist(
+            {id: 'example', name: 'Example automated playlist', country: 'somewhere'} as any
         );
-        playlist.name = 'Example smart playlist';
+        playlist.name = 'Example automated playlist';
         playlist.id = 'example';
         playlist.description = 'Some values, such as artists, albums, and genres, can only be retrieved when signed in.'
 
