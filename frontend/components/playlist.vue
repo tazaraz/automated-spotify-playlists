@@ -205,6 +205,11 @@ export default class PlaylistDisplay extends Vue {
         if (this.id == 'unpublished') {
             await this.showTracks("all");
             this.loading = false;
+
+            // If there is an unpublished playlist, load it
+            if (this.playlists.unpublished)
+                this.playlists.loadUserPlaylistByID(this.playlists.unpublished.id);
+
             await this.layout.render(null, true);
             return;
         }
