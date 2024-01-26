@@ -18,7 +18,9 @@ export class FilterValue {
      */
     public static matches(operation: keyof typeof FilterValue.operation,
                           filter: number,
-                          value: number): boolean{
+                          value: number): boolean {
+        // The user can only specify values with single precision, so we round the value just as is done in the UI
+        value = Math.round(value);
         switch (operation) {
             case "is":
                 return filter == value;
