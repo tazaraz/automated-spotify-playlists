@@ -1,6 +1,6 @@
 <template>
     <div class="accordion-item border-0 border-bottom">
-        <h2 v-if="(typeof track !== 'object')" class="accordion-header">
+        <h2 v-if="(typeof track !== 'object')" class="accordion-header m-0">
             <div class="accordion-button shadow-none collapsed">
                 <div class="container ms-0 d-flex gap-3 align-items-center ps-0 placeholder-glow">
                     <span class="placeholder image flex-shrink-0"></span>
@@ -23,7 +23,7 @@
             </div>
         </h2>
         <template v-else>
-            <h2>
+            <h2 class="m-0">
                 <button class="accordion-button shadow-none collapsed" type="button" @click="getFeatures()" data-bs-toggle="collapse" :data-bs-target="`#track:${track.id}`">
                     <div class="container ms-0 d-flex gap-3 align-items-center ps-0">
                         <Image :src="track" />

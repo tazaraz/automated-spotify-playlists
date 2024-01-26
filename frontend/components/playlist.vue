@@ -174,7 +174,6 @@ export default class PlaylistDisplay extends Vue {
         visible: number[];
     } = { kind: 'all', tracks: [], visible: [] };
 
-
     rendered: {
         /** Min height of the track list. Is a lower bound estimation of the total required height */
         min_height: number;
@@ -302,7 +301,7 @@ export default class PlaylistDisplay extends Vue {
                 break;
         }
 
-        this.rendered.min_height = (document.getElementsByClassName("playlist-track")[0].clientHeight || 50)
+        this.rendered.min_height = (document.getElementsByClassName("playlist-track")[0].clientHeight || 90)
                                     * this.shown.tracks.length;
         this.loading = false;
 
@@ -400,8 +399,9 @@ export default class PlaylistDisplay extends Vue {
                 const index = parseInt(element.target.id);
                 if (element.isIntersecting && !this.shown.visible.includes(index))
                     this.shown.visible.push(index);
-                else if (!element.isIntersecting && this.shown.visible.includes(index))
+                else if (!element.isIntersecting && this.shown.visible.includes(index)) {
                     this.shown.visible.splice(this.shown.visible.indexOf(index), 1);
+                }
             }
         }
 
