@@ -289,17 +289,16 @@ export default class PlaylistDisplay extends Vue {
         let tracks = await this.playlists.loadPlaylistTracks(kind, 0);
         switch(kind) {
             case "all":
-                this.shown.tracks = this.playlists.loaded.all_tracks = tracks.all;
+                this.shown.tracks = tracks.all;
                 break;
             case "matched":
-                this.shown.tracks = this.playlists.loaded.matched_tracks = tracks.matched;
-
+                this.shown.tracks = tracks.matched;
                 break;
             case "excluded":
-                this.shown.tracks = this.playlists.loaded.excluded_tracks = tracks.excluded;
+                this.shown.tracks = tracks.excluded;
                 break;
             case "included":
-                this.shown.tracks = this.playlists.loaded.included_tracks = tracks.included;
+                this.shown.tracks = tracks.included;
                 break;
         }
 

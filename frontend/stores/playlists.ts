@@ -264,6 +264,11 @@ export default class Playlists extends Pinia {
             }
         }
 
+        // Save the tracks
+        this.loaded.all_tracks      = all;
+        this.loaded.matched_tracks  = matched;
+        this.loaded.excluded_tracks = excluded;
+        this.loaded.included_tracks = included;
         return { all, matched, excluded, included }
     }
 
