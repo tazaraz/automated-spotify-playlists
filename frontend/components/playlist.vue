@@ -158,7 +158,10 @@ export default class PlaylistDisplay extends Vue {
     loading: boolean = true;
 
     /** Contains the watchers function to stop watching */
-    watchers: WatchStopHandle[] = [];
+    watcher: {
+        stop: WatchStopHandle;
+        delay: NodeJS.Timer;
+    } = { stop: () => {}, delay: null as any };
 
     /**Tracks which should be shown. Only possible if the playlist is an automated playlist */
     shown: {
@@ -244,20 +247,23 @@ export default class PlaylistDisplay extends Vue {
         this.loading = false;
         await this.layout.render(null, true);
 
-
         // Store the unwatch handlers
-        this.watchers = [
-            watch(() => this.playlists.loaded.all_tracks, () => this.showTracks(this.shown.kind)),
-            watch(() => this.playlists.loaded.matched_tracks, () => this.showTracks(this.shown.kind)),
-            watch(() => this.playlists.loaded.excluded_tracks, () => this.showTracks(this.shown.kind)),
-            watch(() => this.playlists.loaded.included_tracks, () => this.showTracks(this.shown.kind))
-        ];
+        this.watcher = {
+            stop: watch(() => [
+                this.playlists.loaded.all_tracks,
+                this.playlists.loaded.matched_tracks,
+                this.playlists.loaded.excluded_tracks,
+                this.playlists.loaded.included_tracks
+            ], () => {
+                clearTimeout(this.watcher.delay);
+                this.watcher.delay = setTimeout(() => this.showTracks(this.shown.kind), 500);
+            }),
+            delay: null as any
+        }
     }
 
     beforeUnmount() {
-        for (const unwatch of this.watchers) {
-            unwatch();
-        }
+        this.watcher.stop();
     }
 
     /**
