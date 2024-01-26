@@ -28,7 +28,7 @@ export default class Filters {
         if (FilterTask.exists((playlist as any).id || playlist))
             return;
 
-        const task = new FilterTask((playlist as any).id || playlist);
+        const task = new FilterTask((playlist as any).id || playlist, auto);
 
         // If we are rate limited, wait until we are not
         if (Filters.retry_after !== undefined && Filters.retry_after > new Date())
@@ -87,8 +87,7 @@ export default class Filters {
         else {
             // If the playlist did not change
             const previous_log = resulting_playlist.logs.slice(-1)[0];
-            if (previous_log.name.startsWith("(auto)") &&
-                JSON.stringify(previous_log.sources) === JSON.stringify(task.log.sources) &&
+            if (JSON.stringify(previous_log.sources) === JSON.stringify(task.log.sources) &&
                 JSON.stringify(previous_log.filters) === JSON.stringify(task.log.filters))
                 return task.finalize({ message: `Playlist ${playlist.id} did not change`, status: 304 });
 
