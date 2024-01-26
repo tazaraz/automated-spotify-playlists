@@ -113,7 +113,7 @@ export const FilterDescriptions = {
         },
         "Vocality": {
             type: FilterSlider,
-            description: "Whether someone is singing in the track"
+            description: "Predicts whether a track contains vocals. 'Ooh' and 'aah' sounds are not treated as vocals in this context. Rap or spoken word tracks are clearly 'vocal'. The closer the vocality value is to 1.0, the greater likelihood the track contains vocal content. Values above 0.5 are intended to represent vocal tracks, but confidence is higher as the value approaches 1.0."
         },
         "Loudness": {
             type: FilterSlider,
