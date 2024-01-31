@@ -35,7 +35,6 @@ export default class MusicSources {
                     items = await Metadata.getUserData<STrack>(
                         `/me/tracks`,
                         "track",
-                        60 * 60 * 2, // 2 hours
                         { user, pagination: true },
                     );
                     break;

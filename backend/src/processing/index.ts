@@ -7,6 +7,7 @@ import { LOG, LOG_DEBUG } from "../main";
 import { Playlist } from "../shared/types/playlist";
 import { FilterItem, STrack, SUser } from "../shared/types/server";
 import FilterTask from "../stores/filtertask";
+import Cache from "../stores/cache";
 
 export interface FilterResult {
     message: string;
@@ -137,7 +138,7 @@ export default class Filters {
         /**Get the playlist tracks from Spotify
          * First remove the url from the cache, preventing the cache from being used
          */
-        delete Metadata.url_cache[`/playlists/${playlist.id}/tracks`]
+        delete Cache.url_cache[`/playlists/${playlist.id}/tracks`]
 
         const spotify_tracks = dryrun ? [] :
             await Metadata.getMultipleTracks(`/playlists/${playlist.id}/tracks`,{

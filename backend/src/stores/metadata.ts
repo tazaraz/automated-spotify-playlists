@@ -1,7 +1,8 @@
-import { THROW_DEBUG_ERROR } from "../main";
+import { LOG_DEBUG, THROW_DEBUG_ERROR } from "../main";
 import Fetch, { FetchOptions } from "../tools/fetch";
 import { FilterItem, SUser } from "../shared/types/server";
 import { SAlbum, SArtist, STrack, STrackFeatures } from "../shared/types/server";
+import Cache from "./cache";
 
 /**
  * This class creates a queue which is used to group up items if they are requested quickly after each other.
@@ -55,70 +56,29 @@ class Queue {
     }
 }
 
+/**
+ * This class is used to get metadata from Spotify.
+ */
 export default class Metadata {
-    /**Contains known track information */
-    static tracks: { [id: string]: STrack } = {};
-    static albums: { [id: string]: SAlbum } = {};
-    static artists: { [id: string]: SArtist } = {};
-    static track_features: { [id: string]: STrackFeatures } = {};
-
-    static track_queue          = new Queue((items: string[]) => this.getMultipleTracks("/tracks", {
-        user: Metadata.API_USER, ids: items
+    static track_queue = new Queue((items: string[]) => Metadata.getMultipleTracks("/tracks", {
+        user: Metadata.API_USER,
+        ids: items
     }));
-    static album_queue          = new Queue((items: string[]) => this.getMultipleAlbums("/albums", {
-        user: Metadata.API_USER, ids: items, limit: 20
+    static album_queue = new Queue((items: string[]) => Metadata.getMultipleAlbums("/albums", {
+        user: Metadata.API_USER,
+        ids: items, limit: 20
     }));
-    static artist_queue         = new Queue((items: string[]) => this.getMultipleArtists("/artists", {
-        user: Metadata.API_USER, ids: items
+    static artist_queue = new Queue((items: string[]) => Metadata.getMultipleArtists("/artists", {
+        user: Metadata.API_USER,
+        ids: items
     }));
-    static track_features_queue = new Queue((items: string[]) => this.getMultipleTrackFeatures("/audio-features", {
-        user: Metadata.API_USER, ids: items
+    static track_features_queue = new Queue((items: string[]) => Metadata.getMultipleTrackFeatures("/audio-features", {
+        user: Metadata.API_USER,
+        ids: items
     }));
 
     /** This contains a user used for global API calls */
     static API_USER: SUser;
-
-    /**The value of the url links to the yielded result of that url */
-    static url_cache: {
-        [url: string]: {
-            expires: Date;
-            items: string[];
-        };
-    } = {}
-
-    /**Requests tied to a specific user */
-    static user_cache: {
-        [id: string]: {
-            [url: string]: {
-                expires: Date;
-                items: string[];
-            };
-        };
-    } = {};
-
-    static initialize() {
-        /**We define the getters and setters for the objects */
-        Metadata.tracks = new Proxy(Metadata.tracks, {
-            set: Metadata.setTrack,
-            deleteProperty: Metadata.delete,
-            has: Metadata.hasProperty
-        })
-        Metadata.albums = new Proxy(Metadata.albums, {
-            set: Metadata.setAlbum,
-            deleteProperty: Metadata.delete,
-            has: Metadata.hasProperty
-        })
-        Metadata.artists = new Proxy(Metadata.artists, {
-            set: Metadata.setArtist,
-            deleteProperty: Metadata.delete,
-            has: Metadata.hasProperty
-        })
-        Metadata.track_features = new Proxy(Metadata.track_features, {
-            set: Metadata.setTrackFeatures,
-            deleteProperty: Metadata.delete,
-            has: Metadata.hasProperty
-        })
-    }
 
     /**
      * Gets a single item from Spotify
@@ -136,36 +96,32 @@ export default class Metadata {
         id: string): Promise<T>
     {
         // If we already store this item, don't ask Spotify for the Metadata
-        if (cache[id] !== undefined)
-            return cache[id];
+        const cached = await cache[id];
+        if (cached !== undefined)
+            return cached;
 
         // Get the Metadata
         await queue.add(id);
 
         // Return the value
-        return cache[id];
+        return await cache[id];
     }
 
     static async getTrack(track_id: string): Promise<FilterItem<STrack>> {
-        const item = await Metadata.getItem(Metadata.tracks, Metadata.track_queue, track_id) as FilterItem<STrack>;
-              item.kind = "track";
-        return item;
+        return await Metadata.getItem(Cache.tracks, Metadata.track_queue, track_id) as FilterItem<STrack>;
     }
 
     static async getAlbum(album_id: string): Promise<FilterItem<SAlbum>> {
-        const item = await Metadata.getItem(Metadata.albums, Metadata.album_queue, album_id) as FilterItem<SAlbum>;
-              item.kind = "album";
-        return item;
+        return await Metadata.getItem(Cache.albums, Metadata.album_queue, album_id) as FilterItem<SAlbum>;
     }
 
     static async getArtist(artist_id: string): Promise<FilterItem<SArtist>> {
-        const item = await Metadata.getItem(Metadata.artists, Metadata.artist_queue, artist_id) as FilterItem<SArtist>;
-              item.kind = "artist";
-        return item;
+        return await Metadata.getItem(Cache.artists, Metadata.artist_queue, artist_id) as FilterItem<SArtist>;
     }
 
-    static getTrackFeatures(track_id: string): Promise<STrackFeatures> {
-        return Metadata.getItem(Metadata.track_features, Metadata.track_features_queue, track_id);
+    static async getTrackFeatures(track_id: string): Promise<STrackFeatures> {
+        const item = await Metadata.getItem(Cache.track_features, Metadata.track_features_queue, track_id);
+        return item;
     }
 
     /**
@@ -180,13 +136,14 @@ export default class Metadata {
         options: FetchOptions = {},
     ): Promise<T[]> {
         // If we have already resolved this url once, use the result
-        if (Metadata.url_cache[url] !== undefined && Metadata.url_cache[url].expires > new Date())
-            return await Promise.all(Metadata.url_cache[url].items.map(id => cache[id]));
+        const cached = await Cache.url_cache[url];
+        if (cached !== undefined)
+            return await Promise.all(cached.map(id => cache[id]));
 
         // Make a note of which items we already have
         options.ids = options.ids ?? [];
-        const missing_data_ids = options.ids.filter(x => x in cache === false);
-        const present_data_ids = options.ids.filter(x => !missing_data_ids.includes(x));
+        const missing_data_ids = await Promise.all(options.ids.filter(id => cache[id] !== undefined));
+        const present_data_ids = options.ids.filter(id => !missing_data_ids.includes(id));
 
         // Get the items requested in the track_ids, or just get all items from the url directly
         options.ids  = missing_data_ids;
@@ -200,7 +157,7 @@ export default class Metadata {
         const data = request.data;
 
         // Get the already known tracks
-        const items = present_data_ids.map(id => cache[id]);
+        let items = await Promise.all(present_data_ids.map(id => cache[id]));
 
         // Store the new items
         for (let item of data) {
@@ -211,16 +168,16 @@ export default class Metadata {
             } catch (error) {
                 // Some attribute is missing, get the full item from the API
                 switch(url) {
-                    case "/tracks": Metadata.getTrack(item.id); break;
-                    case "/albums": Metadata.getAlbum(item.id); break;
-                    case "/artists": Metadata.getArtist(item.id); break;
-                    case "/audio-features": Metadata.getTrackFeatures(item.id); break;
+                    case "/tracks": await Metadata.getTrack(item.id); break;
+                    case "/albums": await Metadata.getAlbum(item.id); break;
+                    case "/artists": await Metadata.getArtist(item.id); break;
+                    case "/audio-features": await Metadata.getTrackFeatures(item.id); break;
                     default:
                         THROW_DEBUG_ERROR(`getMultiple: The endpoint '${url}' returned incomplete data'`);
                 }
             }
 
-            items.push(cache[item.id]);
+            items.push(await cache[item.id]);
         }
 
         // If this was a custom url
@@ -232,36 +189,32 @@ export default class Metadata {
             !url.startsWith('/me') &&
             !url.startsWith('/browse')
         ) {
-            Metadata.url_cache[url] = {
-                // Expire in a week
-                expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-                items: items.map(item => (item as any).id)
-            }
+            Cache.url_cache[url] = items.map(item => (item as any).id)
         }
 
-        return await Promise.all(items);
+        return items;
     }
 
     static async getMultipleTracks(url="/tracks", options: FetchOptions = {}): Promise<FilterItem<STrack>[]> {
-        const items = await Metadata.getMultiple(url, Metadata.tracks, options) as FilterItem<STrack>[];
+        const items = await Metadata.getMultiple(url, Cache.tracks, options) as FilterItem<STrack>[];
               items.forEach(item => item.kind = "track");
         return items;
     }
 
     static async getMultipleAlbums(url="/albums", options: FetchOptions = {}): Promise<FilterItem<SAlbum>[]> {
-        const items = await Metadata.getMultiple(url, Metadata.albums, options) as FilterItem<SAlbum>[];
+        const items = await Metadata.getMultiple(url, Cache.albums, options) as FilterItem<SAlbum>[];
               items.forEach(item => item.kind = "album");
         return items;
     }
 
     static async getMultipleArtists(url="/artists", options: FetchOptions = {}): Promise<FilterItem<SArtist>[]> {
-        const items = await Metadata.getMultiple(url, Metadata.artists, options) as FilterItem<SArtist>[];
+        const items = await Metadata.getMultiple(url, Cache.artists, options) as FilterItem<SArtist>[];
               items.forEach(item => item.kind = "artist");
         return items;
     }
 
     static getMultipleTrackFeatures(url="/audio-features", options: FetchOptions = {}) {
-        return Metadata.getMultiple(url, Metadata.track_features as any, options);
+        return Metadata.getMultiple(url, Cache.track_features as any, options);
     }
 
     /**
@@ -276,22 +229,23 @@ export default class Metadata {
     static async getUserData<T extends STrack | SAlbum | SArtist>(
         url: string,
         kind: "track" | "album" | "artist",
-        expires: number,
         options: FetchOptions,
     ): Promise<FilterItem<T>[]> {
-        let items: any;
-
-        // If the user is not yet defined, create the object
-        if (Metadata.user_cache[options.user.id] == undefined)
-            Metadata.user_cache[options.user.id] = {};
+        let items: FilterItem<any>[];
 
         // If this url is known for a specific user, use the cached data (if not expired)
-        if (Metadata.user_cache[options.user.id][url]        != undefined &&
-            Metadata.user_cache[options.user.id][url].expires <= new Date()) {
+        const cached = await Cache.user_cache[`${options.user.id}:${url}`];
+        if (cached !== undefined) {
             switch (kind) {
-                case "track":  items = Metadata.user_cache[options.user.id][url].items.map(id => Metadata.getTrack(id))
-                case "album":  items = Metadata.user_cache[options.user.id][url].items.map(id => Metadata.getAlbum(id))
-                case "artist": items = Metadata.user_cache[options.user.id][url].items.map(id => Metadata.getArtist(id))
+                case "track":
+                    items = cached.map(id => Metadata.getTrack(id))
+                    break;
+                case "album":
+                    items = cached.map(id => Metadata.getAlbum(id))
+                    break;
+                case "artist":
+                    items = cached.map(id => Metadata.getArtist(id))
+                    break;
             }
 
             return await Promise.all(items);
@@ -309,116 +263,8 @@ export default class Metadata {
                 break;
         }
 
-        Metadata.user_cache[options.user.id][url] = {
-            expires: new Date(new Date().getTime() + expires * 1000),
-            items: items.map(item => item.id),
-        }
-
+        // Store the data
+        Cache.user_cache[`${options.user.id}:${url}`] = items.map(item => item.id);
         return items as FilterItem<T>[];
-    }
-
-    private static delete(target: { [id: string]: any }, prop: string){
-        delete target[prop];
-        return true;
-    }
-
-    private static hasProperty(target: { [id: string]: any }, prop: string) {
-        return prop in target;
-    }
-
-    /**
-     * Creates a track and its getters and setters based on given data
-     * @param data Metadata from which to create a track
-     * @returns Returns a pointer to the newly created track
-     */
-    private static setTrack(tracks: typeof Metadata.tracks, key: string, data: any) {
-        tracks[key] = {
-            disc_number: data.disc_number,
-            track_number: data.track_number,
-            duration_ms: data.duration_ms,
-            url: "http://open.spotify.com/track/" + data.id,
-            id: data.id,
-            name: data.name,
-            popularity: data.popularity,
-            is_local: data.is_local || false,
-            album: () => Metadata.getAlbum(data.album.id),
-            artists: () => Promise.all(data.artists.map((artist: any) => Metadata.getArtist(artist.id))),
-            features: () => Metadata.getTrackFeatures(data.id)
-        }
-
-        return true;
-    }
-
-    /**
-     * Creates an album and its getters and setters based on given data
-     * @param data Metadata from which to create an album
-     * @returns Returns a pointer to the newly created album
-     */
-    private static setAlbum(albums: typeof Metadata.albums, key: string, data: any) {
-        albums[key] = {
-            type: data.album_type,
-            total_tracks: (data as any).total_tracks,
-            url: "http://open.spotify.com/albums/" + data.id,
-            name: data.name,
-            release_date: data.release_date,
-            id: data.id,
-            genres: data.genres,
-            popularity: data.popularity,
-            tracks: async () => {
-                // If the album was only partially loaded (e.g. missing tracks)
-                if (data.tracks === undefined) {
-                    // Delete the album and reload it
-                    delete albums[key];
-                    await Metadata.getAlbum(data.id);
-                    // Return the tracks
-                    return albums[key].tracks();
-                }
-
-                return Promise.all(data.tracks.items.map((item: any) => Metadata.getTrack(item.id)))
-            },
-            artists: () => Promise.all(data.artists.map((artist: any) => Metadata.getArtist(artist.id))),
-        }
-
-        return true;
-    }
-
-    /**
-     * Creates an artist and its getters and setters based on given data
-     * @param data Metadata from which to create an artist
-     */
-    private static setArtist(artists: typeof Metadata.artists, key: string, data: any) {
-        artists[key] = {
-            followers: data.followers.total,
-            genres: data.genres,
-            id: data.id,
-            name: data.name,
-            url: "http://open.spotify.com/artist/" + data.id,
-            popularity: data.popularity,
-            albums: () => Metadata.getMultipleAlbums(`/artists/${data.id}/albums`, { pagination: true }),
-            top_tracks: () => Metadata.getMultipleTracks(`/artists/${data.id}/top-tracks`, { pagination: true }),
-            related_artists: () => Metadata.getMultipleArtists(`artists/${data.id}/related-artists`, { pagination: true })
-        }
-
-        return true;
-    }
-
-    /**
-     * Creates track features and its getters and setters based on given data
-     * @param data Metadata from which to create track features
-     */
-    private static setTrackFeatures(track_features: typeof Metadata.track_features, key: string, data: any) {
-        track_features[key] = {
-            acousticness: data.acousticness,
-            danceability: data.danceability,
-            energy: data.energy,
-            instrumentalness: data.instrumentalness,
-            liveness: data.liveness,
-            loudness: data.loudness,
-            speechiness: data.speechiness,
-            tempo: data.tempo,
-            valence: data.valence,
-        }
-
-        return true;
     }
 }

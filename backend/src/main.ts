@@ -8,6 +8,7 @@ import Database from './tools/database';
 import Fetch from './tools/fetch';
 import Updater from './tools/updater';
 import Metadata from './stores/metadata';
+import Cache from './stores/cache';
 
 const logfile = fs.createWriteStream('output.log', { flags: 'a+' });
 
@@ -52,13 +53,13 @@ app.disable('x-powered-by'); // Remove "X-Powered-By: Express" header
 app.use('/', api);
 
 (async () => {
-    LOG_DEBUG('Connecting to db...');
+    LOG_DEBUG('Connecting to db');
     await Database.connect();
-    LOG_DEBUG('Initializing Metadata storage...');
-    Metadata.initialize();
-    LOG_DEBUG('Starting updater...');
+    LOG('Connecting to cache');
+    await Cache.connect();
+    LOG_DEBUG('Starting updater');
     Updater.schedule();
-    LOG_DEBUG('Starting server...');
+    LOG_DEBUG('Starting server');
     app.listen(3000, () => {
         LOG_DEBUG('API listening on port 3000');
     });

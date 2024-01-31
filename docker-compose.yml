@@ -43,8 +43,19 @@ services:
       SP_CLIENT_SECRET: ${SP_CLIENT_SECRET}
       SERVER_TOKEN: ${SERVER_TOKEN}
       PGPASSWORD: ${DATABASE_PASSWORD}
+      REDIS_HOST: sp-cache
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
     depends_on:
       - sp-database
+      - sp-cache
+
+  sp-cache:
+    image: redis:7.0-alpine
+    container_name: sp-cache
+    command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - ./cache:/data
 
   sp-database:
     image: postgres:15.3-alpine
