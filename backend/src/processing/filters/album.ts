@@ -63,7 +63,7 @@ export class Album {
         return await filter_async(items, Album.convert, async filter_item => {
             // Get the track album release date
             if (FilterValue.matches(operation, filter, filter_item.release_date))
-                    return true;
+                return true;
         })
     }
 
@@ -95,10 +95,9 @@ export class Album {
         return await filter_async(items, Album.convert, async filter_item => {
             // Get all artists genres
             const artists = await Promise.all(await filter_item.artists());
-            const genres  = artists.flat().join(", ");
+            const genres  = artists.map(a => a.genres).flat().join(", ");
 
-            if (!genres || genres.length > 0) return true;
-
+            if (!genres || genres.length == 0) return;
             if (FilterString.matches(operation, filter, genres))
                 return true;
         })
