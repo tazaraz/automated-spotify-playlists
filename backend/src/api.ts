@@ -113,7 +113,6 @@ api.get('/playlists', Users.verify_token, async (req, res) => {
  */
 api.put('/playlist', Users.verify_token, async (req, res) => {
     // Build the playlist object
-    console.log(req.body)
     let playlist: Playlist;
     try {
         playlist = {

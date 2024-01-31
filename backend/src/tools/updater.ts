@@ -42,10 +42,12 @@ export default class Updater {
                         performance.push(process.hrtime(timer)[1] / 1000000);
                     } catch (e) {
                         LOG(`Something went wrong while updating playlist with id: ${playlist.id}: \n${e}`);
+                        LOG(e.stack)
                     }
                 }
             } catch (e) {
                 LOG(`Something is wrong with user ${dbuser.name} (id: ${dbuser.id}): \n${e}`);
+                LOG(e.stack)
             }
         }
 

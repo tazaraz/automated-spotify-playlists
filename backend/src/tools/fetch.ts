@@ -140,7 +140,6 @@ export default class Fetch {
                 if (response.status >= 300) break;
 
                 if (response.data[0] === null) {
-                    console.log(response)
                     THROW_DEBUG_ERROR(`Failed to fetch ${url} with status ${response.status}`);
                 }
 
