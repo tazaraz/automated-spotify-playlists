@@ -22,7 +22,7 @@
                     <hr class="m-0">
                 </div>
                 <div id="basic" class="d-grid mb-3 p-2 ps-4 pe-4" data-edit-class="small-stacked normal-wide large-wide">
-                    <Image :src="playlists.editing" class="h-100 m-auto"></Image>
+                    <Image :src="playlists.editing" class="h-100 m-auto mt-3"></Image>
                     <div class="form-floating">
                         <input type="text" class="form-control" :value="playlists.editing.name" @input="syncBasic('name', $event.target?.value)">
                         <label>Playlist name</label>
@@ -275,7 +275,6 @@ export default class Edit extends Vue {
 
         this.basicUpdateTimeout = setTimeout(async () => {
             await this.playlists.updateBasic(this.playlists.editing)
-            this.basicUpdateTimeout = 0;
         }, 1000);
     }
 

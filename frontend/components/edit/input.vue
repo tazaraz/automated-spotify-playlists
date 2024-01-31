@@ -17,7 +17,7 @@
                  @click="click(`/info/${kind}/${id}`, name)"
                  class="link-primary text-decoration-underline source-input form-control bg-body-secondary"
             >{{ name }}</url>
-            <input v-else ref="input" @focusout="updateInput" @keyup="updateInput" type="text" class="source-input form-control" :placeholder="`Insert ${kind} ID`" :value="name"/>
+            <input v-else ref="input" @focusout="updateInput" @paste="updateInput" @keyup="updateInput" type="text" class="source-input form-control" :placeholder="`Insert ${kind} ID`" :value="name"/>
             <button v-if="isValid" type="button" class="btn btn-primary" @click="edit">Edit</button>
             <button v-if="removable && (!isValid || name !== '')" class="btn btn-danger" @click="$emit('remove')"><fa-icon :icon="['fas', 'trash-can']"></fa-icon></button>
         </div>
@@ -116,7 +116,8 @@ export default class EditInput extends Vue {
     }
 
     async updateInput(event: Event | KeyboardEvent) {
-        if ((event as KeyboardEvent).key && (event as KeyboardEvent).key !== 'Enter') return;
+        await this.$nextTick();
+        if ((event as KeyboardEvent).key !== undefined && (event as KeyboardEvent).key !== 'Enter') return;
 
         this.id = (event.target as HTMLInputElement).value;
         await this.findId();

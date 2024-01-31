@@ -1,6 +1,6 @@
 <template>
     <div v-if="logs">
-        <template v-if="logs.length == 0">
+        <template v-if="logs.length == 0 || !logs[selectedLog]">
             <div class="d-flex">
                 <h5 class="m-auto ms-0 me-3">
                     Log:
