@@ -24,6 +24,7 @@ export default class EditState extends Pinia {
     refs: any = null;
 
     saving: boolean = false
+    executing: boolean = false
     /** 0: no error, 1: Source error, 2: Filter error, 3: Source + Filter error */
     error: number = 0
 
@@ -274,23 +275,24 @@ export default class EditState extends Pinia {
 
         // Sync with the server
         await this.playlists.updateBasic(this.playlists.editing)
-
-        this.playlists.save(this.playlists.editing)
-        this.playlists.loadUserPlaylistByID(this.playlists.editing.id);
+        await this.playlists.save(this.playlists.editing)
         this.saving = false;
         this.reset();
         return true;
     }
 
     async execute() {
+        this.executing = true;
+
         /** Start the execution of the playlist */
         const result = await Fetch.patch(`server:/playlist/${this.playlists.editing.id}`)
         if (result.status != 201) {
-            return;
+            return this.executing = false;
         }
 
         // Wait for the execution to finish
         while (await this.playlists.execute(this.playlists.editing)) continue;
+        this.executing = false;
     }
 
     reset() {
