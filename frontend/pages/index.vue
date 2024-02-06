@@ -21,7 +21,7 @@
             <h4 class="mt-4">What is this?</h4>
 
             <span class="mt-2">
-                This web app allows you to create automated playlists based on a variety of sources your liked songs, albums of artists, or other playlist you or other people have created.
+                This web app allows you to create automated playlists based on a variety of sources: your liked songs, albums of artists, or other playlist you or other people have created.
             </span>
 
             <span class="mt-2">
