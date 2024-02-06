@@ -26,6 +26,8 @@ export default class User extends Pinia {
                 "user-read-private",
                 "user-follow-read",
                 "user-library-read",
+                "user-top-read",
+                "user-read-recently-played",
                 // Frontend only
                 "user-read-currently-playing"
             ].join(" ")}`;
