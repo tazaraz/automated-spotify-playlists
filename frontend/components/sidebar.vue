@@ -55,8 +55,9 @@
                 <template v-for="(playlist, index) in playlists.storage" :key="index">
                     <li v-if="playlist.filters" class="nav-item cursor-pointer">
                         <url :to="`/playlist/${playlist.id}`" @click="tryClose"
-                            :class="`ps-2 d-flex align-items-center nav-link${selectedPlaylist == index ? ' active' : ''}`">
-                            <Image :src="playlist" class="rounded-1" data-sidebar-class="tiny-m-auto normal-m-0"/>
+                            class="ps-2 d-flex align-items-center nav-link">
+                            <!-- <Image :src="playlist" class="rounded-1" data-sidebar-class="tiny-m-auto normal-m-0"/> -->
+                            <Image :src="playlist" data-sidebar-class="tiny-m-auto normal-m-0"/>
                             <span class="m-auto ms-3 text-truncate" data-sidebar-class="tiny-d-none">{{ playlist.name }}</span>
                         </url>
                     </li>
@@ -75,8 +76,9 @@
                 <template v-for="(playlist, index) in playlists.storage" :key="index">
                     <li v-if="!playlist.filters" class="nav-item cursor-pointer">
                         <url :to="`/playlist/${playlist.id}`" @click="tryClose"
-                            :class="`p-2 d-flex nav-link${selectedPlaylist == index ? ' active' : ''}`">
-                            <Image :src="playlist" class="rounded-1" data-sidebar-class="tiny-m-auto normal-m-0"/>
+                            class="p-2 d-flex nav-link">
+                            <!-- <Image :src="playlist" class="rounded-1" data-sidebar-class="tiny-m-auto normal-m-0"/> -->
+                            <Image :src="playlist" data-sidebar-class="tiny-m-auto normal-m-0"/>
                             <span class="m-auto ms-3 text-truncate" data-sidebar-class="tiny-d-none">{{ playlist.name }}</span>
                         </url>
                     </li>
@@ -113,8 +115,6 @@ import User from '~/stores/user';
 export default class Sidebar extends Vue {
     playlists: Playlists = null as any;
     user: User = null as any;
-
-    selectedPlaylist = -1;
 
     async beforeMount() {
         if (!process.client) return;
