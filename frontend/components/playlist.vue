@@ -384,7 +384,7 @@ export default class PlaylistDisplay extends Vue {
         // Click the edit button to try and open the offcanvas edit view
         await this.$nextTick();
         document.getElementById("toolbar")?.lastChild?.lastChild?.lastChild?.click();
-        this.layout.render(null, true)
+        this.layout.open('edit');
     }
 
     loadVisibleTracks(elements: IntersectionObserverEntry[]) {

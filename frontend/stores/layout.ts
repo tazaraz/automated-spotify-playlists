@@ -201,6 +201,7 @@ export default class Layout extends Pinia {
         this.setResizing('edit', true);
         this.render(handle, true);
         this.setResizing('edit', false);
+        this.render(null, true);
     }
 
     /**
