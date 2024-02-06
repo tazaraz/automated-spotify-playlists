@@ -21,7 +21,7 @@ export default class Filters {
     /**
      *                          Runs one filters for a playlist
      * @param playlist          Either a Playlist or a playlist_id
-     * @param user_id           The user_id of the user
+     * @param user              The user who owns the playlist
      * @param auto              Whether the playlist was auto updated
      */
     static async execute(playlist: Playlist | string, user: SUser, auto: boolean = false): Promise<void> {
@@ -43,8 +43,7 @@ export default class Filters {
             // If it does not exist, return
             if (playlist === undefined)
                 return task.finalize({ message: `Playlist ${playlist} does not exist`, status: 404 });
-        } else
-            playlist = playlist;
+        }
 
         // Update the playlist information. Spotify is probably correct
         const response = await Fetch.get(`/playlists/${playlist.id}`, { user })
@@ -60,6 +59,10 @@ export default class Filters {
                 return task.finalize({ message: `Failed to get playlist ${playlist.id}`, status: response.status })
             }
         }
+
+        // If the filtering is manual, we clear the user cache
+        if (!auto)
+            Cache.clearUserCache(user.id);
 
         const spotify_playlist = response.data;
         playlist.name = (spotify_playlist as Playlist).name;
@@ -93,11 +96,11 @@ export default class Filters {
                 return task.finalize({ message: `Playlist ${playlist.id} did not change`, status: 304 });
 
             // Get the first log (which is a user log)
-            const user_log = resulting_playlist.logs.slice(-1)[0];
-            // Get the last 10 logs
-            const most_recent_logs = resulting_playlist.logs.slice(-10);
+            const user_log         = resulting_playlist.logs.find(log => !log.name.startsWith("(auto)"));
+            // Get the last 9 logs
+            const most_recent_logs = resulting_playlist.logs.slice(-9).filter(log => log.name.startsWith("(auto)"));
             // Store the new log
-            resulting_playlist.logs = [user_log, ...most_recent_logs.filter(log => !log.name.startsWith("(auto)"))];
+            resulting_playlist.logs = [user_log, ...most_recent_logs, task.log];
         }
 
         // Update the database

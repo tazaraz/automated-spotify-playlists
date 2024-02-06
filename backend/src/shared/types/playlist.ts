@@ -52,11 +52,11 @@ export interface PlaylistLog {
      */
     name: string;
     /**
-     * Sources used to create the playlist.
+     * Results of the sources used to create the playlist.
      */
     sources: string[];
     /**
-     * Filters used to create the playlist.
+     * Result of applying the filters to the sources.
      */
     filters: string[];
 }

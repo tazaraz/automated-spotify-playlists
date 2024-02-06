@@ -141,6 +141,13 @@ export default class Cache {
         return JSON.parse(item);
     }
 
+    public static async clearUserCache(user_id: string) {
+        // Use the redis scan command to delete all keys that start with the user_id
+        const keys = await Cache.redisClient.keys(`user_cache:${user_id}:*`);
+        if (keys.length === 0) return true;
+        return await Cache.redisClient.del(keys);
+    }
+
     /**
      * Stores a track in the Redis database
      * @param tracks Only used to check if an item is already stored in the Redis database
