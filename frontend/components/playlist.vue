@@ -31,6 +31,7 @@
                             </div>
                             <span v-if="playlists.loaded.id != 'unpublished' && playlists.loaded.id != 'library'">ID: {{ playlists.loaded.id }}</span>
                             <span v-if="playlists.loaded.filters">Automated playlist</span>
+                            <Spotify :to="`https://open.spotify.com/playlist/${playlists.loaded.id}`" class="mt-3 mb-3">SHOW IN SPOTIFY</Spotify>
                         </template>
                     </div>
                 </header>
