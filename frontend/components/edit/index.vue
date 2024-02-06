@@ -155,13 +155,13 @@
                                             <div class="form-check">
                                                 <input class="form-check-input" type="radio" name="importOptions" id="importOption1" checked>
                                                 <label class="form-check-label" for="importOption1">
-                                                    Append config to current
+                                                    Overwrite current config
                                                 </label>
                                             </div>
                                             <div class="form-check">
                                                 <input class="form-check-input" type="radio" name="importOptions" id="importOption2">
                                                 <label class="form-check-label" for="importOption2">
-                                                    Overwrite current config
+                                                    Append config to current
                                                 </label>
                                             </div>
                                         </div>
@@ -310,11 +310,11 @@ export default class Edit extends Vue {
         const textarea = document.getElementById('importConfigTextarea') as HTMLTextAreaElement;
         const config = JSON.parse(atob(textarea.value));
         if (document.getElementById('importOption1')?.checked) {
-            this.playlists.editing.sources = this.playlists.editing.sources.concat(config.sources);
-            this.playlists.editing.filters.filters = this.playlists.editing.filters.filters.concat(config.filters);
-        } else {
             this.playlists.editing.sources = config.sources;
             this.playlists.editing.filters = config.filters;
+        } else {
+            this.playlists.editing.sources = this.playlists.editing.sources.concat(config.sources);
+            this.playlists.editing.filters.filters = this.playlists.editing.filters.filters.concat(config.filters);
         }
         textarea.value = "";
         this.validImportConfig = 0;
