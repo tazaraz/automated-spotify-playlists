@@ -21,7 +21,7 @@
                             <span class="rounded-2">{{ new Date(album.release_date).getFullYear() }}</span>
                             &nbsp;&nbsp;━&nbsp;&nbsp;
                             <span class="rounded-2">{{ album.total_tracks }} track{{ album.total_tracks == 1 ? '' : 's' }}</span>
-                            <Spotify :to="`https://open.spotify.com/album/${album.id}`" class="mt-3 mb-3">SHOW IN SPOTIFY</Spotify>
+                            <Spotify :to="`https://open.spotify.com/album/${album.id}`" class="mt-2 mb-3">SHOW IN SPOTIFY</Spotify>
                         </div>
                     </template>
                 </div>

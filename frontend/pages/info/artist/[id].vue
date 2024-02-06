@@ -17,8 +17,7 @@
                     </template>
                     <template v-else>
                         <h1 class="mt-auto rounded-2">{{ artist.name }}</h1>
-                        <span class="mt-43 mb-3 rounded-2">Popularity score: {{ artist.popularity }}</span>
-                        <Spotify :to="`https://open.spotify.com/artist/${artist.id}`" class="mt-3 mb-3">SHOW IN SPOTIFY</Spotify>
+                        <Spotify :to="`https://open.spotify.com/artist/${artist.id}`" class="mt-2 mb-3">SHOW IN SPOTIFY</Spotify>
                     </template>
                 </div>
             </header>

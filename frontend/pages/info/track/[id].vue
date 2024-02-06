@@ -9,7 +9,7 @@
                 <div class="flex-fill d-flex flex-column text-white">
                     <span v-if="!track" class="mt-auto mb-auto placeholder rounded-2" style="width: 17rem; height: 2rem"></span>
                     <h1 v-else class="mt-auto mb-auto">{{ track.name }}</h1>
-                    <Spotify v-if="track" :to="`https://open.spotify.com/track/${track.id}`" class="mb-3">SHOW IN SPOTIFY</Spotify>
+                    <Spotify v-if="track" :to="`https://open.spotify.com/track/${track.id}`" class="mt-2 mb-3">SHOW IN SPOTIFY</Spotify>
                 </div>
             </header>
             <div class="d-flex mb-4 flex-wrap">

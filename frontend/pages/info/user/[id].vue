@@ -19,7 +19,7 @@
                     </template>
                     <template v-else>
                         <h1 class="mt-auto rounded-2">{{ user.name }}</h1>
-                        <div class="d-flex mt-4 mb-3">
+                        <div class="d-flex mt-2 mb-3">
                             <span>{{ playlists.length }} playlist{{ playlists.length == 1 ? '' : 's' }}</span>
                             &nbsp;&nbsp;━&nbsp;&nbsp;
                             <span>{{ followers.length }} follower{{ followers.length == 1 ? '' : 's' }}</span>
@@ -27,6 +27,7 @@
                             <InfoField description="Spotify does not allow us to view this information">? following</InfoField>
                         </div>
                     </template>
+                    <Spotify v-if="user" :to="`https://open.spotify.com/user/${user.id}`" class="mt-2 mb-3">SHOW IN SPOTIFY</Spotify>
                 </div>
             </header>
 
