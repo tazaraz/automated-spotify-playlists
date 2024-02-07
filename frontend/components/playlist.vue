@@ -35,29 +35,35 @@
                         </template>
                     </div>
                 </header>
-                <div v-if="playlists && playlists.loaded" class="d-flex sticky-top shadow-lg flex-wrap rounded-3 bg-body-tertiary ps-3 pe-3 pt-2 pb-2 mb-3">
-                    <button v-if="playlists.loaded.ownership == 'following'" class="d-flex border-0 bg-transparent p-2 ps-3 p-1 me-auto" @click="unfollow">
-                        <fa-icon style="font-size: 150%;" :icon="['fas', 'heart']"></fa-icon>
-                    </button>
-                    <button v-else-if="playlists.loaded.ownership == 'none'" class="d-flex border-0 bg-transparent p-2 ps-3 p-1 me-auto" @click="follow">
-                        <fa-icon style="font-size: 150%;" :icon="['far', 'heart']"></fa-icon>
-                    </button>
-                    <Modal v-else-if="playlists.loaded.ownership == 'user'" :button-icon="['fas', 'trash-can']" button-class="modal-delete ps-3 p-1 me-auto">
-                        <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="exampleModalLabel">Delete</h1>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div v-if="playlists.loaded.filters" class="modal-body">
-                            This will delete the automated playlist and remove it in spotify. People following the playlist will still have it, however it will not be updated anymore.
-                        </div>
-                        <div v-else class="modal-body">
-                            This will remove the playlist from spotify. People following the playlist will still have it.
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="remove">Delete</button>
-                        </div>
-                    </Modal>
+                <div v-if="playlists && playlists.loaded" id="playlist-toolbar" :class="`d-flex sticky-top shadow-lg flex-wrap rounded-3 bg-body-tertiary ps-3 pe-3 pt-2 pb-2 mb-3${playlistToolbarSticky?' border-bottom':''}`">
+                    <template v-if="!playlistToolbarSticky">
+                        <button v-if="playlists.loaded.ownership == 'following'" class="d-flex border-0 bg-transparent p-2 ps-3 p-1 me-auto" @click="unfollow">
+                            <fa-icon style="font-size: 150%;" :icon="['fas', 'heart']"></fa-icon>
+                        </button>
+                        <button v-else-if="playlists.loaded.ownership == 'none'" class="d-flex border-0 bg-transparent p-2 ps-3 p-1 me-auto" @click="follow">
+                            <fa-icon style="font-size: 150%;" :icon="['far', 'heart']"></fa-icon>
+                        </button>
+                        <Modal v-else-if="playlists.loaded.ownership == 'user'" :button-icon="['fas', 'trash-can']" button-class="modal-delete ps-3 p-1 me-auto">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="exampleModalLabel">Delete</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div v-if="playlists.loaded.filters" class="modal-body">
+                                This will delete the automated playlist and remove it in spotify. People following the playlist will still have it, however it will not be updated anymore.
+                            </div>
+                            <div v-else class="modal-body">
+                                This will remove the playlist from spotify. People following the playlist will still have it.
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="remove">Delete</button>
+                            </div>
+                        </Modal>
+                    </template>
+                    <div v-else class="d-flex me-auto">
+                        <Image class="ms-2 me-3" style="width: 2.5rem; height: 2.5rem;" :src="playlists.loaded"/>
+                        <h4 class="m-auto">{{ playlists.loaded.name }}</h4>
+                    </div>
 
                     <Modal v-if="shown.kind != 'all' && shown.kind != 'matched' && shown.tracks.length > 0" :button-text="`Clear ${shown.kind} tracks`" button-class="btn btn-secondary text-nowrap me-3">
                         <div class="modal-header">
@@ -159,6 +165,9 @@ export default class PlaylistDisplay extends Vue {
     /** The amount of tracks to load at once */
     batchLoadingSize: number = 25;
     loading: boolean = true;
+
+    /** Whether the playlist toolbar is behaving sticky */
+    playlistToolbarSticky: boolean = false;
 
     /** Contains the watchers function to stop watching */
     watcher: {
@@ -263,6 +272,7 @@ export default class PlaylistDisplay extends Vue {
             }),
             delay: null as any
         }
+        this.detectSticyPlaylistToolbar();
     }
 
     beforeUnmount() {
@@ -373,11 +383,23 @@ export default class PlaylistDisplay extends Vue {
     }
 
     /**
+     * Detects if the playlist toolbar is sticky and sets the `playlistToolbarSticky` property accordingly
+     */
+    detectSticyPlaylistToolbar() {
+        let playlistToolbarPreviousLocation = 0;
+        document.getElementById("playlist-wrapper")!.onscroll = () => {
+            let currentPos = document.getElementById("playlist-toolbar")!.getBoundingClientRect().top;
+            this.playlistToolbarSticky = currentPos == playlistToolbarPreviousLocation
+            playlistToolbarPreviousLocation = currentPos;
+        }
+    }
+
+    /**
      * Opens the playlist editor for the given playlist
      * @param id ID of the playlist to edit
      */
     async setEditedPlaylist(id: string) {
-        this.playlists.editing = null;
+        this.playlists.editing = null as any;
         await this.$nextTick();
         await this.playlists.loadEditingPlaylist(id);
         await this.showTracks("all");
