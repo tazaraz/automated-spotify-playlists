@@ -13,7 +13,7 @@
                             </template>
                         </div>
                     </div>
-                    <div class="text-truncate flex-shrink-0" style="width: 40%;"  data-main-class="normal-d-block tiny-d-none" >
+                    <div class="text-truncate flex-shrink-0" style="width: 40%;" data-main-class="normal-d-block tiny-d-none" >
                         <span class="placeholder rounded-1" :style="`width: ${randomBetween(3, 15)}rem`"></span>
                     </div>
                     <div class="text-truncate flex-shrink-0" style="width: 10%;">

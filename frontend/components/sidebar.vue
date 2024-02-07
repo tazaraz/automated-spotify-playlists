@@ -15,7 +15,7 @@
                 <div class="d-block d-md-none">
                     <hr>
                     <ToolbarPlaying
-                        :style="`margin-left: ${layout.sidebar.state == 'tiny' && layout.app.width > layout.app.mobile ? '-' : ''}0.25rem;`"
+                        :style="`margin-left: ${layout && layout.sidebar.state == 'tiny' && !layout.app.isMobile ? '-' : ''}0.25rem;`"
                         @click="tryClose"/>
                 </div>
             </ClientOnly>
