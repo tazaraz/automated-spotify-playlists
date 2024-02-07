@@ -421,18 +421,24 @@ export default class PlaylistDisplay extends Vue {
             this.showTracks(this.shown.kind);
         }
 
-        let offset;
+        let offset, tasks = [];
         // If the previous tracks are not loaded, load them
         if (typeof this.shown.tracks[prev] === 'string') {
             offset = Math.floor(prev / this.batchLoadingSize) * this.batchLoadingSize;
-            this.playlists.loadPlaylistTracks(this.shown.kind, offset);
+            tasks.push(this.playlists.loadPlaylistTracks(this.shown.kind, offset));
         }
 
         // If the next tracks are not loaded, load them
         if (typeof this.shown.tracks[next] === 'string') {
             offset = Math.floor(next / this.batchLoadingSize) * this.batchLoadingSize;
-            this.playlists.loadPlaylistTracks(this.shown.kind, offset);
+            tasks.push(this.playlists.loadPlaylistTracks(this.shown.kind, offset));
         }
+
+        // Wait for the tracks to load. Then render the layout again to update the css
+        Promise.all(tasks).then(async () => {
+            await this.$nextTick();
+            this.layout.render(null, true);
+        });
     }
 
     isVisibleTrack(index: number, margin: number = 8) {
