@@ -8,25 +8,29 @@
             <span class="d-flex d-md-none">{{ playlists?.loaded?.name }}</span>
             <ToolbarBreadcrumbs class="d-none d-lg-flex"/>
         </ClientOnly>
-        <ul class="nav flex-shrink-0 nav-pills overflow-hidden">
-            <li v-if="user && user.info" class="nav-item cursor-pointer">
-                <url class="nav-link p-2 me-2" @click="user.logout()">
+        <div class="d-flex">
+            <div class="nav-item">
+                <button v-if="playlists && playlists.editing" class="navbar-toggler d-sm-none h-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#edit">
+                    <span class="fs-5 ms-1"><fa-icon :icon="['fas', 'wand-magic']"></fa-icon></span>
+                </button>
+            </div>
+            <div v-if="user && user.info" class="nav-item cursor-pointer dropdown">
+                <button class="btn" type="button" data-bs-toggle="dropdown">
                     <span class="d-md-inline d-none me-3">{{ user.info.name }}</span>
                     <i><fa-icon :icon="['fas', 'user']"></fa-icon></i>
-                </url>
-            </li>
-            <li v-else class="nav-item cursor-pointer me-2">
-                <url class="nav-link p-2" @click="user?.login">
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end py-1">
+                    <li><button class="dropdown-item" type="button" @click="logout()">Log out</button></li>
+                    <!-- <li><button class="dropdown-item" type="button">Settings</button></li> -->
+                </ul>
+            </div>
+            <div v-else>
+                <url to="." class="p-2" @click="user?.login">
                     <span class="me-3">Log in</span>
                     <i><fa-icon :icon="['far', 'user']"></fa-icon></i>
                 </url>
-            </li>
-            <li v-if="playlists && playlists.editing" class="nav-item cursor-pointer">
-                <button class="navbar-toggler d-sm-none h-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#edit">
-                    <span class="fs-5 ms-1"><fa-icon :icon="['fas', 'wand-magic']"></fa-icon></span>
-                </button>
-            </li>
-        </ul>
+            </div>
+        </div>
     </nav>
 </template>
 
@@ -66,6 +70,12 @@ export default class Sidebar extends Vue {
             if (!error)
                 this.user.finishLogin();
         }
+    }
+
+    logout() {
+        // Unload everything
+        this.user.logout();
+        this.playlists.editing = null as any;
     }
 }
 </script>
