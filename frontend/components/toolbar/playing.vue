@@ -1,6 +1,6 @@
 <template>
-    <div v-if="player && player.playing" class="nav flex-shrink-0 flex-grow-1 d-flex align-items-center flex-nowrap ms-2" style="max-width: 16rem;">
-        <span v-if="!(layout.sidebar.width < layout.sidebar.tiny.min && layout.app.width > layout.app.mobile)" class="now-playing d-md-block d-sm-none d-block">Now playing</span>
+    <div v-if="player && player.playing" class="flex-shrink-0 flex-grow-1 d-flex align-items-center flex-nowrap" style="max-width: 16rem;">
+        <span v-if="!(layout.sidebar.width < layout.sidebar.tiny.min && layout.app.width > layout.app.mobile)" class="now-playing m-0 me-2 p-0">Now playing</span>
         <url @click="breadcrumbs.clear()" :to="`/info/track/${player.playing.track.id}`" class="loading-container">
             <Image :src="player.playing"/>
         </url>
@@ -46,11 +46,12 @@ export default class ToolbarPlaying extends Vue {
 
 .now-playing {
     width: 2.5rem;
-    margin-right: 0.5rem;
     line-height: normal;
     font-size: 75%;
     font-weight: 500;
-    transform: rotate(-90deg);
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    height: min-content;
 }
 
 </style>
