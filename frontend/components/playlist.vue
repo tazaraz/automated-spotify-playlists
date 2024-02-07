@@ -35,7 +35,7 @@
                         </template>
                     </div>
                 </header>
-                <div v-if="playlists && playlists.loaded" class="d-flex flex-wrap rounded-3 bg-body-tertiary ps-3 pe-3 pt-2 pb-2 mb-3">
+                <div v-if="playlists && playlists.loaded" class="d-flex sticky-top shadow-lg flex-wrap rounded-3 bg-body-tertiary ps-3 pe-3 pt-2 pb-2 mb-3">
                     <button v-if="playlists.loaded.ownership == 'following'" class="d-flex border-0 bg-transparent p-2 ps-3 p-1 me-auto" @click="unfollow">
                         <fa-icon style="font-size: 150%;" :icon="['fas', 'heart']"></fa-icon>
                     </button>
