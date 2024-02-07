@@ -17,7 +17,7 @@
         @mouseup="layout.setResizing('sidebar', false); layout.setResizing('edit', false)"
         @touchmove="layout.render($event)"
         @mousemove="layout.render($event)">
-        <div v-if="layout.app.width > 0 && layout.app.width < layout.app.mobile" class="offcanvas offcanvas-start bg-black d-sm-flex w-100 p-3"
+        <div v-if="layout.app.isMobile" class="offcanvas offcanvas-start bg-black d-sm-flex w-100 p-3"
             tabindex="-1" id="sidebar">
             <Sidebar></Sidebar>
         </div>
@@ -38,7 +38,7 @@
         </main>
 
         <template v-if="(user && user.info && playlists && playlists.editing) || playlists?.editing?.id == 'example'">
-            <div v-if="layout.app.width > 0 && layout.app.width < layout.app.mobile" class="offcanvas offcanvas-end bg-black d-sm-flex w-100 p-3"
+            <div v-if="layout.app.isMobile" class="offcanvas offcanvas-end bg-black d-sm-flex w-100 p-3"
                 tabindex="-1" id="edit">
                 <Edit id="edit-view" @open="layout.open('edit')" />
             </div>

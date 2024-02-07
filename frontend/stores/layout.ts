@@ -40,16 +40,23 @@ export default class Layout extends Pinia {
     /**
      * Definitions of the views
      */
-
     app = {
+        /** Whether the app is in mobile mode */
+        isMobile: false,
         /** Between these values the app should behave like a mobile app */
-        mobile: 638,
+        threshold_mobile: 638,
         /** The width of a handle */
         handle_size: 12,
         /** Padding of the main view */
         padding: 2*16,
+
+        _width: 0,
         /** Current width of the app */
-        width: 0,
+        set width(value: number) {
+            this._width = value;
+            this.isMobile = value < this.threshold_mobile;
+        },
+        get width() { return this._width }
     }
 
     /** Dictates the behavior of the main container
@@ -116,7 +123,7 @@ export default class Layout extends Pinia {
 
     async render(user: TouchEvent | MouseEvent | number | null = null, force = false) {
         /** If we are on mobile */
-        if (window.innerWidth <= this.app.mobile) {
+        if (window.innerWidth <= this.app.threshold_mobile) {
             this.setMobile();
         } else if (this.sidebar.resizing || this.edit.resizing || force) {
             await this.nextTick();
@@ -338,12 +345,12 @@ export default class Layout extends Pinia {
         /** If there is not enough space left for the info view,
          *  AND not mobile
          */
-        let full   = handleOffsetLeft < this.main.size.min && this.appElement.clientWidth > this.app.mobile && this.playlistEditing;
+        let full   = handleOffsetLeft < this.main.size.min && this.appElement.clientWidth > this.app.threshold_mobile && this.playlistEditing;
         /** If enough space for the info view and not crossing the minimum size for the edit window,
          *  OR mobile
          */
         let normal = (this.main.size.min <= handleOffsetLeft && handleOffsetRight >= this.edit.tiny.max) ||
-                        this.appElement.clientWidth <= this.app.mobile;
+                        this.appElement.clientWidth <= this.app.threshold_mobile;
         /** If the window should be clipped tiny  */
         let tiny  = handleOffsetRight < this.edit.tiny.max && !recursed;
 

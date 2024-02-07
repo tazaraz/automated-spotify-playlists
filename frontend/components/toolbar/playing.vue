@@ -1,10 +1,10 @@
 <template>
     <div v-if="player && player.playing" class="flex-shrink-0 flex-grow-1 d-flex align-items-center flex-nowrap" style="max-width: 16rem;">
-        <span v-if="!(layout.sidebar.width < layout.sidebar.tiny.min && layout.app.width > layout.app.mobile)" class="now-playing m-0 me-2 p-0">Now playing</span>
+        <span class="now-playing m-0 me-2 p-0">Now playing</span>
         <url @click="breadcrumbs.clear()" :to="`/info/track/${player.playing.track.id}`" class="loading-container">
             <Image :src="player.playing"/>
         </url>
-        <span v-if="!(layout.sidebar.width < layout.sidebar.tiny.min && layout.app.width > layout.app.mobile)" class="multilayer ms-3 pe-3">
+        <span v-if="!(layout.sidebar.state == 'tiny' && !layout.app.isMobile)" class="multilayer ms-3 pe-3">
             <url @click="breadcrumbs.clear()" :to="`/info/track/${player.playing.track.id}`" class="text-truncate text-white">{{ player.playing.track.name }}</url>
             <div class="text-truncate">
                 <template v-for="(artist, index) in player.playing.artists">
