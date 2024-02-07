@@ -57,7 +57,7 @@ export default class Layout extends Pinia {
     */
     main = {
         /** Current state */
-        state: 'normal',
+        state: 'normal' as 'tiny' | 'normal' | 'large',
         /** The allowed size of the main view */
         size: { min: 460 },
         /** CSS. When the main view should try to be small */
@@ -77,7 +77,7 @@ export default class Layout extends Pinia {
         /** Actual width */
         width: 340,
         /** Current state */
-        state: 'normal',
+        state: 'normal' as 'normal' | 'tiny',
         /** Allowed size of the sidebar */
         size: { min: 6.5*16, max: 22*16 },
         /** Whether the sidebar view is being resized */
@@ -97,7 +97,7 @@ export default class Layout extends Pinia {
         /** Actual width. 0 meaning it will be calculated upon opening */
         width: 0,
         /** Current state */
-        state: 'normal',
+        state: 'normal' as 'tiny' | 'small' | 'normal' | 'large' | 'full',
         /** Whether the edit view is being resized */
         resizing: false,
         /** Allowed size of the edit view */
