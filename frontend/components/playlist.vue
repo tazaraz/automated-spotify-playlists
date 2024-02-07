@@ -383,7 +383,7 @@ export default class PlaylistDisplay extends Vue {
         await this.showTracks("all");
         // Click the edit button to try and open the offcanvas edit view
         await this.$nextTick();
-        document.getElementById("toolbar")?.lastChild?.lastChild?.lastChild?.click();
+        document.getElementById("mobile-open-edit")?.click();
         this.layout.open('edit');
     }
 
