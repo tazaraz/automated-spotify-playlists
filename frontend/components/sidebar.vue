@@ -14,7 +14,9 @@
             <ClientOnly>
                 <div class="d-block d-md-none">
                     <hr>
-                    <ToolbarPlaying @click="tryClose"/>
+                    <ToolbarPlaying
+                        :style="`margin-left: ${layout.sidebar.state == 'tiny' && layout.app.width > layout.app.mobile ? '-' : ''}0.25rem;`"
+                        @click="tryClose"/>
                 </div>
             </ClientOnly>
 
@@ -48,7 +50,12 @@
                 <hr class="d-md-none d-block ms-3 me-3">
 
                 <div id="playlist-sp-header" class="d-flex flex-row align-items-center gap-3 p-2" data-sidebar-class="tiny-flex-column normal-flex-row">
-                    <span class="lh-base flex-grow-1">Automated playlists</span>
+                    <span class="lh-base flex-grow-1" data-sidebar-class="tiny-d-none normal-d-block">
+                        Automated playlists
+                    </span>
+                    <span class="lh-base flex-grow-1" data-sidebar-class="tiny-d-block normal-d-none">
+                        Auto playlists
+                    </span>
                     <url @click="addAutomatedPlaylist" class="rounded-3 text-white p-0 fs-5" data-sidebar-class="normal-d-block tiny-d-none"><i><fa-icon :icon="['fas', 'plus']" style="width:2rem;"></fa-icon></i></url>
                 </div>
 
@@ -109,11 +116,13 @@
 <script lang="ts">
 import { Vue } from 'vue-property-decorator';
 import BreadCrumbs from '~/stores/breadcrumbs';
+import Layout from '~/stores/layout';
 import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class Sidebar extends Vue {
     playlists: Playlists = null as any;
+    layout: Layout = null as any;
     user: User = null as any;
 
     async beforeMount() {
@@ -135,7 +144,8 @@ export default class Sidebar extends Vue {
             })
         } else {
             this.playlists = new Playlists();
-            this.playlists.setUser(this.user)
+            this.playlists.setUser(this.user);
+            this.layout = new Layout();
             await this.playlists.loadUserPlaylists();
             this.$forceUpdate();
         }
