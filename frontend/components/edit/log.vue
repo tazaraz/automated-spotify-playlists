@@ -29,7 +29,7 @@
                     Log:
                 </h5>
                 <select class="log-select form-select form-select-sm w-auto" @change="selectedLogChange">
-                    <option v-for="log, index in logs" :value="log.name" :selected="index == selectedLog">{{ log.name }}</option>
+                    <option v-for="log, index in logs" :value="index" :selected="index == selectedLog">{{ log.name }}</option>
                 </select>
             </div>
 
@@ -83,7 +83,8 @@ export default class EditLog extends Vue {
      * @param event The selected new log
      */
     async selectedLogChange(event: Event) {
-        this.selectedLog = this.logs.findIndex(l => l.name == (event.target! as HTMLSelectElement).value);
+        this.selectedLog = parseInt((event.target! as HTMLOptionElement).value);
+        this.parseLogs();
     }
 
     parseLogs() {
