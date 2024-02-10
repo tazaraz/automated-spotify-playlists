@@ -27,29 +27,41 @@ export class FilterString {
         switch (operation) {
             case "contains":
                 // Split at every "," and trim
-                data = value.split(",").map(value => value.trim().toLowerCase());
-                find = filter.split(",").map(value => value.trim().toLowerCase());
-                return data.some(d => find.some(f => d.includes(f)))
+                data = value.split(",").map(value => value.trim());
+                find = filter.split(",").map(value => value.trim());
+                return data.some(d => find.some(f => FilterString.matchRegex(f, d)))
 
             case "does not contain":
-                data = value.split(",").map(value => value.trim().toLowerCase());
-                find = filter.split(",").map(value => value.trim().toLowerCase());
-                return data.every(d => find.every(f => !d.includes(f)))
+                data = value.split(",").map(value => value.trim());
+                find = filter.split(",").map(value => value.trim());
+                return data.every(d => find.every(f => !FilterString.matchRegex(f, d)))
 
             case "is":
-                return filter.toLowerCase() == value.toLowerCase();
+                return FilterString.matchRegex(filter, `^${value}$`);
 
             case "is not":
-                return filter.toLowerCase() != value.toLowerCase();
+                return !FilterString.matchRegex(filter, `^${value}$`);
 
             case "begins with":
-                return filter.toLowerCase().startsWith(value.toLowerCase());
+                return FilterString.matchRegex(filter, `^${value}`);
 
             case "ends with":
-                return filter.toLowerCase().endsWith(value.toLowerCase());
+                return FilterString.matchRegex(filter, `${value}$`);
 
             default:
                 console.error(`FilterString: Unknown operation '${operation}'`);
         }
+    }
+
+    private static matchRegex(filter: string, value: string): boolean {
+        // Convert "-" to a space
+        filter = filter.replace(/-/g, " ");
+        value = value.replace(/-/g, " ");
+        // Remove special characters from the find and data string, convert to lowercase
+        filter = filter.replace(":", "").toLowerCase();
+        value = value.replace(":", "").toLowerCase();
+        // Convert every "*" to a regex which matches any single word
+        let regex = filter.replace(/(?<=^|\s)\*(?=$|\s)/, "(?<=^|\\s)[^\\s]+?(?=$|\\s)")
+        return new RegExp(regex).test(value);
     }
 }
