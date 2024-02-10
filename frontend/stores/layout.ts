@@ -214,8 +214,9 @@ export default class Layout extends Pinia {
     /**
      * Updates the main view and the data-main-class attribute
      * @param main The width of the main
+     * @param force Whether to force the resize
      */
-    private resizeMain(main: number, force: boolean) {
+    resizeMain(main: number, force: boolean) {
         const tiny   = main <= this.main.tiny.max;
         const normal = main >= this.main.normal.min && main <= this.main.normal.max;
         const large  = main > this.main.normal.max;
