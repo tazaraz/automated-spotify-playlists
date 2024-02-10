@@ -52,7 +52,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
-                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="resetDemo">Yes</button>
+                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="showDemo">Yes</button>
                     </div>
                 </Modal>
             </div>
@@ -94,20 +94,24 @@ export default class Homepage extends Vue {
     /**
      * Resets the demo editor
      */
-    async resetDemo() {
-        /** For some reason we need to wait 4 ticks for all changes to be processed */
-        document.getElementById('editDiscard')?.click();
+    async showDemo() {
+        this.playlists.editing = null as any;
+        // I don't know why we need 4 nextTicks, but otherwise the view wont open.
         await this.$nextTick();
         await this.$nextTick();
         await this.$nextTick();
         await this.$nextTick();
-        this.showDemo();
+        // Click the edit button to try and open the offcanvas edit view
+        document.getElementById("mobile-open-edit")?.click();
+        this.loadDemo();
+        this.layout.open('edit');
+        this.layout.render(null, true);
     }
 
     /**
      * Shows the demo editor. Simply creates a fake user and playlist to show the editor.
      */
-    async showDemo() {
+    async loadDemo() {
         if (!process.client) return;
 
         // Create a fake user to build an automated playlist as example
@@ -138,9 +142,6 @@ export default class Homepage extends Vue {
         this.playlists.editing = playlist;
         this.playlists.editing.index = 999;
         this.playlists.editing.ownership = 'user';
-
-        await this.$nextTick();
-        document.getElementById("toolbar")?.lastChild?.lastChild?.lastChild?.click();
     }
 }
 </script>
