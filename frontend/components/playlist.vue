@@ -315,8 +315,8 @@ export default class PlaylistDisplay extends Vue {
                 break;
         }
 
-        this.rendered.min_height = (document.getElementsByClassName("playlist-track")[0].clientHeight || 90)
-                                    * this.shown.tracks.length;
+        this.rendered.min_height = document.getElementsByClassName("playlist-track")[0].clientHeight
+                                   * this.shown.tracks.length;
         this.loading = false;
 
         this.$nextTick(() => {
@@ -459,7 +459,7 @@ export default class PlaylistDisplay extends Vue {
         // Wait for the tracks to load. Then render the layout again to update the css
         Promise.all(tasks).then(async () => {
             await this.$nextTick();
-            this.layout.render(null, true);
+            this.layout.resizeMain(this.layout.mainElement.clientWidth, true)
         });
     }
 
