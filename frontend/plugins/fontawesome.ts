@@ -16,6 +16,7 @@ import {
     faArrowDownWideShort as faSArrowDownWideShort,
     faGripVertical as faSGripVertical,
     faArrowUpFromBracket as faSArrowUpFromBracket,
+    faSlidersH as faSSliders,
 } from '@fortawesome/free-solid-svg-icons'
 import {
     faUser as faRUser,
@@ -43,6 +44,7 @@ library.add(
     faSArrowUpFromBracket,
     faRUser,
     faRHeart,
+    faSSliders,
 )
 
 export default defineNuxtPlugin((nuxtApp) => {

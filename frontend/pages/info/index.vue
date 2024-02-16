@@ -13,7 +13,10 @@
                 <input type="checkbox" class="btn-check" id="advancedSearch" autocomplete="off"
                     :checked="info.searchConfig?.is_advanced">
                 <label ref="advancedTrigger" class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#advancedSearch"
-                    for="advancedSearch">Advanced</label>
+                    for="advancedSearch">
+                    <span class="d-md-block d-none">Advanced</span>
+                    <i class="d-sm-none d-block"><fa-icon :icon="['fas', 'sliders']"></fa-icon></i>
+                </label>
                 <span class="btn btn-outline-primary input-group-text ps-2 pe-0" @click="search()">
                     <i><fa-icon :icon="['fas', 'search']" style="width:2rem; padding-right: .5rem;"></fa-icon></i>
                 </span>
