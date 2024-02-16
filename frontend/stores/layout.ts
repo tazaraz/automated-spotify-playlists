@@ -47,8 +47,9 @@ export default class Layout extends Pinia {
         threshold_mobile: 638,
         /** The width of a handle */
         handle_size: 12,
-        /** Padding of the main view */
-        padding: 2*16,
+        /** Padding of the main view.
+         *  IMPORTANT: Editing this should be reflected in setPadding */
+        padding: 1*16,
 
         _width: 0,
         /** Current width of the app */
@@ -478,6 +479,17 @@ export default class Layout extends Pinia {
         /** Set the grid */
         if (this.appElement)
             this.appElement.style.gridTemplateColumns = `${sidebar} 1fr ${edit}`;
+    }
+
+    /**
+     * Sets the padding of the app depending on whether it is mobile or not
+     */
+    setPadding() {
+        this.app.padding = this.app.isMobile ? 0 : 1*16;
+        document.getElementById('app')!.style.padding = `${this.app.padding}px`;
+        for (const c of document.getElementsByClassName('offcanvas')!) {
+            (c as HTMLElement).style.padding = `${this.app.padding}px`;
+        }
     }
 
     /**

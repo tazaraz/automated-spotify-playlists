@@ -17,7 +17,7 @@
         @mouseup="layout.setResizing('sidebar', false); layout.setResizing('edit', false)"
         @touchmove="layout.render($event)"
         @mousemove="layout.render($event)">
-        <div v-if="layout.app.isMobile" class="offcanvas offcanvas-start bg-black d-sm-flex w-100 p-3"
+        <div v-if="layout.app.isMobile" class="offcanvas offcanvas-start bg-black d-sm-flex w-100"
             tabindex="-1" id="sidebar">
             <Sidebar></Sidebar>
         </div>
@@ -38,7 +38,7 @@
         </main>
 
         <template v-if="(user && user.info && playlists && playlists.editing) || playlists?.editing?.id == 'example'">
-            <div v-if="layout.app.isMobile" class="offcanvas offcanvas-end bg-black d-sm-flex w-100 p-3"
+            <div v-if="layout.app.isMobile" class="offcanvas offcanvas-end bg-black d-sm-flex w-100"
                 tabindex="-1" id="edit">
                 <Edit id="edit-view" @open="layout.open('edit')" />
             </div>
@@ -123,10 +123,12 @@ export default class App extends Vue {
         /** When the user resizes the window */
         addEventListener("resize", () => {
             this.layout.app.width = this.layout.appElement.clientWidth;
-            this.layout.render(null, true)
+            this.layout.setPadding();
+            this.layout.render(null, true);
         })
 
-        this.layout.render(null, true)
+        this.layout.setPadding();
+        this.layout.render(null, true);
     }
 }
 </script>
@@ -152,8 +154,6 @@ export default class App extends Vue {
 <style lang="scss" scoped>
 /** Width of the handle used to resize content. FIXED IN JAVASCRIPT ABOVE (layout.handle) */
 $handle: 12px;
-/** This is hardcoded in the javascript above! (search for '2*16' (padding on both sides)) */
-$app_padding: 1rem;
 
 .resize-handle {
     width: $handle;
@@ -178,7 +178,6 @@ $app_padding: 1rem;
     width: 100vw;
     height: 100%;
     position: fixed;
-    padding: $app_padding;
 
     nav {
         grid-row: span 3;
