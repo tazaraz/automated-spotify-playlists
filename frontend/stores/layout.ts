@@ -361,7 +361,7 @@ export default class Layout extends Pinia {
 
         /** Prefer both views to be normal */
         if (normal)     this.setGrid({ editWidth: handleOffsetRight })
-        else if (full)  this.setGrid({ editWidth: handleMax - this.edit.size.min - this.sidebar.width - this.app.padding })
+        else if (full)  this.setGrid({ editWidth: handleMax - this.edit.size.min - this.sidebar.width - 3*16 })
         else if (tiny) this.setGrid({ editWidth: this.edit.size.min })
 
         let large  = this.edit.width >= this.edit.large.min;
