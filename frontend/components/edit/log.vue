@@ -60,22 +60,28 @@
 <script lang="ts">
 import { Vue, Prop } from 'vue-property-decorator';
 import { Playlist } from '../../../backend/src/shared/types/playlist';
+import Playlists from '~/stores/playlists';
 
 export default class EditLog extends Vue {
-    @Prop({required: true}) logs!: Playlist['logs'];
+    playlists: Playlists = null as any;
+    logs: Playlist['logs'] = [];
 
     selectedLog: number = 0;
-
     indent: number = 0;
     statements: {value: string, indent: number}[] = [];
 
     created() {
+        this.playlists = new Playlists();
+        this.logs = this.playlists.editing.logs;
         this.selectedLog = this.logs.length - 1;
 
         // Parse the last log
         if (this.logs.length > 0) this.parseLogs();
 
-        watch(() => this.logs, () => this.parseLogs());
+        watch(() => this.playlists.editing.logs, () => {
+            this.logs = this.playlists.editing.logs;
+            this.parseLogs();
+        });
     }
 
     /**

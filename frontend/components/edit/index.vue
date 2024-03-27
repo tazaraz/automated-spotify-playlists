@@ -91,7 +91,7 @@
                         </template>
                     </section>
                 </div>
-                <EditLog :hidden="!showLog" :logs="playlists.editing.logs"></EditLog>
+                <EditLog :hidden="!showLog"></EditLog>
                 <div v-if="editstate.error > 0" class="alert alert-primary" role="alert">
                     Some {{ editstate.error == 1 ? 'sources' : editstate.error == 2 ? 'filters' : 'filters and sources'}} are not filled in correctly
                 </div>
