@@ -59,22 +59,22 @@
             <div class="d-flex gap-3 ms-3">
                 <div class="form-check">
                     <input ref="s:Tr" id="searchTrack" class="form-check-input" type="checkbox"
-                        :checked="info.searchConfig ? info.searchConfig.track : true">
+                        :checked="info.searchConfig?.track ?? true">
                     <label class="form-check-label" for="searchTrack">Track</label>
                 </div>
                 <div class="form-check">
                     <input ref="s:Al" id="searchAlbum" class="form-check-input" type="checkbox"
-                        :checked="info.searchConfig?.album">
+                        :checked="info.searchConfig?.album ?? true">
                     <label class="form-check-label" for="searchAlbum">Album</label>
                 </div>
                 <div class="form-check">
                     <input ref="s:Ar" id="searchArist" class="form-check-input" type="checkbox"
-                        :checked="info.searchConfig?.artist">
+                        :checked="info.searchConfig?.artist ?? true">
                     <label class="form-check-label" for="searchArist">Artist</label>
                 </div>
                 <div class="form-check">
                     <input ref="s:Pl" id="searchPlaylist" class="form-check-input" type="checkbox"
-                        :checked="info.searchConfig?.playlist">
+                        :checked="info.searchConfig?.playlist ?? true">
                     <label class="form-check-label" for="searchPlaylist">Playlist</label>
                 </div>
             </div>
@@ -82,7 +82,7 @@
                 <template v-if="info.searchResult.artists">
                     <h5 class="text-white mt-3 p-2 pb-0">Artists</h5>
                     <ol class="nav flex-nowrap overflow-auto ps-2">
-                        <Card v-for="artist of info.searchResult.artists" :card="{image: artist.image, title: artist.name, url: `/info/artist/${artist.id}`}">
+                        <Card v-for="artist of info.searchResult.artists" :card="{image: artist.image, title: artist.name, url: `/info/artist/${artist.id}`}" class="me-2">
                             <span>Genres</span>
                             <span class="word-wrap text-body-secondary" style="font-size: 85%;">
                                 {{ artist.description![0].name || 'No known genres' }}
@@ -111,7 +111,7 @@
                 <template v-if="info.searchResult.albums">
                     <h5 class="text-white mt-3 p-2 pb-0">Albums</h5>
                     <ol class="nav flex-nowrap overflow-auto ps-2">
-                        <Card v-for="album of info.searchResult.albums" :card="{image: album.image, title: album.name, url: `/info/album/${album.id}`}">
+                        <Card v-for="album of info.searchResult.albums" :card="{image: album.image, title: album.name, url: `/info/album/${album.id}`}" class="me-2">
                             <span class="word-wrap text-body-secondary">{{ album.description?.map(a => a.name).join(', ') }}</span>
                         </Card>
                         <h6 v-if="info.searchResult.albums.length == 0">Spotify says no</h6>
@@ -120,7 +120,7 @@
                 <template v-if="info.searchResult.playlists">
                     <h5 class="text-white mt-3 p-2 pb-0">Playlists</h5>
                     <ol class="nav flex-nowrap overflow-auto ps-2">
-                        <Card v-for="playlist of info.searchResult.playlists" :card="{image: playlist.image, title: playlist.name, url: `/info/playlist/${playlist.id}`}">
+                        <Card v-for="playlist of info.searchResult.playlists" :card="{image: playlist.image, title: playlist.name, url: `/info/playlist/${playlist.id}`}" class="me-2">
                             <span class="word-wrap text-body-secondary" style="font-size: 85%;">
                                 {{ playlist.description![0].name }}
                             </span>
