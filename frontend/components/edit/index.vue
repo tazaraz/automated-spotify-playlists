@@ -188,6 +188,9 @@
                         </span>
                         <Image class="d-inline shadow-none ms-2" style="width: 1.5rem; height: 1.5rem" v-if="saveState == 1 || executeState == 1" src=""></Image>
                     </button>
+                    <Transition name="playlist-created">
+                        <button v-if="playlistCreated" type="button" id="editReset" disabled class="btn btn-success mt-3 me-3">Playlist created!</button>
+                    </Transition>
 
                     <button type="button" id="editReset" class="btn btn-danger ms-auto mt-3 me-3" @click="resetConfig">Reset</button>
                 </section>
@@ -225,7 +228,8 @@ export default class Edit extends Vue {
     /** 0: uncopied, 1: copied */
     copied = 0;
     /** 0: invalid config, 1: valid config */
-    validImportConfig = 0;
+    /** Playlist succesfully created */
+    playlistCreated = false;
 
     created() {
         if (!process.client) return;
@@ -256,8 +260,17 @@ export default class Edit extends Vue {
     async execute() {
         if (this.saveState > 0 || this.executeState > 0) return false;
         this.playlists.editing.logs = [];
+
+        const was_unpublished = this.playlists.editing.id === 'unpublished';
+        // Save the playlist configuration
         if (!await this.save())
             return false;
+
+        // Show a popup that the playlist has been created
+        if (was_unpublished) {
+            this.playlistCreated = true;
+            setTimeout(() => this.playlistCreated = false, 2000);
+        }
 
         this.executeState = 1;
         await this.editstate.execute();
@@ -382,5 +395,16 @@ article{
 
 :deep(#playlist-export) {
     margin: 0 !important;
+}
+
+.playlist-created-enter-active,
+.playlist-created-leave-active {
+  transition: all 0.3s ease-out;
+}
+
+.playlist-created-enter-from,
+.playlist-created-leave-to {
+  transform: translateX(-20px);
+  opacity: 0;
 }
 </style>
