@@ -197,8 +197,21 @@ export default class Metadata {
 
     static async getMultipleTracks(url="/tracks", options: FetchOptions = {}): Promise<FilterItem<STrack>[]> {
         const items = await Metadata.getMultiple(url, Cache.tracks, options) as FilterItem<STrack>[];
-              items.forEach(item => item.kind = "track");
-        return items;
+        //       items.forEach(item => item.kind = "track");
+        // return items;
+        try {
+            items.forEach(item => item.kind = "track");
+            return items;
+        } catch (error) {
+            // Count how many items are undefined, not and the total and log this
+            console.log(
+                "Undefined items:",
+                items.map(i => i == undefined).length,
+                "out of",
+                items.length
+            );
+            throw error;
+        }
     }
 
     static async getMultipleAlbums(url="/albums", options: FetchOptions = {}): Promise<FilterItem<SAlbum>[]> {
