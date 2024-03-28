@@ -229,6 +229,7 @@ export default class Edit extends Vue {
     /** 0: uncopied, 1: copied */
     copied = 0;
     /** 0: invalid config, 1: valid config */
+    validImportConfig = false;
     /** 0: invalid name, 1: valid name */
     validName = true;
     /** Playlist succesfully created */
@@ -318,9 +319,9 @@ export default class Edit extends Vue {
         try {
             const textarea = document.getElementById('importConfigTextarea') as HTMLTextAreaElement;
             JSON.parse(atob(textarea.value));
-            this.validImportConfig = 1;
+            this.validImportConfig = true;
         } catch (e) {
-            this.validImportConfig = 0;
+            this.validImportConfig = false;
         }
     }
 
@@ -335,7 +336,7 @@ export default class Edit extends Vue {
             this.playlists.editing.filters.filters = this.playlists.editing.filters.filters.concat(config.filters);
         }
         textarea.value = "";
-        this.validImportConfig = 0;
+        this.validImportConfig = false;
         this.$forceUpdate();
         this.editstate.reset();
     }
