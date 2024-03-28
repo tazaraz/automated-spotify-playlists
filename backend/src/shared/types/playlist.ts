@@ -4,7 +4,7 @@ import { FilterParserOptions } from "./descriptions";
 import { Filters, Sources } from "./filters";
 
 export interface Playlist {
-    id: string;
+    id: string | "unpublished";
     user_id: string;
     name: string;
     description: string;

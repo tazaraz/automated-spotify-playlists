@@ -21,11 +21,12 @@
                     </div>
                     <hr class="m-0">
                 </div>
-                <div id="basic" class="d-grid mb-3 p-2 ps-4 pe-4" data-edit-class="small-stacked normal-wide large-wide">
-                    <Image :src="playlists.editing" class="h-100 m-auto mt-3"></Image>
+                <div id="basic" class="d-grid my-4 p-2 ps-4 pe-4" data-edit-class="small-stacked normal-wide large-wide">
+                    <Image :src="playlists.editing" class="h-100 m-auto"></Image>
                     <div class="form-floating">
-                        <input type="text" class="form-control" :value="playlists.editing.name" @input="syncBasic('name', $event.target?.value)">
+                        <input type="text" :class="`form-control${validName ? '':' is-invalid'}`" :value="playlists.editing.name" @input="syncBasic('name', $event.target?.value)">
                         <label>Playlist name</label>
+                        <div :class="`mt-0 invalid-feedback${validName ? '':' d-block'}`">Playlist name cannot be empty.</div>
                     </div>
                     <div class="form-floating">
                         <textarea class="form-control h-100 rounded-2" :value="playlists.editing.description" @input="syncBasic('description', $event.target?.value)"></textarea>
@@ -173,7 +174,7 @@
                         </ul>
                     </div>
 
-                    <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" @click="execute" :disabled="playlists.editing.id == 'example'">
+                    <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" @click="execute" :disabled="playlists.editing.id == 'example' || !validName">
                         <span v-if="saveState == 0 && executeState == 0">
                             Save and apply filters
                         </span>
@@ -228,6 +229,8 @@ export default class Edit extends Vue {
     /** 0: uncopied, 1: copied */
     copied = 0;
     /** 0: invalid config, 1: valid config */
+    /** 0: invalid name, 1: valid name */
+    validName = true;
     /** Playlist succesfully created */
     playlistCreated = false;
 
@@ -282,6 +285,8 @@ export default class Edit extends Vue {
     }
 
     async syncBasic(target: 'name' | 'description', value: string) {
+        this.validName = !(target == 'name' && value.length == 0);
+
         if (this.basicUpdateTimeout) clearTimeout(this.basicUpdateTimeout);
         this.editstate.updateBasic(target, value);
         this.playlists.editing[target] = value as CPlaylist['name' | 'description'];
@@ -355,7 +360,7 @@ article{
     &.wide {
         grid-template-rows: 60px calc(130px - 1rem);
         grid-template-columns: 190px 1fr;
-        gap: 1rem 2rem;
+        gap: 1.2rem 2rem;
         max-width: 40rem;
         margin: auto;
 

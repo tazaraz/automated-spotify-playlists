@@ -112,6 +112,10 @@ api.get('/playlists', Users.verify_token, async (req, res) => {
  * Saves an automated playlist for the user
  */
 api.put('/playlist', Users.verify_token, async (req, res) => {
+    // Check if there is a name
+    if (!req.body.name || req.body.name.length === 0)
+        return res.status(400).json({status: "Invalid Request", error: "Name is required"});
+
     // Build the playlist object
     let playlist: Playlist;
     try {
@@ -259,6 +263,10 @@ api.patch(`/playlist/:playlistid`, Users.verify_token, async (req, res) => {
  */
 api.put(`/playlist/:playlistid/basic`, Users.verify_token, async (req, res) => {
     const data:any = { name: req.body.name };
+
+    // Check if there is a name
+    if (!req.body.name || req.body.name.length === 0)
+        return res.status(400).json({status: "Invalid Request", error: "Name is required"});
 
     if (req.body.description)
         data.description = req.body.description;
