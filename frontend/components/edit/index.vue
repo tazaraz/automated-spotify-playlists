@@ -173,8 +173,7 @@
                             </li>
                         </ul>
                     </div>
-
-                    <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" @click="execute" :disabled="playlists.editing.id == 'example' || !validName">
+                    <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" @click="execute" :disabled="playlists.editing.id == 'example' || !validName || (saveState > 0 || executeState > 0)">
                         <span v-if="saveState == 0 && executeState == 0">
                             Save and apply filters
                         </span>
@@ -246,7 +245,7 @@ export default class Edit extends Vue {
     beforeMount() {
         if (!process.client) return;
         this.layout = new Layout();
-        this.editstate.reset();
+        this.editor.reset();
     }
 
     /** Updates the info of the playlist */
@@ -265,12 +264,12 @@ export default class Edit extends Vue {
         if (this.saveState > 0 || this.executeState > 0) return false;
         this.playlists.editing.logs = [];
 
-        const was_unpublished = this.playlists.editing.id === 'unpublished';
         // Save the playlist configuration
         if (!await this.save())
             return false;
 
         // Show a popup that the playlist has been created
+        const was_unpublished = this.playlists.editing.id === 'unpublished';
         if (was_unpublished) {
             this.playlistCreated = true;
             setTimeout(() => this.playlistCreated = false, 2000);
