@@ -73,7 +73,7 @@ export default class EditLog extends Vue {
     created() {
         this.playlists = new Playlists();
         this.logs = this.playlists.editing.logs;
-        this.selectedLog = this.logs.length - 1;
+        this.selectedLog = Math.max(0, this.logs.length - 1);
 
         // Parse the last log
         if (this.logs.length > 0) this.parseLogs();
