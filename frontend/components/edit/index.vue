@@ -47,54 +47,54 @@
                 <div :hidden="showLog" class="overflow-x-auto">
                     <div class="d-flex">
                         <h5 class="flex-grow-1">Sources</h5>
-                        <button class="btn action" @click="editstate.addSource"><fa-icon class="text-primary"
+                        <button class="btn action" @click="editor.addSource"><fa-icon class="text-primary"
                         :icon="['fas', 'plus']"></fa-icon></button>
                     </div>
-                    <section v-if="editstate.computedSources.length > 0" id="sources" class="flex-center align-items-center column-gap-3 mb-3">
+                    <section v-if="editor.computedSources.length > 0" id="sources" class="flex-center align-items-center column-gap-3 mb-3">
                         <EditSource
-                            v-for="source, index in editstate.computedSources"
+                            v-for="source, index in editor.computedSources"
                             ref="sources"
                             :source="source"
-                            @delete="editstate.deleteSource(index)"></EditSource>
+                            @delete="editor.deleteSource(index)"></EditSource>
                     </section>
                     <div class="mt-4 d-flex">
                         <div class="flex-grow-1">
                             <h5 class="d-inline me-3">Filters</h5>
                             <div>
                                 <small>(match <select class="source-select d-inline-flex form-select form-select-sm w-auto" @change="globalStatementChange">
-                                <option v-for="mode in Object.keys(FilterParserOptions)" :value="mode" :selected="editstate.computedFilters.mode == mode">{{ mode }}</option>
+                                <option v-for="mode in Object.keys(FilterParserOptions)" :value="mode" :selected="editor.computedFilters.mode == mode">{{ mode }}</option>
                                 </select> 1<sup>st</sup> level filters)</small>
                             </div>
                         </div>
-                        <button class="btn action" @click="editstate.addFilter('condition')">
+                        <button class="btn action" @click="editor.addFilter('condition')">
                             <fa-icon class="text-primary" :icon="['fas', 'plus']"></fa-icon>
                         </button>
-                        <button class="btn action" @click="editstate.addFilter('statement')">
+                        <button class="btn action" @click="editor.addFilter('statement')">
                             <fa-icon class="text-primary" :icon="['fas', 'code-branch']"></fa-icon>
                         </button>
                     </div>
-                    <section v-if="editstate.computedFilters" id="filters" class="mb-5" data-edit-class="small-small normal-normal large-large">
-                        <template v-for="entry in editstate.flattenedFilters">
+                    <section v-if="editor.computedFilters" id="filters" class="mb-5" data-edit-class="small-small normal-normal large-large">
+                        <template v-for="entry in editor.flattenedFilters">
                             <EditStatement
                                 v-if="entry.content.mode"
                                 ref="filters"
                                 :indent="entry.indent"
                                 :statement="entry.content"
-                                @change="editstate.updateFilter($event, entry.index)"
-                                @event="editstate.eventFilter($event, entry.index)"></EditStatement>
+                                @change="editor.updateFilter($event, entry.index)"
+                                @event="editor.eventFilter($event, entry.index)"></EditStatement>
                             <EditCondition
                                 v-else
                                 ref="filters"
                                 :indent="entry.indent"
                                 :condition="entry.content"
-                                @change="editstate.updateFilter($event, entry.index)"
-                                @event="editstate.eventFilter($event, entry.index)"></EditCondition>
+                                @change="editor.updateFilter($event, entry.index)"
+                                @event="editor.eventFilter($event, entry.index)"></EditCondition>
                         </template>
                     </section>
                 </div>
                 <EditLog :hidden="!showLog"></EditLog>
-                <div v-if="editstate.error > 0" class="alert alert-primary" role="alert">
-                    Some {{ editstate.error == 1 ? 'sources' : editstate.error == 2 ? 'filters' : 'filters and sources'}} are not filled in correctly
+                <div v-if="editor.error > 0" class="alert alert-primary" role="alert">
+                    Some {{ editor.error == 1 ? 'sources' : editor.error == 2 ? 'filters' : 'filters and sources'}} are not filled in correctly
                 </div>
                 <hr>
                 <small v-if="playlists.editing.id == 'example'" class="text-body-secondary">
@@ -207,13 +207,13 @@ import User from '~/stores/user';
 import Layout from '~/stores/layout';
 import EditCondition from './condition.vue';
 import EditStatement from './statement.vue';
-import EditState from '~/stores/editstate';
+import Editor from '~/stores/editor';
 import { FilterParserOptions } from '../../../backend/src/shared/types/descriptions';
 
 export default class Edit extends Vue {
     playlists: Playlists = null as any;
     layout: Layout = null as any;
-    editstate: EditState = null as any;
+    editor: Editor = null as any;
 
     window = window
     FilterParserOptions = FilterParserOptions;
@@ -239,8 +239,8 @@ export default class Edit extends Vue {
         if (!process.client) return;
         this.playlists = new Playlists();
         this.playlists.setUser(new User());
-        this.editstate = new EditState();
-        this.editstate.playlists = this.playlists;
+        this.editor = new Editor();
+        this.editor.playlists = this.playlists;
     }
 
     beforeMount() {
@@ -253,9 +253,9 @@ export default class Edit extends Vue {
     async save() {
         if (this.executeState > 0) return false;
 
-        this.editstate.refs = this.$refs;
+        this.editor.refs = this.$refs;
         this.saveState = 1;
-        const result = await this.editstate.save();
+        const result = await this.editor.save();
         this.saveState = 0;
         return result;
     }
@@ -277,10 +277,10 @@ export default class Edit extends Vue {
         }
 
         this.executeState = 1;
-        await this.editstate.execute();
+        await this.editor.execute();
         this.executeState = 2;
 
-        this.editstate.reset();
+        this.editor.reset();
         this.$forceUpdate();
         setTimeout(() => this.executeState = 0, 1000);
     }
@@ -288,8 +288,11 @@ export default class Edit extends Vue {
     async syncBasic(target: 'name' | 'description', value: string) {
         this.validName = !(target == 'name' && value.length == 0);
 
+        // Do not update the basic info if the data is the same
+        if (this.playlists.editing[target] == value) return;
+
         if (this.basicUpdateTimeout) clearTimeout(this.basicUpdateTimeout);
-        this.editstate.updateBasic(target, value);
+        this.editor.updateBasic(target, value);
         this.playlists.editing[target] = value as CPlaylist['name' | 'description'];
 
         this.basicUpdateTimeout = setTimeout(async () => {
@@ -299,11 +302,11 @@ export default class Edit extends Vue {
 
     async resetConfig() {
         await this.playlists.loadEditingPlaylist(this.playlists.editing.id);
-        this.editstate.reset();
+        this.editor.reset();
     }
 
     globalStatementChange(event: Event) {
-        this.editstate.computedFilters.mode = (event.target! as HTMLSelectElement).value as keyof typeof FilterParserOptions;
+        this.editor.computedFilters.mode = (event.target! as HTMLSelectElement).value as keyof typeof FilterParserOptions;
     }
 
     async copyConfig() {
@@ -338,7 +341,7 @@ export default class Edit extends Vue {
         textarea.value = "";
         this.validImportConfig = false;
         this.$forceUpdate();
-        this.editstate.reset();
+        this.editor.reset();
     }
 }
 </script>

@@ -22,7 +22,7 @@
                             <div class="mt-3 d-flex align-items-center flex-wrap gap-2">
                                 <url :to="`/info/user/${playlists.loaded.owner.id}`" class="rounded-2">{{ playlists.loaded.owner.display_name }}</url>
                                 &nbsp;&nbsp;━&nbsp;&nbsp;
-                                <template v-if="loading || editstate.executing || !playlists.loaded || !playlists.loaded.all_tracks">
+                                <template v-if="loading || editor.executing || !playlists.loaded || !playlists.loaded.all_tracks">
                                     <span class="d-inline-block loading-icon"></span>loading tracks
                                 </template>
                                 <span v-else >{{ playlists.loaded.all_tracks.length }}
@@ -120,7 +120,7 @@
                     </div>
                 </div>
                 <div class="accordion rounded-5" :style="`min-height: ${rendered.min_height}px;`">
-                    <Track v-if="loading || editstate.executing || !playlists.loaded || !playlists.loaded.all_tracks"
+                    <Track v-if="loading || editor.executing || !playlists.loaded || !playlists.loaded.all_tracks"
                            v-for="index in 20" track="" :id="index" class="playlist-track"/>
                     <template v-else-if="shown.tracks.length > 0"
                               v-for="track, index of shown.tracks.slice(0, rendered.total)">
@@ -148,7 +148,7 @@ import User from '~/stores/user';
 import { CTrack } from '../../backend/src/shared/types/client';
 import Layout from '~/stores/layout';
 import { WatchStopHandle } from 'nuxt/dist/app/compat/capi';
-import EditState from '~/stores/editstate';
+import Editor from '~/stores/editor';
 
 export default class PlaylistDisplay extends Vue {
     @Prop({ required: true }) id!: string;
@@ -157,7 +157,7 @@ export default class PlaylistDisplay extends Vue {
     @Prop({ default: false }) editingPlaylist!: LoadedPlaylist;
 
     playlists: Playlists = null as any;
-    editstate: EditState = null as any;
+    editor: Editor = null as any;
     breadcrumbs: BreadCrumbs = null as any;
     layout: Layout = null as any;
 

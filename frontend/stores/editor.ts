@@ -19,7 +19,7 @@ interface PlaylistFilterEntry {
 }
 
 @Store
-export default class EditState extends Pinia {
+export default class Editor extends Pinia {
     playlists!: Playlists;
     refs: any = null;
 
@@ -265,7 +265,6 @@ export default class EditState extends Pinia {
                 this.playlists.unpublished = null;
                 // Update the URL, but prevent a dom rerender
                 history.pushState({}, '', '/playlist/' + this.playlists.editing.id)
-                await this.execute();
             }
         }
 
