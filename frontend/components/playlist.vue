@@ -172,7 +172,7 @@ export default class PlaylistDisplay extends Vue {
     watcher: {
         stop: WatchStopHandle;
         delay: NodeJS.Timer;
-    } = { stop: () => {}, delay: null as any };
+    } = {} as any;
 
     /**Tracks which should be shown. Only possible if the playlist is an automated playlist */
     shown: {
@@ -219,6 +219,25 @@ export default class PlaylistDisplay extends Vue {
         /** Style the loading placeholders accordingly */
         await this.layout.render(null, true);
 
+        /** Watch for changes in the loaded playlist */
+        this.watcher = {
+            stop: watch(
+                () => [
+                    this.playlists.loaded?.all_tracks,
+                    this.playlists.loaded?.matched_tracks,
+                    this.playlists.loaded?.excluded_tracks,
+                    this.playlists.loaded?.included_tracks
+                ], () => {
+                    clearTimeout(this.watcher.delay);
+                    this.watcher.delay = setTimeout(() => this.showTracks(this.shown.kind), 500);
+                }, {
+                    deep: true,
+                    immediate: true
+                }
+            ),
+            delay: null as any
+        }
+
         if (id == 'unpublished') {
             await this.showTracks("all");
             this.loading = false;
@@ -260,25 +279,11 @@ export default class PlaylistDisplay extends Vue {
         this.breadcrumbs.add(useRoute().fullPath, this.playlists.loaded.name)
         this.loading = false;
         await this.layout.render(null, true);
-
-        // Store the unwatch handlers
-        this.watcher = {
-            stop: watch(() => [
-                this.playlists.loaded.all_tracks,
-                this.playlists.loaded.matched_tracks,
-                this.playlists.loaded.excluded_tracks,
-                this.playlists.loaded.included_tracks
-            ], () => {
-                clearTimeout(this.watcher.delay);
-                this.watcher.delay = setTimeout(() => this.showTracks(this.shown.kind), 500);
-            }),
-            delay: null as any
-        }
         this.detectSticyPlaylistToolbar();
     }
 
     beforeUnmount() {
-        this.watcher.stop();
+        this.watcher?.stop();
     }
 
     /**
