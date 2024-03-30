@@ -151,7 +151,6 @@ import { WatchStopHandle } from 'nuxt/dist/app/compat/capi';
 import Editor from '~/stores/editor';
 
 export default class PlaylistDisplay extends Vue {
-    @Prop({ required: true }) id!: string;
     /**Passing this property overrides the default behaviour of loading the playlist based on its ID and the URL
      * and instead will always load the given editingPlaylist */
     @Prop({ default: false }) editingPlaylist!: LoadedPlaylist;
@@ -202,12 +201,15 @@ export default class PlaylistDisplay extends Vue {
     async mounted() {
         if (!process.client) return;
 
+        // Get the ID of the playlist from the URL
+        const id = this.$route.params.id as string;
+
         this.playlists = new Playlists();
         this.playlists.setUser(new User())
         await this.playlists.loadUserPlaylists();
         this.breadcrumbs = new BreadCrumbs();
         this.layout = new Layout();
-        this.editstate = new EditState();
+        this.editor = new Editor();
 
         /** This observer keeps track of which tracks are visible */
         this.observer = new IntersectionObserver(elements => {this.loadVisibleTracks(elements);}, {
@@ -217,7 +219,7 @@ export default class PlaylistDisplay extends Vue {
         /** Style the loading placeholders accordingly */
         await this.layout.render(null, true);
 
-        if (this.id == 'unpublished') {
+        if (id == 'unpublished') {
             await this.showTracks("all");
             this.loading = false;
 
@@ -231,20 +233,20 @@ export default class PlaylistDisplay extends Vue {
 
         /**We must load tracks as CTracks, these cannot be string[] */
         // Load the library if we're on the library page
-        else if (this.$route.path == '/library' || this.id == 'library') {
+        else if (this.$route.path == '/library' || id == 'library') {
             await this.playlists.loadUserLibrary();
         }
 
         // Load the user playlist if we're supposed to show that
         else if (this.$route.path.startsWith('/playlist')) {
-            if (!(await this.playlists.loadUserPlaylistByID(this.id))){
-                return this.$router.push(`/info/playlist/${this.id}`);
+            if (!(await this.playlists.loadUserPlaylistByID(id))){
+                return this.$router.push(`/info/playlist/${id}`);
             }
         }
 
         // Load a random playlist the user stumbled upon
         else {
-            const playlist = (await Fetch.get<any>(`spotify:/playlists/${this.id}?limit=50`)).data;
+            const playlist = (await Fetch.get<any>(`spotify:/playlists/${id}?limit=50`)).data;
             playlist.image = Fetch.bestImage(playlist.images);
             playlist.ownership = this.playlists.playlistOwnership(playlist);
 

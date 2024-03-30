@@ -1,5 +1,5 @@
 <template>
-    <playlist :id="$route.params.id"></playlist>
+    <playlist></playlist>
 </template>
 
 <script lang="ts">
