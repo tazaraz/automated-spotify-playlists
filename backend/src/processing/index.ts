@@ -176,6 +176,7 @@ export default class Filters {
             excluded_tracks         = Filters.common(excluded_tracks, matched_tracks)
         let included_tracks         = Filters.merge(playlist.included_tracks, newly_added_tracks)
             included_tracks         = Filters.subtract(included_tracks, matched_tracks)
+        task.log.filters.push(`Excluded ${excluded_tracks.length} tracks, included ${included_tracks.length} tracks`)
         LOG_DEBUG(`3: matched: ${matched_tracks.length}, included: ${included_tracks.length}, excluded: ${excluded_tracks.length}`)
 
         // 4. Calculate the tracks to add and remove
