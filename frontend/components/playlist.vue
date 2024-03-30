@@ -43,7 +43,7 @@
                         <button v-else-if="playlists.loaded.ownership == 'none'" class="d-flex border-0 bg-transparent p-2 ps-3 p-1 me-auto" @click="follow">
                             <fa-icon style="font-size: 150%;" :icon="['far', 'heart']"></fa-icon>
                         </button>
-                        <Modal v-else-if="playlists.loaded.ownership == 'user'" :button-icon="['fas', 'trash-can']" button-class="modal-delete ps-3 p-1 me-auto">
+                        <Modal v-else-if="playlists.loaded.ownership == 'user' && playlists.loaded.id !== 'library'" :button-icon="['fas', 'trash-can']" button-class="modal-delete ps-3 p-1 me-auto">
                             <div class="modal-header">
                                 <h1 class="modal-title fs-5" id="exampleModalLabel">Delete</h1>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
