@@ -209,7 +209,7 @@ export default class Playlists extends Pinia {
      */
     async loadPlaylistTracks(kind: "all" | "matched" | "excluded" | "included" = "all",
                              offset: number = 0,
-                             limit: number = 50) {
+                             limit: number = 50): Promise<{ all: partialTrackList, matched: partialTrackList, excluded: partialTrackList, included: partialTrackList }> {
         let all: partialTrackList      = this.loaded.all_tracks || [];
         let matched: partialTrackList  = this.loaded.matched_tracks || [];
         let excluded: partialTrackList = this.loaded.excluded_tracks || [];
@@ -226,6 +226,18 @@ export default class Playlists extends Pinia {
             if ((all[offset] as CTrack)?.id === undefined) {
                 let tracks = (await Fetch.get<any[]>(`spotify:${url}`, { offset })).data
                              .map((track: any) => this.convertToCTrack(track))
+
+                /* Check if the Spotify result actually contains tracks
+                 * or [] if either the offset is too high or the playlist does not contain any tracks */
+                if (all.length == 0 || all[offset] === undefined)
+                    return { all, matched, included, excluded };
+                /** Otherwise, we are missing tracks */
+                else if (tracks.length == 0) {
+                    // Wait a moment
+                    await new Promise(resolve => setTimeout(resolve, 500))
+                    // Try again
+                    return this.loadPlaylistTracks(kind, offset, limit);
+                }
 
                 // Insert the tracks into the all_tracks at the offset
                 all.splice(offset, limit, ...tracks);
@@ -452,31 +464,19 @@ export default class Playlists extends Pinia {
         } else if (response.status === 200) {
             // Store the log
             this.editing.logs = response.data.logs;
-
-            const all_tracks_length = response.data.matched_tracks.length + response.data.included_tracks.length - response.data.excluded_tracks.length;
-
-            // Calculate the length of all_tracks
-            response.data.all_tracks = Array(all_tracks_length).fill("");
             response.data.owner = playlist.owner
-            this.save(response.data)
+
+            let all_tracks = response.data.matched_tracks.concat(response.data.included_tracks)
+                all_tracks = all_tracks.filter((track: string) => !response.data.excluded_tracks.includes(track));
+
+            response.data.all_tracks = all_tracks;
+            this.save(response.data);
 
             // If it is the loaded playlist, load the new tracks
-            if (response.data.id === this.loaded.id) {
-                if (!await this.loadUserPlaylistByID(this.loaded.id)) {
-                    FetchError.create({ status: 500, message: "The playlist you just executed does not exist. Even though the shown playlist does. Which must be yours given you just executed its filters. Weird." });
-                    return false;
-                }
-
-                // Don't hang the page while loading
-                this.loadPlaylistTracks().then(tracks => {
-                    this.loaded.all_tracks = tracks.all;
-                    this.loaded.matched_tracks = tracks.matched;
-                    this.loaded.excluded_tracks = tracks.excluded;
-                    this.loaded.included_tracks = tracks.included;
-                })
+            if (response.data.id === this.loaded.id && !(await this.loadUserPlaylistByID(this.loaded.id))) {
+                FetchError.create({ status: 500, message: "The playlist you just executed does not exist. Even though the shown playlist does. Which must be yours given you just executed its filters. Weird." });
+                return false;
             }
-
-            return false;
         }
 
         return false;
