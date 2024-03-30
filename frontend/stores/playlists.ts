@@ -405,6 +405,9 @@ export default class Playlists extends Pinia {
 
         // If there are more automated playlists
         this.hasAutomatedPlaylists = this.storage.some(playlist => playlist.filters !== undefined);
+
+        // Unload the editor
+        this.editing = null as any;
         return true;
     }
 
