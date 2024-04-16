@@ -2,7 +2,7 @@
     <div class="accordion-item border-0 border-bottom">
         <h2 v-if="(typeof track !== 'object')" class="accordion-header m-0">
             <div class="accordion-button shadow-none collapsed">
-                <div class="container ms-0 d-flex gap-3 align-items-center ps-0 placeholder-glow">
+                <div class="container ms-0 d-flex gap-3 align-items-center ps-0">
                     <span class="placeholder image flex-shrink-0"></span>
                     <div class="flex-grow-1 multilayer m-0 d-grid gap-1">
                         <div class="text-truncate placeholder rounded-1" :style="`width: ${randomBetween(6, 14)}rem`"></div>
@@ -13,7 +13,7 @@
                             </template>
                         </div>
                     </div>
-                    <div class="text-truncate flex-shrink-0" style="width: 40%;" data-main-class="normal-d-block tiny-d-none" >
+                    <div class="text-truncate flex-shrink-0 tiny-hidden" style="width: 40%;">
                         <span class="placeholder rounded-1" :style="`width: ${randomBetween(3, 15)}rem`"></span>
                     </div>
                     <div class="text-truncate flex-shrink-0" style="width: 10%;">
@@ -38,7 +38,7 @@
                                 </template>
                             </div>
                         </div>
-                        <div v-if="track.appearsIn" class="flex-grow-0 multilayer text-truncate gap-0" data-main-class="normal-d-block tiny-d-none" style="width: 40%;">
+                        <div v-if="track.appearsIn" class="flex-grow-0 multilayer text-truncate gap-0 tiny-hidden" style="width: 40%;">
                             <template v-if="track.appearsIn.length > 0">
                                 <div class="text-truncate">
                                     Appears in
@@ -51,7 +51,7 @@
                                 </div>
                             </template>
                         </div>
-                        <div v-else-if="track.album" class="flex-shrink-0 text-truncate" data-main-class="normal-d-block tiny-d-none" style="width: 40%;">
+                        <div v-else-if="track.album" class="flex-shrink-0 text-truncate tiny-hidden" style="width: 40%;">
                             <url @click="follow" class="text-truncate d-inline-block text-body" :to="`/info/album/${track.album.id}`">{{ track.album.name }}</url>
                         </div>
                         <div class="flex-shrink-0" style="width: 10%;">{{ track.duration }}</div>
@@ -61,7 +61,7 @@
             </h2>
             <div v-if="(typeof track != 'string')" :id="`track:${track.id}`" class="accordion-collapse collapse">
                 <div class="accordion-body">
-                    <div class="row placeholder-glow">
+                    <div class="row">
                         <div class="col-12 mb-2 multilayer" data-main-class="normal-d-none">
                             <span>Album</span>
                             <span v-if="!track.features" class="placeholder rounded-1"></span>
@@ -188,6 +188,11 @@ export default class Track extends Vue {
 }
 </script>
 <style scoped lang="scss">
+.accordion-item.tiny {
+    .tiny-hidden {
+        display: none;
+    }
+}
 .accordion-button {
     a {
         text-decoration: none;
