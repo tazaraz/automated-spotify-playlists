@@ -31,11 +31,12 @@
                             </div>
                             <span v-if="playlists.loaded.id != 'unpublished' && playlists.loaded.id != 'library'">ID: {{ playlists.loaded.id }}</span>
                             <span v-if="playlists.loaded.filters">Automated playlist</span>
-                            <Spotify v-if="playlists.loaded.id !== playlists.unpublished?.id" :to="`https://open.spotify.com/playlist/${playlists.loaded.id}`" class="mt-3 mb-3">SHOW IN SPOTIFY</Spotify>
+                            <Spotify v-if="playlists.loaded.id === 'library'" :to="`https://open.spotify.com/collection/tracks`" class="mt-3 mb-3">SHOW IN SPOTIFY</Spotify>
+                            <Spotify v-else-if="playlists.loaded.id !== playlists.unpublished?.id" :to="`https://open.spotify.com/playlist/${playlists.loaded.id}`" class="mt-3 mb-3">SHOW IN SPOTIFY</Spotify>
                         </template>
                     </div>
                 </header>
-                <div v-if="playlists && playlists.loaded" id="playlist-toolbar" :class="`d-flex sticky-top shadow-lg flex-wrap rounded-3 bg-body-tertiary ps-3 pe-3 pt-2 pb-2 mb-3${playlistToolbarSticky?' border-bottom':''}`">
+                <div v-if="playlists && playlists.loaded" id="playlist-toolbar" :class="`d-flex sticky-top shadow-lg flex-wrap rounded-3 bg-body-tertiary ps-3 pe-3 pt-2 pb-2 mb-3${playlistToolbarSticky?' border-bottom':''}`" data-main-class="normal-normal tiny-tiny">
                     <template v-if="!playlistToolbarSticky">
                         <button v-if="playlists.loaded.ownership == 'following'" class="d-flex border-0 bg-transparent p-2 ps-3 p-1 me-auto" @click="unfollow">
                             <fa-icon style="font-size: 150%;" :icon="['fas', 'heart']"></fa-icon>
@@ -65,7 +66,7 @@
                         <h4 class="m-auto">{{ playlists.loaded.name }}</h4>
                     </div>
 
-                    <Modal v-if="shown.kind != 'all' && shown.kind != 'matched' && shown.tracks.length > 0" :button-text="`Clear ${shown.kind} tracks`" button-class="btn btn-secondary text-nowrap me-3">
+                    <Modal v-if="(shown.kind == 'excluded' || shown.kind == 'included') && shown.tracks.length > 0" :button-text="`Clear ${shown.kind} tracks`" button-class="btn btn-secondary text-nowrap me-3">
                         <div class="modal-header">
                             <h1 class="modal-title fs-5" id="exampleModalLabel">Clear all {{ shown.kind }} tracks?</h1>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -104,17 +105,41 @@
                             <h5 class="m-0"><fa-icon :icon="['fas', 'arrow-down-wide-short']" /></h5>
                         </button>
                         <ul ref="shownTracksSelect" class="dropdown-menu">
-                            <li><url class="dropdown-item active" @click="showTracks('all')">
+                            <li><url :class="`dropdown-item ${shown.kind == 'all' ? 'active' : '' }`"
+                                     @click="showTracks('all')">
                                 All tracks ({{ playlists.loaded.all_tracks?.length }})
                             </url></li>
-                            <li><url class="dropdown-item" @click="showTracks('matched')">
+                            <li><url :class="`dropdown-item ${shown.kind == 'matched' ? 'active' : '' }`"
+                                     @click="showTracks('matched')">
                                 Matched tracks ({{ playlists.loaded.matched_tracks?.length }})
                             </url></li>
-                            <li><url class="dropdown-item" @click="showTracks('excluded')">
+                            <li><url :class="`dropdown-item ${shown.kind == 'excluded' ? 'active' : '' }`"
+                                     @click="showTracks('excluded')">
                                 Manually excluded tracks ({{ playlists.loaded.excluded_tracks?.length }})
                             </url></li>
-                            <li><url class="dropdown-item" @click="showTracks('included')">
+                            <li><url :class="`dropdown-item ${shown.kind == 'included' ? 'active' : '' }`"
+                                     @click="showTracks('included')">
                                 Manually included tracks ({{ playlists.loaded.included_tracks?.length }})
+                            </url></li>
+                        </ul>
+                    </div>
+
+                    <div v-if="playlists.loaded.id == 'library'" class="d-flex align-items-end dropdown ms-auto">
+                        <button class="btn" type="button" data-bs-toggle="dropdown">
+                            <h5 class="m-0"><fa-icon :icon="['fas', 'arrow-down-wide-short']" /></h5>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><url :class="`dropdown-item ${shown.kind == 'all' ? 'active' : '' }`"
+                                     @click="showLibraryTracks('all')">
+                                All tracks ({{ playlists.library.all_tracks?.length }})
+                            </url></li>
+                            <li><url :class="`dropdown-item ${shown.kind == 'unused' ? 'active' : '' }`"
+                                     @click="showLibraryTracks('unused')">
+                                Tracks not in any playlist ({{ playlists.library.unused_tracks?.length || '...'}})
+                            </url></li>
+                            <li><url :class="`dropdown-item ${shown.kind == 'unused-auto' ? 'active' : '' }`"
+                                     @click="showLibraryTracks('unused-auto')">
+                                Tracks not in any automated playlist ({{ playlists.library.unused_auto_tracks?.length || '...' }})
                             </url></li>
                         </ul>
                     </div>
@@ -124,11 +149,11 @@
                            v-for="index in 20" track="" :id="index" class="playlist-track"/>
                     <template v-else-if="shown.tracks.length > 0"
                               v-for="track, index of shown.tracks.slice(0, rendered.total)">
-                                <Track
-                                    :track="isVisibleTrack(index) ? track : index"
-                                    :id="index" class="playlist-track"
-                                    :deleteable="shown.kind !== 'all'"
-                                    @delete="removeTrack"/>
+                        <Track
+                            :track="isVisibleTrack(index) ? track : index"
+                            :id="index" :class="`playlist-track${layout.main.state == 'tiny' ? ' tiny' : ''}`"
+                            :deleteable="shown.kind !== 'all'"
+                            @delete="removeTrack"/>
                     </template>
                     <h4 v-else class="m-5">
                         No tracks here.
@@ -143,9 +168,9 @@
 import { Prop, Vue } from 'vue-property-decorator';
 import BreadCrumbs from '~/stores/breadcrumbs';
 import Fetch from '~/stores/fetch';
-import Playlists, { LoadedPlaylist, partialTrackList } from '~/stores/playlists';
+import Playlists, { LoadedPlaylist, PartialTrackList, TrackKind } from '~/stores/playlists';
 import User from '~/stores/user';
-import { CTrack } from '../../backend/src/shared/types/client';
+import { CPlaylist, CTrack } from '../../backend/src/shared/types/client';
 import Layout from '~/stores/layout';
 import { WatchStopHandle } from 'nuxt/dist/app/compat/capi';
 import Editor from '~/stores/editor';
@@ -162,7 +187,7 @@ export default class PlaylistDisplay extends Vue {
 
     observer: IntersectionObserver = null as any;
     /** The amount of tracks to load at once */
-    batchLoadingSize: number = 25;
+    batchLoadingSize: number = 50;
     loading: boolean = true;
 
     /** Whether the playlist toolbar is behaving sticky */
@@ -176,11 +201,11 @@ export default class PlaylistDisplay extends Vue {
 
     /**Tracks which should be shown. Only possible if the playlist is an automated playlist */
     shown: {
-        kind: "all" | "matched" | "excluded" | "included";
+        kind: TrackKind;
         /** Tracks which are actually rendered.
          * The invisible items are just their ID and will be loaded once scrolled into view to prevent
          * slowing down the DOM */
-        tracks: partialTrackList;
+        tracks: PartialTrackList;
         /** List of visible indexes */
         visible: number[];
     } = { kind: 'all', tracks: [], visible: [] };
@@ -196,7 +221,7 @@ export default class PlaylistDisplay extends Vue {
         threshold: number;
         /** The amount to increase the `rendered.total` by */
         increase: number;
-    } = { min_height: 0, total: 150, threshold: 200, increase: 200 };
+    } = { min_height: 0, total: 100, threshold: 100, increase: 100 };
 
     async mounted() {
         if (!process.client) return;
@@ -228,8 +253,11 @@ export default class PlaylistDisplay extends Vue {
                     this.playlists.loaded?.excluded_tracks,
                     this.playlists.loaded?.included_tracks
                 ], () => {
-                    clearTimeout(this.watcher.delay);
-                    this.watcher.delay = setTimeout(() => this.showTracks(this.shown.kind), 500);
+                    // console.log(123)
+                    // clearTimeout(this.watcher.delay);
+                    // if (!this.loading) {
+                    //     this.watcher.delay = setTimeout(() => this.showTracks(this.shown.kind), 500);
+                    // }
                 }, {
                     deep: true,
                     immediate: true
@@ -290,7 +318,7 @@ export default class PlaylistDisplay extends Vue {
      * Shows either all tracks, matched tracks, excluded tracks or included tracks
      * @param kind What kind of tracks to show
      */
-    async showTracks(kind: "all" | "matched" | "excluded" | "included") {
+    async showTracks(kind: TrackKind) {
         // Make sure we have a playlist and that we can select the requested tracks
         if (!this.playlists.loaded || (!this.playlists.loaded.filters && (kind == 'excluded' || kind == 'included')))
             return false;
@@ -320,6 +348,12 @@ export default class PlaylistDisplay extends Vue {
             case "included":
                 this.shown.tracks = tracks.included;
                 break;
+            case "unused":
+                this.shown.tracks = tracks.unused;
+                break;
+            case "unused-auto":
+                this.shown.tracks = tracks.unused_auto;
+                break;
         }
 
         this.rendered.min_height = document.getElementsByClassName("playlist-track")[0].clientHeight
@@ -337,15 +371,58 @@ export default class PlaylistDisplay extends Vue {
         if (!this.$refs.shownTracksSelect)
             return false;
 
-        // Apply CSS
-        for (const item of this.$refs.shownTracksSelect.children) {
-            item.children[0].classList.remove("active");
+        return true;
+    }
+
+    /**
+     * Shows certain tracks in the library
+     * @param kind What kind of tracks to show
+     */
+    async showLibraryTracks(kind: "all" | "unused" | "unused-auto") {
+        let playlists: CPlaylist[];
+        switch (kind) {
+            case "all":
+                return this.showTracks("all");
+            case "unused":
+                playlists = this.playlists.storage
+                break;
+            case "unused-auto":
+                playlists = this.playlists.storage.filter(p => p.filters)
+                break;
         }
 
-        const shownTracksSelect = this.$refs.shownTracksSelect.children[kind == "all" ? 0 : kind == "matched" ? 1 : kind == "excluded" ? 2 : 3];
-        shownTracksSelect.children[0].classList.add("active");
+        // Load all tracks from the library
+        let ids = this.playlists.loaded.all_tracks.map(t => (t as CTrack).id ?? t as string);
 
-        return true;
+        // Filter out the tracks which are not in the selected playlists
+        await this.playlists.loadPlaylists_all_tracks();
+        let allTrackIds = playlists.flatMap(p => p.all_tracks);
+            allTrackIds = allTrackIds.filter((id, index) => allTrackIds.indexOf(id) == index);
+
+        // Calculate the tracks which are not in the selected playlists
+        const danglingTracks: any[] = ids.filter(id => !allTrackIds.includes(id));
+
+        // Ensure we load the first 20 tracks
+        let retrievedTracks = (await Fetch.get<CTrack[]>('spotify:/tracks', {
+            ids: danglingTracks.slice(0, 20)
+        })).data;
+        retrievedTracks = retrievedTracks.map(t => this.playlists.convertToCTrack(t));
+
+        // Replace the ids with the actual tracks
+        for (const track of [...retrievedTracks]) {
+            danglingTracks[danglingTracks.indexOf(track.id)] = track;
+        }
+
+        switch (kind) {
+            case "unused":
+                this.playlists.library.unused_tracks = danglingTracks;
+                break;
+            case "unused-auto":
+                this.playlists.library.unused_auto_tracks = danglingTracks;
+                break;
+        }
+
+        this.showTracks(kind);
     }
 
     /**
@@ -416,6 +493,12 @@ export default class PlaylistDisplay extends Vue {
         this.layout.open('edit');
     }
 
+    /** Stores requests waiting to be completed by `loadPlaylistTracks` to prevent duplicate requests */
+    loadingQueue: {[key: string]: boolean } = {};
+    /**
+     * Loads the tracks which are intersecting with the viewport
+     * @param elements List of elements which are intersecting
+     */
     loadVisibleTracks(elements: IntersectionObserverEntry[]) {
         // If for some reason there are no elements, stop
         if (elements.length == 0) return;
@@ -442,6 +525,13 @@ export default class PlaylistDisplay extends Vue {
         const prev = Math.max(Math.min(...this.shown.visible) - 10, 0);
         const next = Math.min(Math.max(...this.shown.visible) + 10, this.shown.tracks.length - 1);
 
+        /* If next is -Infinity, the position of the scrollbar is outside that of the rendered tracks threshold.
+         * Increase the threshold and retry */
+        if (next == -Infinity && this.rendered.total < this.shown.tracks.length) {
+            this.rendered.total += this.rendered.increase;
+            return this.showTracks(this.shown.kind);
+        }
+
         // If the next track is `rendered.total - rendered.threshold` away from the end, increase the amount of rendered tracks
         if (next > this.rendered.total - this.rendered.threshold) {
             this.rendered.total += this.rendered.increase;
@@ -450,24 +540,20 @@ export default class PlaylistDisplay extends Vue {
             this.showTracks(this.shown.kind);
         }
 
-        let offset, tasks = [];
-        // If the previous tracks are not loaded, load them
-        if (typeof this.shown.tracks[prev] === 'string') {
-            offset = Math.floor(prev / this.batchLoadingSize) * this.batchLoadingSize;
-            tasks.push(this.playlists.loadPlaylistTracks(this.shown.kind, offset));
+        // If the previous or next tracks are not loaded, load them
+        for (const location of [prev, next]) {
+            if (typeof this.shown.tracks[location] === 'string') {
+                const offset = Math.floor(location / this.batchLoadingSize) * this.batchLoadingSize;
+                // If the tracks are not already loading, load them
+                if (!(`${this.shown.kind}-${offset}` in this.loadingQueue)) {
+                    this.loadingQueue[`${this.shown.kind}-${offset}`] = true;
+                    // Load the tracks and remove the from the loading queue on finish
+                    this.playlists.loadPlaylistTracks(this.shown.kind, offset).then(() => {
+                        delete this.loadingQueue[`${this.shown.kind}-${offset}`];
+                    });
+                }
+            }
         }
-
-        // If the next tracks are not loaded, load them
-        if (typeof this.shown.tracks[next] === 'string') {
-            offset = Math.floor(next / this.batchLoadingSize) * this.batchLoadingSize;
-            tasks.push(this.playlists.loadPlaylistTracks(this.shown.kind, offset));
-        }
-
-        // Wait for the tracks to load. Then render the layout again to update the css
-        Promise.all(tasks).then(async () => {
-            await this.$nextTick();
-            this.layout.resizeMain(this.layout.mainElement.clientWidth, true)
-        });
     }
 
     isVisibleTrack(index: number, margin: number = 8) {
