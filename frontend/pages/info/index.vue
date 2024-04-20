@@ -96,7 +96,7 @@
                     <ol class="nav nav-pills flex-column ps-2">
                         <li v-for="track of info.searchResult.tracks" class="nav-item cursor-pointer">
                             <url :to="`/info/track/${track.id}`" class="ps-2 text-body d-flex nav-link">
-                                <img class="result-image rounded-1" :src="track.image">
+                                <img class="result-image" :src="track.image">
                                 <div class="multilayer">
                                     <span class="ms-3 text-truncate">{{ track.name }}</span>
                                     <span class="ms-3 text-truncate">{{ track.description?.map(a => a.name).join(', ') }}</span>
