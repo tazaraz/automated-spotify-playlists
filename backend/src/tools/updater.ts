@@ -68,39 +68,53 @@ export default class Updater {
         const db_users = await Database.getAllUsers();
         const db_playlists = await Database.getAllPlaylists();
 
-        // Get all user playlists from Spotify
-        const users_playlists: { [user_id: string]: Playlist[] } = {};
+        type FollowerCount = {followers: {total: number}};
+        type SPPlaylist = Playlist & FollowerCount;
+        const sp_remove: SPPlaylist[] = [];
+
+        // For each user
         for (const user of db_users) {
-            const response = await Fetch.get<Playlist[]>(`/users/${user.id}/playlists`, {
+            // Get all playlists from spotify
+            const sp_playlist_response = await Fetch.get<SPPlaylist[]>(`/users/${user.id}/playlists`, {
                 user: await Users.get(user.id),
                 pagination: true
             });
 
-            if (response.status !== 200)
-                THROW_DEBUG_ERROR(`Cleaning: failed to get playlists for user_id: ${user.id}. Error: \n${response}`);
-            else
-                users_playlists[user.id] = response.data;
-        }
+            // Store the playlists for this user
+            if (sp_playlist_response.status !== 200) {
+                THROW_DEBUG_ERROR(`Cleaning database: failed to get playlists for user_id: ${user.id}. Error: \n${sp_playlist_response}`);
+                LOG(`Cleaning database: failed to get playlists for user_id: ${user.id}. Error: \n${sp_playlist_response}`);
+            }
+            else {
+                for (const playlist of sp_playlist_response.data) {
+                    // Make sure this is a smart playlist
+                    if (!db_playlists.some(p => p.id == playlist.id))
+                        continue;
 
-        /** We want to remove playlists in our database which are lonely in Spotify (no followers or user) */
-        const remove: Playlist[] = [];
-        for (const playlist of db_playlists) {
-            // If the user does not have this playlist anymore
-            if (users_playlists[playlist.user_id] &&
-                !users_playlists[playlist.user_id].some(p => p.id === playlist.id)) {
-                const response = await Fetch.get(`/playlists/${playlist.id}`, {
-                    user: await Users.get(playlist.user_id)
-                });
-                // And the playlist has no followers, delete it
-                if (response.status == 200 && response.data?.followers.total == 0)
-                    remove.push(playlist);
+                    const sp_playlist_response = await Fetch.get<FollowerCount>(`/playlists/${playlist.id}`, {
+                        user: await Users.get(user.id),
+                        query: { fields: 'followers.total' }
+                    });
+
+                    // Check how many followers the playlist has
+                    if (sp_playlist_response.status !== 200) {
+                        THROW_DEBUG_ERROR(`Cleaning database: failed to get follower count for playlist: ${playlist.id}. Error:\n${sp_playlist_response}`);
+                        LOG(`Cleaning database: failed to get follower count for playlist: ${playlist.id}. Error:\n${sp_playlist_response}`);
+                    }
+                    // Check if the playlist has 0 followers
+                    else if (sp_playlist_response.status === 200 && sp_playlist_response.data.followers.total == 0) {
+                        sp_remove.push(playlist)
+                    }
+                }
             }
         }
 
-        LOG(`Cleaning database: removed ${remove.length} playlists!`)
+        LOG(`Cleaning database. Playlists removed: ${sp_remove.length}`)
 
         // Remove the playlists
-        for (const playlist of remove)
-            await Database.deletePlaylist(playlist.user_id, playlist.id);
+        for (const playlist of sp_remove) {
+            LOG(`Cleaning database. Removed playlist ${playlist.name} (${playlist.id}). Attributes: \n - Followers: ${playlist.followers.total}\n - User: ${playlist.user_id}\n - url: https://open.spotify.com/playlist/${playlist.id}\nRaw object: ${playlist}\n\n`);
+            // await Database.deletePlaylist(playlist.user_id, playlist.id);
+        }
     }
 }
