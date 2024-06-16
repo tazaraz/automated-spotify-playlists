@@ -2,10 +2,16 @@ import { createClient as createRedisClient, RedisClientType as RedisClient } fro
 import { FilterItem, SAlbum, SArtist, STrack, STrackFeatures } from '../shared/types/server';
 import Metadata from './metadata';
 import { THROW_DEBUG_ERROR } from '../main';
-import { FetchOptions } from '../tools/fetch';
 
 export default class Cache {
     protected static redisClient: RedisClient;
+
+    /** How long certain data should stay valid before it is considered stale and should be refreshed */
+    protected static expiry = {
+        url: 60 * 60 * 24,
+        user: 60 * 60 * 1,
+        data: 60 * 60 * 24 * 7,
+    };
 
     /** Contains known track information */
     public static tracks: { [id: string]: STrack } = {};
@@ -97,7 +103,7 @@ export default class Cache {
      * @param ids Result of the url
      */
     private static setUrlCache(url_cache: typeof Cache.url_cache, key: string, ids: string[]) {
-        Cache.redisClient.set(`url_cache:${key}`, JSON.stringify(ids), { EX: 60 * 60 * 24 })
+        Cache.redisClient.set(`url_cache:${key}`, JSON.stringify(ids), { EX: Cache.expiry.url })
         return true;
     }
 
@@ -122,7 +128,7 @@ export default class Cache {
      * @param data Object with an url as key containing the result
      */
     private static setUserCache(user_cache: typeof Cache.user_cache, key: string, ids: any) {
-        Cache.redisClient.set(`user_cache:${key}`, JSON.stringify(ids), { EX: 60 * 60 * 1 })
+        Cache.redisClient.set(`user_cache:${key}`, JSON.stringify(ids), { EX: Cache.expiry.user })
         return true;
     }
 
@@ -168,7 +174,7 @@ export default class Cache {
             // Only used when loading the Track object
             album_id: data.album.id,
             artist_ids: data.artists.map((artist: any) => artist.id),
-        }))
+        }), { EX: Cache.expiry.data })
         .finally(() => {
             tracks[id] = true as any;
         })
@@ -198,7 +204,7 @@ export default class Cache {
             // Only used when loading the Album object
             tracks_ids: data.tracks?.items.map((item: any) => item.id),
             artist_ids: data.artists.map((artist: any) => artist.id),
-        }))
+        }), { EX: Cache.expiry.data })
         .finally(() => {
             albums[id] = true as any;
         })
@@ -222,7 +228,7 @@ export default class Cache {
             name: data.name,
             url: "http://open.spotify.com/artist/" + data.id,
             popularity: data.popularity,
-        }))
+        }), { EX: Cache.expiry.data })
         .finally(() => {
             artists[id] = true as any;
         })
@@ -249,7 +255,7 @@ export default class Cache {
             speechiness: data.speechiness,
             tempo: data.tempo,
             valence: data.valence,
-        }))
+        }), { EX: Cache.expiry.data })
         .finally(() => {
             track_features[id] = true as any;
         })
