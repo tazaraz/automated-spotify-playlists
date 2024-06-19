@@ -8,23 +8,6 @@
         <button class="border-0 bg-transparent p-2" @click="$emit('delete')"><fa-icon style="color: rgb(155, 0, 0)"
                 :icon="['fas', 'trash-can']"></fa-icon></button>
     </template>
-    <template v-else-if="kind == 'multiple' && (typeof source.value !== 'string')">
-        <span style="grid-column: span 2"></span>
-        <button class="border-0 bg-transparent p-2" @click="$emit('delete')"><fa-icon style="color: rgb(155, 0, 0)"
-            :icon="['fas', 'trash-can']"></fa-icon></button>
-        <template v-for="kind in ['track', 'artist', 'genre']">
-            <h6 class="text-capitalize ms-5 mt-1" style="grid-column: span 4">{{ kind }}s</h6>
-            <EditInput v-for="artist, index of source.value[`seed_${kind}s`]"
-                    :key="artist"
-                    :kind="kind"
-                    :value="artist"
-                    :removable="index < source.value[`seed_${kind}s`].length - 1"
-                    @update="updateInput($event, `seed_${kind}s`, index)"
-                    @remove="removeInput(`seed_${kind}s`, index)"
-                    class="ms-5 mb-2"
-                    style="grid-column: span 4"></EditInput>
-        </template>
-    </template>
     <template v-else>
         <span data-edit-class="small-two-layer">from</span>
         <EditInput data-edit-class="small-d-none large-d-block" :value="source.value" :kind="kind" @update="updateInput"></EditInput>
@@ -54,11 +37,12 @@ export default class EditSource extends Vue {
     SourceDescription = Object.keys(Sources);
 
     /** Multiple is not yet supported */
-    kind: "album" | "artist" | "playlist" | "library" | "multiple" = "library"
+    kind: "album" | "artist" | "playlist" | "library" = "library"
     invalid = false;
 
     created() {
         this.info = new Info();
+        this.getKind();
     }
 
     mounted() {
@@ -66,6 +50,9 @@ export default class EditSource extends Vue {
         this.layout.render(null, true);
         this.playlists = new Playlists();
         this.playlists.setUser(new User());
+    }
+
+    updated() {
         this.getKind();
     }
 
@@ -73,16 +60,9 @@ export default class EditSource extends Vue {
      * Used externally to check if all the required fields are filled
      */
     isValid() {
-        if (this.kind == 'multiple') {
-            return this.source.value !== null && typeof this.source.value !== 'string' &&
-                (this.source.value['seed_tracks'].length > 0
-                    || this.source.value['seed_genres'].length > 0
-                    || this.source.value['seed_artists'].length > 0);
-        } else {
-            return !this.invalid && this.source.value !== null &&
-                (this.source.origin == "Library" ||
-                 (this.source.value !== '' && this.source.value !== this.playlists.editing.id));
-        }
+        return !this.invalid && this.source.value !== null &&
+            (this.source.origin == "Library" ||
+                (this.source.value !== '' && this.source.value !== this.playlists.editor.id));
     }
 
     /**
@@ -94,12 +74,7 @@ export default class EditSource extends Vue {
 
         // If it is the library, we want to hide the input
         this.getKind();
-        if (this.kind == 'multiple') {
-            this.source.value = { 'seed_tracks': [''], 'seed_genres': [''], 'seed_artists': [''] }
-        } else {
-            this.source.value = '';
-        }
-
+        this.source.value = '';
         this.layout.render(null, true);
     }
 
@@ -163,10 +138,6 @@ export default class EditSource extends Vue {
 
             case "Playlist tracks":
                 this.kind = "playlist";
-                break;
-
-            case "Recommendations":
-                this.kind = "multiple";
                 break;
         }
     }
