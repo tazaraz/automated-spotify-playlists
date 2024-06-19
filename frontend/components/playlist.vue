@@ -7,9 +7,9 @@
                 <Title v-else>{{ playlists.loaded.name }}</Title>
                 <header class="p-4 pt-5 d-flex gap-4 mb-3" data-main-class="normal-flex-row normal-align-items-stretch tiny-flex-column tiny-align-items-center">
                     <Image :src="playlists.loaded" class="m-auto"/>
-                    <div class="flex-fill d-flex flex-column text-white">
+                    <div class="flex-fill d-flex flex-column text-white placeholder-glow">
                         <template v-if="!playlists.loaded">
-                            <span class="mt-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>
+                            <span class="m-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>
                             <div class="mt-5 mb-3">
                                 <span class="placeholder rounded-2" style="width: 5rem"></span>
                                 &nbsp;&nbsp;━&nbsp;&nbsp;
@@ -25,7 +25,7 @@
                                 <template v-if="loading || editor.executing || !playlists.loaded || !playlists.loaded.all_tracks">
                                     <span class="d-inline-block loading-icon"></span>loading tracks
                                 </template>
-                                <span v-else >{{ playlists.loaded.all_tracks.length }}
+                                <span v-else>{{ playlists.loaded.all_tracks.length }}
                                     track{{ playlists.loaded.all_tracks.length == 1 ? '' : 's'}}
                                 </span>
                             </div>
@@ -86,6 +86,11 @@
                             <h5 class="m-auto me-2"><fa-icon :icon="['fas', 'wand-magic']" /></h5>
                             Edit config
                         </button>
+                        <button v-else-if="playlists.loaded?.id === editor.id"
+                                class="btn btn-primary d-inline-flex text-nowrap me-3" disabled>
+                            <h5 class="m-auto me-2"><fa-icon :icon="['fas', 'wand-magic']" /></h5>
+                            Config open
+                        </button>
                         <Modal v-else button-text="Edit config" :button-icon="['fas', 'wand-magic']" button-class="btn btn-primary me-2">
                             <div class="modal-header">
                                 <h1 class="modal-title fs-5" id="exampleModalLabel">Discard current editor?</h1>
@@ -145,9 +150,12 @@
                         </ul>
                     </div>
                 </div>
-                <div class="accordion rounded-5" :style="`min-height: ${rendered.min_height}px;`">
+                <div v-if="layout" class="accordion rounded-5" :style="`min-height: ${rendered.min_height}px;`">
                     <Track v-if="loading || editor.executing || !playlists.loaded || !playlists.loaded.all_tracks"
-                           v-for="index in 20" track="" :id="index" class="playlist-track"/>
+                           v-for="index in 20"
+                           track=""
+                           :id="index"
+                           :class="`playlist-track${layout.main.state == 'tiny' ? ' tiny' : ''}`"/>
                     <template v-else-if="shown.tracks.length > 0"
                               v-for="track, index of shown.tracks.slice(0, rendered.total)">
                         <Track
@@ -177,10 +185,6 @@ import { WatchStopHandle } from 'nuxt/dist/app/compat/capi';
 import Editor from '~/stores/editor';
 
 export default class PlaylistDisplay extends Vue {
-    /**Passing this property overrides the default behaviour of loading the playlist based on its ID and the URL
-     * and instead will always load the given editingPlaylist */
-    @Prop({ default: false }) editingPlaylist!: LoadedPlaylist;
-
     playlists: Playlists = null as any;
     editor: Editor = null as any;
     breadcrumbs: BreadCrumbs = null as any;
@@ -254,7 +258,6 @@ export default class PlaylistDisplay extends Vue {
                     this.playlists.loaded?.excluded_tracks,
                     this.playlists.loaded?.included_tracks
                 ], () => {
-                    // console.log(123)
                     // clearTimeout(this.watcher.delay);
                     // if (!this.loading) {
                     //     this.watcher.delay = setTimeout(() => this.showTracks(this.shown.kind), 500);
