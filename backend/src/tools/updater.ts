@@ -103,6 +103,7 @@ export default class Updater {
                     }
                     // Check if the playlist has 0 followers
                     else if (sp_playlist_response.status === 200 && sp_playlist_response.data.followers.total == 0) {
+                        playlist.followers = { total: sp_playlist_response.data.followers.total }
                         sp_remove.push(playlist)
                     }
                 }
@@ -113,7 +114,9 @@ export default class Updater {
 
         // Remove the playlists
         for (const playlist of sp_remove) {
-            LOG(`Cleaning database. Removed playlist ${playlist.name} (${playlist.id}). Attributes: \n - Followers: ${playlist.followers.total}\n - User: ${playlist.user_id}\n - url: https://open.spotify.com/playlist/${playlist.id}\nRaw object: ${playlist}\n\n`);
+            LOG(`Removed playlist ${playlist.name} (${playlist.id}). Attributes: \n - Followers: ${playlist.followers.total}\n - User: ${(playlist as any).owner.display_name}\n - url: https://open.spotify.com/playlist/${playlist.id}\nRaw object:`);
+            console.log(playlist);
+            console.log();
             // await Database.deletePlaylist(playlist.user_id, playlist.id);
         }
     }
