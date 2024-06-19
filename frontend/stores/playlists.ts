@@ -4,6 +4,7 @@ import User from "./user";
 import Fetch from "./fetch";
 import { CTrack, CArtist, CPlaylist } from "~/../backend/src/shared/types/client";
 import FetchError from "./error";
+import Editor from "./editor";
 
 export type { CPlaylist };
 
@@ -78,7 +79,7 @@ export default class Playlists extends Pinia {
     /** The playlist which is currently in view. Different functionality from the editing variable */
     loaded!: LoadedPlaylist;
     /** The automated playlist the user is currently editing */
-    editing!: LoadedPlaylist;
+    editor!: Editor;
     /** If the user already has an automated playlist which is not yet pushed. Stored here for components to access */
     unpublished: CPlaylist | null = null;
     /** Contains the library */
@@ -158,28 +159,6 @@ export default class Playlists extends Pinia {
         })
 
         return await this.loadingUserPlaylists;
-    }
-
-    /**
-     * Loads the requested playlist and sets it as the editingPlaylist
-     * @param id ID of the playlist to load
-     */
-    async loadEditingPlaylist(id: string){
-        // Load the playlist
-        const playlist = this.storage.find(p => p.id === id);
-        if (!playlist) return false;
-
-        // Set the editing playlist
-        this.editing = {
-            ...this.copy(playlist),
-            index: this.storage.findIndex(p => p.id === id),
-            ownership: this.playlistOwnership(playlist),
-            // These fields are not even visible in the view
-            all_tracks: [],
-            matched_tracks: [],
-            included_tracks: [],
-            excluded_tracks: [],
-        }
     }
 
     /**
@@ -504,7 +483,7 @@ export default class Playlists extends Pinia {
         this.hasAutomatedPlaylists = this.storage.some(playlist => playlist.filters !== undefined);
 
         // Unload the editor
-        this.editing = null as any;
+        this.editor.close();
         return true;
     }
 
@@ -547,73 +526,6 @@ export default class Playlists extends Pinia {
         } else {
             const index = this.storage.findIndex(p => p.id === playlist.id)
             this.storage[index] = (playlist as CPlaylist);
-        }
-    }
-
-    /**
-     * Executes the filters of a playlist
-     * @param playlist Playlist filters to run
-     */
-    async execute(playlist: LoadedPlaylist | CPlaylist){
-        /** Response is when running only the log, and when completed a playlist */
-        const response = await Fetch.patch(`server:/playlist/${playlist.id}`, { retries: 0 });
-
-        if (response.status === 302) {
-            this.editing.logs = [response.data.log];
-            return true;
-        } else if (response.status === 200) {
-            // Store the log
-            this.editing.logs = response.data.logs;
-            response.data.owner = playlist.owner
-
-            let all_tracks = response.data.matched_tracks.concat(response.data.included_tracks)
-                all_tracks = all_tracks.filter((track: string) => !response.data.excluded_tracks.includes(track));
-
-            response.data.all_tracks = all_tracks;
-            this.save(response.data);
-
-            // If it is the loaded playlist, load the new tracks
-            if (response.data.id === this.loaded.id && !(await this.loadUserPlaylistByID(this.loaded.id))) {
-                FetchError.create({ status: 500, message: "The playlist you just executed does not exist. Even though the shown playlist does. Which must be yours given you just executed its filters. Weird." });
-                return false;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Updates a playlist server-side and executes the given filters
-     * @param playlist Playlist to be updated server-side
-     */
-    async syncPlaylist(playlist: LoadedPlaylist | CPlaylist) {
-        return Fetch.put("server:/playlist", {
-            headers: { 'Content-Type': 'json' },
-            data: {
-                id: playlist.id,
-                user_id: playlist.user_id,
-                name: playlist.name,
-                description: playlist.description ?? "",
-                filters: playlist.filters,
-                sources: playlist.sources,
-            }
-        })
-    }
-
-    /**
-     * Updates the basic information of a playlist
-     * @param playlist Playlist to sync
-     */
-    async updateBasic(playlist: LoadedPlaylist) {
-        if (!this.unpublished && playlist.name !== "") {
-            Fetch.put(`server:/playlist/${playlist.id}/basic`, { data: {
-                name: playlist.name,
-                description: playlist.description || ""
-            }})
-            .then(() => {
-                this.save(playlist)
-                this.loadUserPlaylistByID(playlist.id)
-            })
         }
     }
 

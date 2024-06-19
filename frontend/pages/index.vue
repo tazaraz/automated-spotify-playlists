@@ -40,8 +40,15 @@
             </span>
 
             <h4 class="mt-4 mb-2">Take a look at an example:</h4>
-            <div class="w-0">
-                <button v-if="!playlists.editing || playlists.editing.id == 'example'" @click="showDemo" class="btn btn-primary">Open example automated playlist configuration</button>
+            <div v-if="editor" class="w-0">
+                <button v-if="!editor.shown"
+                        @click="showDemo"
+                        class="btn btn-primary">Open example automated playlist configuration</button>
+                <button v-else-if="playlists.loaded?.id === editor.id"
+                        class="btn btn-primary d-inline-flex text-nowrap me-3" disabled>
+                    <h5 class="m-auto me-2"><fa-icon :icon="['fas', 'wand-magic']" /></h5>
+                    Config open
+                </button>
                 <Modal v-else button-text="Open example automated playlist configuration" button-class="btn btn-primary">
                     <div class="modal-header">
                         <h1 class="modal-title fs-5" id="exampleModalLabel">Discard current editor?</h1>
@@ -71,12 +78,14 @@
 
 <script lang="ts">
 import { Prop, Vue } from 'vue-property-decorator';
+import Editor from '~/stores/editor';
 import Layout from '~/stores/layout';
-import Playlists from '~/stores/playlists';
+import Playlists, { LoadedPlaylist } from '~/stores/playlists';
 import User from '~/stores/user';
 
 export default class Homepage extends Vue {
     playlists: Playlists = null as any;
+    editor: Editor = null as any;
     user: User = null as any;
     layout: Layout = null as any;
 
@@ -84,6 +93,7 @@ export default class Homepage extends Vue {
         if (!process.client) return;
 
         this.playlists = new Playlists();
+        this.editor = new Editor();
         this.user = new User();
         this.playlists.setUser(this.user)
         this.layout = new Layout();
@@ -95,15 +105,14 @@ export default class Homepage extends Vue {
      * Resets the demo editor
      */
     async showDemo() {
-        this.playlists.editing = null as any;
         // I don't know why we need 4 nextTicks, but otherwise the view wont open.
         await this.$nextTick();
         await this.$nextTick();
         await this.$nextTick();
         await this.$nextTick();
+        this.loadDemo();
         // Click the edit button to try and open the offcanvas edit view
         document.getElementById("mobile-open-edit")?.click();
-        this.loadDemo();
         this.layout.open('edit');
         this.layout.render(null, true);
     }
@@ -115,11 +124,10 @@ export default class Homepage extends Vue {
         if (!process.client) return;
 
         // Create a fake user to build an automated playlist as example
-        const playlist = this.playlists.buildAutomatedPlaylist(
-            {id: 'example', name: 'Example automated playlist', country: 'somewhere'} as any
-        );
-        playlist.name = 'Example automated playlist';
+        const playlist = this.playlists.buildAutomatedPlaylist() as LoadedPlaylist;
         playlist.id = 'example';
+        playlist.index = 999;
+        playlist.name = 'Example automated playlist';
         playlist.description = 'Some values, such as artists, albums, and genres, can only be retrieved when signed in.'
 
         playlist.sources = [
@@ -139,9 +147,7 @@ export default class Homepage extends Vue {
             ]
         }
 
-        this.playlists.editing = playlist;
-        this.playlists.editing.index = 999;
-        this.playlists.editing.ownership = 'user';
+        this.editor.loadConfig(playlist);
     }
 }
 </script>

@@ -37,7 +37,8 @@
             <slot></slot>
         </main>
 
-        <template v-if="(user && user.info && playlists && playlists.editing) || playlists?.editing?.id == 'example'">
+
+        <template v-if="editor.shown">
             <div v-if="layout.app.isMobile" class="offcanvas offcanvas-end bg-black d-sm-flex w-100"
                 tabindex="-1" id="edit">
                 <Edit id="edit-view" @open="layout.open('edit')" />
@@ -56,6 +57,7 @@
 import { Offcanvas } from 'bootstrap';
 import { Vue } from 'vue-property-decorator';
 import BreadCrumbs from '~/stores/breadcrumbs';
+import Editor from '~/stores/editor';
 import Layout from '~/stores/layout';
 import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
@@ -63,19 +65,25 @@ import User from '~/stores/user';
 export default class App extends Vue {
     user: User = null as any;
     playlists: Playlists = null as any;
+    editor: Editor = null as any;
     layout: Layout = null as any;
     offcanvas: Offcanvas[] = null as any;
+
+    beforeCreate() {
+        // If we (re)load the page, but the url contains 'unpublished', redirect
+        if (this.$route.fullPath.includes('unpublished'))
+            navigateTo('/')
+    }
 
     async created() {
         if (!process.client) return;
         this.user = new User()
         this.user.loadCredentials();
         this.playlists = new Playlists();
+        this.editor = new Editor();
+        this.editor.playlists = this.playlists;
+        this.playlists.editor = this.editor;
         this.layout = new Layout();
-
-        // If the unpublished playlist is not populated, but the url contains 'unpublished', redirect
-        if (this.$route.fullPath.includes('unpublished') && !this.playlists.unpublished)
-            await navigateTo('/');
 
         // If the user is not logged in, don't load the playlists
         if (!this.user.info)
@@ -95,7 +103,7 @@ export default class App extends Vue {
         this.layout.appElement = this.$refs.app as HTMLElement;
         this.layout.app.width = this.layout.appElement.clientWidth;
         this.layout.mainElement = this.layout.appElement.getElementsByTagName('main')[0].firstElementChild as HTMLElement;
-        this.layout.playlistEditing = this.playlists.editing != null;
+        this.layout.editorShown = this.editor.shown;
 
         const offcanvasElementList = document.querySelectorAll('.offcanvas')
         this.offcanvas = [...offcanvasElementList].map(offcanvasEl => new this.$bootstrap.Offcanvas(offcanvasEl))
@@ -115,8 +123,8 @@ export default class App extends Vue {
         })
 
         /** When we start/stop editing */
-        watch(() => this.playlists?.editing, async () => {
-            this.layout.playlistEditing = this.playlists.editing != null;
+        watch(() => this.editor.shown, async () => {
+            this.layout.editorShown = this.editor.shown;
             this.layout.render(null, true);
         })
 

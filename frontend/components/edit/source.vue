@@ -111,7 +111,7 @@ export default class EditSource extends Vue {
      */
     async updateInput(input: EditInput, kind: any = null, index: number = -1) {
         if (kind == null) {
-            if (input.id == this.playlists.editing.id) {
+            if (input.id == this.playlists.editor.id) {
                 input.isValid = false;
                 input.error = "You can't use the playlist you are editing as a source"
                 input.name = input.id;

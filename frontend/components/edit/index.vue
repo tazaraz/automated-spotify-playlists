@@ -7,24 +7,24 @@
                     <fa-icon class="m-auto" :icon="['fas', 'angles-left']" style="width: 2rem"></fa-icon>
                 </url>
                 <hr class="w-100">
-                <Image :src="playlists.editing" class="image mt-2 mb-4 w-100"></Image>
-                <h4 class="text-nowrap" style="writing-mode:vertical-rl;">{{ playlists.editing.name }}</h4>
+                <Image :src="editor.playlist" class="image mt-2 mb-4 w-100"></Image>
+                <h4 class="text-nowrap" style="writing-mode:vertical-rl;">{{ editor.name }}</h4>
             </div>
             <div class="h-100 p-1 overflow-y-auto m-auto" data-edit-class="tiny-d-none" style="max-width: 50rem;">
                 <div class="position-sticky bg-dark-subtle z-3" style="top: -0.25rem;">
                     <div class="d-flex align-items-center pt-2 pb-3 text-white text-decoration-none" >
                         <h4 class="ms-3 me-3 mb-0"><fa-icon :icon="['fas', 'wand-magic']" style="width: 2rem"></fa-icon></h4>
                         <h4 class="m-0">
-                            {{ playlists.editing.name }} Config
+                            {{ editor.name }} Config
                         </h4>
                         <button type="button" id="editClose" class="d-block d-sm-none ms-auto me-3 btn-close" data-bs-dismiss="offcanvas"></button>
                     </div>
                     <hr class="m-0">
                 </div>
                 <div id="basic" class="d-grid my-4 p-2 ps-4 pe-4" data-edit-class="small-stacked normal-wide large-wide">
-                    <Image :src="playlists.editing" class="h-100 m-auto"></Image>
+                    <Image :src="editor.playlist" class="h-100 m-auto"></Image>
                     <div class="form-floating">
-                        <input type="text" :class="`form-control${validName ? '':' is-invalid'}`" :value="playlists.editing.name" @input="syncBasic('name', $event.target?.value)">
+                        <input type="text" :class="`form-control${validName ? '':' is-invalid'}`" :value="editor.name" @input="syncBasic('name', $event.target?.value)">
                         <label>Playlist name</label>
                         <div :class="`mt-0 invalid-feedback${validName ? '':' d-block'}`">Playlist name cannot be empty.</div>
                     </div>
@@ -73,8 +73,8 @@
                             <fa-icon class="text-primary" :icon="['fas', 'code-branch']"></fa-icon>
                         </button>
                     </div>
-                    <section v-if="editor.computedFilters" id="filters" class="mb-5" data-edit-class="small-small normal-normal large-large">
-                        <template v-for="entry in editor.flattenedFilters">
+                    <section v-if="editor.filters" id="filters" class="mb-5" data-edit-class="small-small normal-normal large-large">
+                        <template v-for="entry in editor.flattened">
                             <EditStatement
                                 v-if="entry.content.mode"
                                 ref="filters"
@@ -97,7 +97,7 @@
                     Some {{ editor.error == 1 ? 'sources' : editor.error == 2 ? 'filters' : 'filters and sources'}} are not filled in correctly
                 </div>
                 <hr>
-                <small v-if="playlists.editing.id == 'example'" class="text-body-secondary">
+                <small v-if="editor.id == 'example'" class="text-body-secondary">
                     'Save and apply filters' is disabled for the example automated playlist configuration
                 </small>
 
@@ -118,10 +118,7 @@
                                         <div class="bg-white rounded-2 p-2 pe-1 mt-3">
                                             <div class="overflow-y-auto" style="max-height: 20rem;">
                                                 <code class="text-black text-break">
-                                                    {{ window.btoa(JSON.stringify({
-                                                        sources: playlists.editing.sources,
-                                                        filters: playlists.editing.filters,
-                                                    })) }}
+                                                    {{ editor.exportConfig() }}
                                                 </code>
                                             </div>
                                         </div>
@@ -173,7 +170,7 @@
                             </li>
                         </ul>
                     </div>
-                    <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" @click="execute" :disabled="playlists.editing.id == 'example' || !validName || (saveState > 0 || executeState > 0)">
+                    <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" @click="execute" :disabled="editor.id == 'example' || !validName || (saveState > 0 || executeState > 0)">
                         <span v-if="saveState == 0 && executeState == 0">
                             Save and apply filters
                         </span>
@@ -262,14 +259,14 @@ export default class Edit extends Vue {
     /** Executes the filters of the playlists */
     async execute() {
         if (this.saveState > 0 || this.executeState > 0) return false;
-        this.playlists.editing.logs = [];
+        this.playlists.editor.logs = [];
 
         // Save the playlist configuration
         if (!await this.save())
             return false;
 
         // Show a popup that the playlist has been created
-        const was_unpublished = this.playlists.editing.id === 'unpublished';
+        const was_unpublished = this.playlists.editor.id === 'unpublished';
         if (was_unpublished) {
             this.playlistCreated = true;
             setTimeout(() => this.playlistCreated = false, 2000);
@@ -284,35 +281,22 @@ export default class Edit extends Vue {
         setTimeout(() => this.executeState = 0, 1000);
     }
 
-    async syncBasic(target: 'name' | 'description', value: string) {
-        this.validName = !(target == 'name' && value.length == 0);
+    async syncBasic(kind: 'name' | 'description', value: string) {
+        this.validName = !(kind == 'name' && value.length == 0);
 
         // Do not update the basic info if the data is the same
-        if (this.playlists.editing[target] == value) return;
+        if (this.playlists.editor[kind] == value) return;
 
-        if (this.basicUpdateTimeout) clearTimeout(this.basicUpdateTimeout);
-        this.editor.updateBasic(target, value);
-        this.playlists.editing[target] = value as CPlaylist['name' | 'description'];
-
-        this.basicUpdateTimeout = setTimeout(async () => {
-            await this.playlists.updateBasic(this.playlists.editing)
-        }, 1000);
-    }
-
-    async resetConfig() {
-        await this.playlists.loadEditingPlaylist(this.playlists.editing.id);
-        this.editor.reset();
+        this.editor.updateBasic(kind, value);
     }
 
     globalStatementChange(event: Event) {
-        this.editor.computedFilters.mode = (event.target! as HTMLSelectElement).value as keyof typeof FilterParserOptions;
+        this.editor.filters.mode = (event.target! as HTMLSelectElement).value as keyof typeof FilterParserOptions;
     }
 
+     */
     async copyConfig() {
-        await navigator.clipboard.writeText(btoa(JSON.stringify({
-            sources: this.playlists.editing.sources,
-            filters: this.playlists.editing.filters,
-        })));
+        await navigator.clipboard.writeText(this.editor.exportConfig());
         this.copied = 1;
         setTimeout(() => this.copied = 0, 1000);
     }
@@ -327,20 +311,22 @@ export default class Edit extends Vue {
         }
     }
 
+     */
     async importConfig() {
-        const textarea = document.getElementById('importConfigTextarea') as HTMLTextAreaElement;
-        const config = JSON.parse(atob(textarea.value));
-        if (document.getElementById('importOption1')?.checked) {
-            this.playlists.editing.sources = config.sources;
-            this.playlists.editing.filters = config.filters;
-        } else {
-            this.playlists.editing.sources = this.playlists.editing.sources.concat(config.sources);
-            this.playlists.editing.filters.filters = this.playlists.editing.filters.filters.concat(config.filters);
-        }
-        textarea.value = "";
+        const textarea = this.$refs['importConfigTextarea'] as HTMLTextAreaElement;
+
+        // Clear the UI for one tick
+        this.editor.sources = [];
+        this.editor.flattened = [];
+        await this.$nextTick();
+
+        // Import
+        this.editor.importConfig(
+            textarea.value,
+            document.getElementById('importOption1')?.checked ? 'overwrite' : 'append'
+        );
+        this.importConfigValue = textarea.value = "";
         this.validImportConfig = false;
-        this.$forceUpdate();
-        this.editor.reset();
     }
 }
 </script>

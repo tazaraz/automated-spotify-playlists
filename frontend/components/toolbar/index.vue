@@ -10,7 +10,7 @@
         </ClientOnly>
         <div class="d-flex">
             <div class="nav-item">
-                <button v-if="playlists && playlists.editing" id="mobile-open-edit" class="navbar-toggler d-sm-none h-100 p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#edit">
+                <button v-if="playlists && playlists.editor" id="mobile-open-edit" class="navbar-toggler d-sm-none h-100 p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#edit">
                     <span class="fs-5"><fa-icon :icon="['fas', 'wand-magic']"></fa-icon></span>
                 </button>
             </div>
@@ -75,7 +75,7 @@ export default class Sidebar extends Vue {
     logout() {
         // Unload everything
         this.user.logout();
-        this.playlists.editing = null as any;
+        this.playlists.editor = null as any;
     }
 }
 </script>

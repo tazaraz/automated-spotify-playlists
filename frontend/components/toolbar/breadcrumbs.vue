@@ -36,7 +36,7 @@ export default class Breadcrumbs extends Vue {
         const route = useRoute();
         watch(() => route.fullPath, () => this.$nextTick(() => {
             if (route.fullPath.startsWith('/playlist'))
-                this.breadcrumbs.add(route.fullPath, this.playlists.editing?.name)
+                this.breadcrumbs.add(route.fullPath, this.playlists.editor?.name)
 
         }), {deep: true, immediate: true})
     }

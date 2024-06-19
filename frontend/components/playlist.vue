@@ -80,8 +80,9 @@
                         </div>
                     </Modal>
 
-                    <template v-if="playlists.loaded.filters !== undefined && playlists.loaded.ownership == 'user'">
-                        <button v-if="!playlists.editing || playlists.loaded.id == playlists.editing.id" class="btn btn-primary d-inline-flex text-nowrap me-3" @click="setEditedPlaylist(playlists.loaded.id)">
+                    <template v-if="editor && playlists.loaded.filters !== undefined && playlists.loaded.ownership == 'user'">
+                        <button v-if="!editor.shown"
+                                class="btn btn-primary d-inline-flex text-nowrap me-3" @click="loadEditor">
                             <h5 class="m-auto me-2"><fa-icon :icon="['fas', 'wand-magic']" /></h5>
                             Edit config
                         </button>
@@ -95,7 +96,7 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="setEditedPlaylist(playlists.loaded.id)">Yes</button>
+                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="loadEditor">Yes</button>
                             </div>
                         </Modal>
                     </template>
@@ -482,15 +483,16 @@ export default class PlaylistDisplay extends Vue {
      * Opens the playlist editor for the given playlist
      * @param id ID of the playlist to edit
      */
-    async setEditedPlaylist(id: string) {
-        this.playlists.editing = null as any;
+    async loadEditor() {
         await this.$nextTick();
-        await this.playlists.loadEditingPlaylist(id);
-        await this.showTracks("all");
-        // Click the edit button to try and open the offcanvas edit view
-        await this.$nextTick();
-        document.getElementById("mobile-open-edit")?.click();
-        this.layout.open('edit');
+        // Load the config of the playlist
+        if (new Editor().loadConfig(this.playlists.loaded)) {
+            // Click the edit button to try and open the offcanvas edit view
+            await this.$nextTick();
+            document.getElementById("mobile-open-edit")?.click();
+            this.layout.open('edit');
+            this.layout.render(null, true);
+        }
     }
 
     /** Stores requests waiting to be completed by `loadPlaylistTracks` to prevent duplicate requests */

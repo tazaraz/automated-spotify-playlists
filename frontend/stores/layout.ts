@@ -31,7 +31,7 @@ export default class Layout extends Pinia {
     nextTick!: () => Promise<void>;
     mainElement!: HTMLElement;
     appElement!: HTMLElement;
-    playlistEditing = false;
+    editorShown = false;
 
     private mainQueryList!: NodeListOf<Element>;
     private sidebarQueryList!: NodeListOf<Element>;
@@ -149,7 +149,7 @@ export default class Layout extends Pinia {
             this.resizeMain(this.mainElement.clientWidth, force)
 
             /** If editing, check if we need to resize */
-            if (this.playlistEditing) {
+            if (this.editorShown) {
                 await this.resizeEdit(
                     clientX ?? this.edit.user,
                     this.mainElement.clientWidth,
@@ -307,7 +307,7 @@ export default class Layout extends Pinia {
             }
         }
 
-        if (this.playlistEditing)
+        if (this.editorShown)
             this.resizeEdit(handle, main, user, false, true)
     }
 
@@ -347,7 +347,7 @@ export default class Layout extends Pinia {
         /** If there is not enough space left for the info view,
          *  AND not mobile
          */
-        let full   = handleOffsetLeft < this.main.size.min && this.appElement.clientWidth > this.app.threshold_mobile && this.playlistEditing;
+        let full   = handleOffsetLeft < this.main.size.min && this.appElement.clientWidth > this.app.threshold_mobile && this.editorShown;
         /** If enough space for the info view and not crossing the minimum size for the edit window,
          *  OR mobile
          */
@@ -468,7 +468,7 @@ export default class Layout extends Pinia {
         let sidebar  = sidebarWidth > 0 ? `${sidebarWidth/16}rem ${this.app.handle_size}px` : '';
 
         // Update the edit width. If undefined, use the current width
-        editWidth = editWidth ?? (this.playlistEditing ? this.edit.width : 0);
+        editWidth = editWidth ?? (this.editorShown ? this.edit.width : 0);
         let edit  = editWidth > 0 ? `${this.app.handle_size}px ${editWidth/16}rem` : '0 0';
             edit  = editWidth == -1 ? '' : edit
 
