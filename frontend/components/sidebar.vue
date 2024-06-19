@@ -84,7 +84,6 @@
                     <li v-if="!playlist.filters" class="nav-item cursor-pointer">
                         <url :to="`/playlist/${playlist.id}`" @click="tryClose"
                             class="p-2 d-flex nav-link">
-                            <!-- <Image :src="playlist" class="rounded-1" data-sidebar-class="tiny-m-auto normal-m-0"/> -->
                             <Image :src="playlist" data-sidebar-class="tiny-m-auto normal-m-0"/>
                             <span class="m-auto ms-3 text-truncate" data-sidebar-class="tiny-d-none">{{ playlist.name }}</span>
                         </url>

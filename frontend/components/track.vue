@@ -16,8 +16,8 @@
                     <div class="text-truncate flex-shrink-0 tiny-hidden" style="width: 40%;">
                         <span class="placeholder rounded-1" :style="`width: ${randomBetween(3, 15)}rem`"></span>
                     </div>
-                    <div class="text-truncate flex-shrink-0" style="width: 10%;">
-                        <span class="placeholder rounded-1 ms-auto d-block" :style="`width: ${randomBetween(2, 3)}rem`"></span>
+                    <div class="text-truncate flex-shrink-0" style="width: 12%;">
+                        <span class="placeholder rounded-1 ms-auto d-block" :style="`width: ${randomBetween(3, 4)}ch`"></span>
                     </div>
                 </div>
             </div>
