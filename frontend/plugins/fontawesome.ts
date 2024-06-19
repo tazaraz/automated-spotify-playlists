@@ -17,10 +17,12 @@ import {
     faGripVertical as fasGripVertical,
     faArrowUpFromBracket as fasArrowUpFromBracket,
     faSlidersH as fasSliders,
+    faRotateLeft as fasRotateLeft,
 } from '@fortawesome/free-solid-svg-icons'
 import {
     faUser as farUser,
     faHeart as farHeart,
+    faCircleQuestion as farCircleQuestion,
 } from '@fortawesome/free-regular-svg-icons'
 
 // This is important, we are going to let Nuxt worry about the CSS
@@ -45,6 +47,8 @@ library.add(
     farUser,
     farHeart,
     fasSliders,
+    fasRotateLeft,
+    farCircleQuestion,
 )
 
 export default defineNuxtPlugin((nuxtApp) => {
