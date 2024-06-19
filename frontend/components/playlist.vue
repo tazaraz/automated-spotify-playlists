@@ -297,14 +297,23 @@ export default class PlaylistDisplay extends Vue {
 
         // Load a random playlist the user stumbled upon
         else {
-            const playlist = (await Fetch.get<any>(`spotify:/playlists/${id}?limit=50`)).data;
-            playlist.image = Fetch.bestImage(playlist.images);
-            playlist.ownership = this.playlists.playlistOwnership(playlist);
+            const response = (await Fetch.get<any>(`spotify:/playlists/${id}`, {
+                query: {
+                    fields: 'id,name,description,images,owner,tracks.total'
+                }
+            })).data;
 
-            const tracks = Fetch.format(playlist.tracks).map((track: any) => this.playlists.convertToCTrack(track))
-            playlist.all_tracks = Array(playlist.tracks.total).fill("");
-            playlist.all_tracks.splice(0, 50, tracks);
-            this.playlists.loaded = playlist;
+            // Create the basic playlist object. We need to load the tracks separately
+            const playlist = {
+                id: response.id,
+                name: response.name,
+                description: response.description,
+                image: Fetch.bestImage(response.images),
+                owner: response.owner,
+                ownership: this.playlists.playlistOwnership(response),
+                all_tracks: Array(response.tracks.total).fill(""),
+            }
+            this.playlists.loaded = playlist as LoadedPlaylist;
         }
 
         await this.showTracks("all");
