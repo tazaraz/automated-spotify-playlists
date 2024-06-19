@@ -29,9 +29,9 @@ export default class NowPlaying extends Pinia {
 
         this.user = new User();
 
-        // Try to update the player every 10 seconds
+        // Try to update the player every 20 seconds
         this.update();
-        this.interval = setInterval(this.update, 10000);
+        this.interval = setInterval(this.update, 20000);
     }
 
     update() {
