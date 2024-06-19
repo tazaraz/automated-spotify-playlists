@@ -191,6 +191,10 @@ export default class EditCondition extends Vue {
         this.layout.render(null, true);
     }
 
+    updated() {
+        this.update();
+    }
+
     isValid() {
         if (// Check the fields
             this.condition.category !== undefined &&
