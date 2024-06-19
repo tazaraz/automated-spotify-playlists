@@ -91,8 +91,6 @@ export default class Playlists extends Pinia {
     private loadingUserPlaylists: boolean | Promise<any> = false;
     // Whether all the playlist have their track ids loaded
     private loadingPlaylistsTrackIds: boolean | Promise<any> = false;
-    // What playlist is currently being loaded
-    private loadingPlaylistID: string = "";
 
     setUser(user: User){
         this.user = user;
@@ -366,7 +364,7 @@ export default class Playlists extends Pinia {
     buildAutomatedPlaylist() {
         return {
             id:             "unpublished",
-            user_id:        this.user.info!.id,
+            user_id:        this.user?.info?.id || "unkown",
             name:           "Automated Playlist",
             description:    '',
             image:          '',
@@ -380,7 +378,11 @@ export default class Playlists extends Pinia {
             excluded_tracks:    [],
             included_tracks:    [],
             logs:               [],
-            owner: { id: this.user.info!.id, display_name: this.user.info!.name, country: this.user.info!.country },
+            owner: {
+                id: this.user.info!.id              || "unknown",
+                display_name: this.user.info!.name  || "you",
+                country: this.user.info!.country    || "unknown"
+            },
         } as CPlaylist;
     }
 
