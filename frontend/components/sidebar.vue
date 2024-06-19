@@ -116,6 +116,7 @@
 <script lang="ts">
 import { Vue } from 'vue-property-decorator';
 import BreadCrumbs from '~/stores/breadcrumbs';
+import Editor from '~/stores/editor';
 import Layout from '~/stores/layout';
 import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
@@ -155,7 +156,15 @@ export default class Sidebar extends Vue {
         this.playlists.addAutomatedPlaylist();
         await navigateTo('/playlist/unpublished');
         await this.playlists.loadUserPlaylistByID('unpublished');
-        await this.playlists.loadEditingPlaylist('unpublished');
+
+        // Do not load the config if another is already loaded
+        if (this.playlists.loaded.filters !== undefined &&
+            this.playlists.loaded.ownership == 'user' &&
+            this.playlists.editor.shown == false) {
+            // Open the editor
+            new Editor().loadConfig(this.playlists.loaded);
+        }
+
         this.tryClose();
     }
 
