@@ -204,9 +204,6 @@ export default class Playlists extends Pinia {
         if (!this.storage)
             await this.loadUserPlaylists();
 
-        // Save the loading playlist ID
-        this.loadingPlaylistID = id;
-
         let index = this.storage.findIndex(p => p.id === id);
         if (index === -1) return false;
 
@@ -217,9 +214,6 @@ export default class Playlists extends Pinia {
             ownership: this.playlistOwnership(this.storage[index]),
             owner: { id: this.storage[index].owner.id, display_name: this.storage[index].owner.display_name }
         } as LoadedPlaylist
-
-        // Reset the loading playlist ID
-        this.loadingPlaylistID = "";
 
         return true;
     }
