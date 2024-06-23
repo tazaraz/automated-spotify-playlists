@@ -412,7 +412,6 @@ export default class Playlists extends Pinia {
 
         // Add the tracks to the destination
         this.loaded.excluded_tracks.push(...tracks);
-        this.loaded.excluded_tracks.sort();
 
         // Let the server know the change
         this.removeTracks(this.loaded, 'matched', tracks.map(t => (t as CTrack).id || (t as string)))
@@ -428,7 +427,7 @@ export default class Playlists extends Pinia {
 
         // Add the tracks to the destination
         this.loaded.matched_tracks.push(...tracks);
-        this.loaded.matched_tracks.sort();
+        this.loaded.all_tracks.push(...tracks);
 
         // Let the server know the change
         this.removeTracks(this.loaded, 'excluded', tracks.map(t => (t as CTrack).id || (t as string)))
