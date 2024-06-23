@@ -130,7 +130,7 @@
                                                         <div class="fw-bold">
                                                             Use a comma to separate multiple values
                                                         </div>
-                                                        Don't recreate the same filter with a different text value
+                                                        Don't recreate the same filter with a different text value. The matching is case insensitive and will be true if <span class="text-warning">at least one</span> of the values match.
                                                     </div>
                                                 </li>
                                                 <li class="list-group-item d-flex justify-content-between align-items-start">
