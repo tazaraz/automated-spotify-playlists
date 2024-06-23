@@ -210,12 +210,12 @@
                     Some {{ editor.error == 1 ? 'sources' : editor.error == 2 ? 'filters' : 'filters and sources'}} are not filled in correctly
                 </div>
                 <hr>
-                <small v-if="editor.id == 'example'" class="text-body-secondary">
+                <small v-if="editor.id == 'example'" class="text-body-secondary mb-3">
                     'Save and apply filters' is disabled for the example automated playlist configuration
                 </small>
 
                 <section class="d-flex flex-wrap">
-                    <div class="alert alert-primary">
+                    <div class="alert alert-primary" v-if="applyFiltersStuckMessage.show">
                         It is taking a long time to process your configuration. You can monitor the progress in the logs tab. You can also try to decrease the amount of filters or sources to speed up the process the next time.
                     </div>
                     <div class="d-flex align-items-end dropdown mt-3 me-3">
