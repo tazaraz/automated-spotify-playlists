@@ -22,6 +22,7 @@ import { Prop, Vue } from  'vue-property-decorator';
 import Editor from '~/stores/editor';
 import Fetch from '~/stores/fetch';
 import { PlaylistLog } from '../../backend/src/shared/types/playlist';
+import FetchError from '~/stores/error';
 
 export default class TestInfoItem extends Vue {
     @Prop() kind!: "track" | "album" | "artist"
@@ -59,8 +60,6 @@ export default class TestInfoItem extends Vue {
             source: [{ origin: "Track", value: this.id }],
             filters: this.editor.filters
         }})
-        // TODO: handle error of result
-        console.log(result)
 
         // Wait for the execution to finish
         while (true) {
@@ -70,7 +69,6 @@ export default class TestInfoItem extends Vue {
                 source: [{ origin: "Track", value: this.id }],
                 filters: this.editor.filters
             }})
-            console.log(response.data)
 
             if (response.status === 302) {
                 this.log = response.data;
@@ -79,7 +77,10 @@ export default class TestInfoItem extends Vue {
                 this.log = response.data;
                 break;
             } else {
-                console.error("Unexpected response", response);
+                FetchError.create({
+                    status: response.status,
+                    message: await response.json(),
+                });
                 break;
             }
         }
