@@ -1,27 +1,29 @@
-import { FilterResult } from "../processing";
+import { FilterResult, ProcessLevel } from "../processing";
 import { PlaylistLog } from "../shared/types/playlist";
 
 /**
  * FilterTask allows storing logs, but adds a listener to the log to detect when it updates.
  */
 export default class FilterTask {
-    private static logs: { [playlist_id: string]: FilterTask } = {};
+    private static logs: { [id: string]: FilterTask } = {};
 
-    // Playlist id
-    playlist_id: string;
+    /** Id of the task */
+    private id: string;
     // Promise resolve function
-    logChangeResolver: ((value: FilterTask) => void) | undefined;
+    private logChangeResolver: ((value: FilterTask) => void) | undefined;
 
-    // Contains the actual logs
+    /** Contains the logs gathered while filtering */
     log: PlaylistLog;
-    // Whether the log is finalized
-    finalized = false;
-    // Result of the task
+    /** Result of the task */
     result: FilterResult;
+    /** Level of the logs gathered and processing done */
+    plevel: ProcessLevel;
+    /** Whether the log is finalized */
+    finalized = false;
 
-    constructor(playlist_id: string, auto: boolean = false) {
-        this.playlist_id = playlist_id;
-
+    constructor(id: string, level: ProcessLevel, auto: boolean = false) {
+        this.id = id;
+        this.plevel = level;
         this.log = {
             name: `${new Date().toLocaleDateString()}-${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}`,
             sources: [],
@@ -31,7 +33,7 @@ export default class FilterTask {
         if (auto) this.log.name = '(auto) ' + this.log.name;
 
         // Store the log
-        FilterTask.logs[playlist_id] = this;
+        FilterTask.logs[id] = this;
 
         // Create a proxy
         for (const logtype of ['sources', 'filters']) {
@@ -66,7 +68,7 @@ export default class FilterTask {
      * Deletes the log.
      */
     delete() {
-        delete FilterTask.logs[this.playlist_id];
+        delete FilterTask.logs[this.id];
     }
 
     /**
@@ -79,22 +81,22 @@ export default class FilterTask {
         if (this.logChangeResolver) this.logChangeResolver(this);
 
         // Delete the log after 50 seconds
-        setTimeout(() => this.delete(), 50000);
+        setTimeout(() => this.delete(), 20000);
     }
 
     /**
-     * Whether a log already exists for a playlist.
-     * @param playlist_id Playlist ID
+     * Whether a log already exists for a given ID.
+     * @param id
      */
-    static exists(playlist_id: string) {
-        return FilterTask.logs[playlist_id] !== undefined;
+    static exists(id: string) {
+        return FilterTask.logs[id] !== undefined;
     }
 
     /**
-     * Gets the playlist log.
-     * @param playlist_id Playlist ID
+     * Gets the task log for a given ID.
+     * @param id
      */
-    static get(playlist_id: string) {
-        return FilterTask.logs[playlist_id];
+    static get(id: string) {
+        return FilterTask.logs[id];
     }
 }

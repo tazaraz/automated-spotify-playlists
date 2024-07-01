@@ -1,7 +1,7 @@
 import express from 'express';
 import Database from './tools/database';
 import Fetch from './tools/fetch';
-import Filters from './processing';
+import Filters, { ProcessLevel } from './processing';
 import Users from './stores/users';
 import MusicSources from './processing/sources';
 import FilterParser from './processing/parser';
@@ -143,18 +143,18 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
 
     /**We now verify the validity of the filters and sources */
     const user = await Users.get(req.user.id)
-    const task = new FilterTask(Math.random().toString())
+    const task = new FilterTask(`playlist:${Math.random().toString(36).substring(2, 15)}`, ProcessLevel.DRY_RUN)
 
     try {
         // Check if the sources supplied are valid
-        await MusicSources.get(playlist.sources, user, task, true)
+        await MusicSources.get(playlist.sources, user, task)
     } catch (error) {
         return res.status(400).json({ error: "Source error: " + error.message });
     }
 
     try {
         // Check if the filters supplied are valid
-        await FilterParser.process(playlist.filters, [], user, task, true);
+        await FilterParser.process(playlist.filters, [], user, task);
     } catch (error) {
         return res.status(400).json({ error: "Processing error: " + error.message });
     }
@@ -230,15 +230,17 @@ api.delete('/playlist', Users.verify_token, async (req, res) => {
  * Runs the filters for a given playlist
  */
 api.patch(`/playlist/:playlistid`, Users.verify_token, async (req, res) => {
-    if (!FilterTask.exists(req.params.playlistid)) {
+    if (!FilterTask.exists(`playlist:${req.params.playlistid}`)) {
         // Start the execution
-        Filters.execute(req.params.playlistid, await Users.get(req.user.id))
+        Filters.executePlaylist(req.params.playlistid, await Users.get(req.user.id))
         // Wait for the log to be created
-        while (!FilterTask.exists(req.params.playlistid)) await new Promise(resolve => setTimeout(resolve, 100))
+        while (!FilterTask.exists(`playlist:${req.params.playlistid}`))
+            await new Promise(resolve => setTimeout(resolve, 100))
+
         // Reply
         return res.status(201).send("Started running the playlist filters");
     } else {
-        const task = await FilterTask.get(req.params.playlistid).logChange();
+        const task = await FilterTask.get(`playlist:${req.params.playlistid}`).logChange();
 
         if (task.finalized) {
             if (task.result.status === 200)
@@ -400,6 +402,46 @@ api.delete(`/playlist/:playlistid/included-tracks`, Users.verify_token, async (r
     }
 })
 
+/**
+ * Checks where an info item matches the filters of a playlist
+ * @param id of the kind of info item
+ * @param source how to get the info item. Uses the same format as the sources in the playlist, but the origin field is a hidden field specified in `processing/sources.ts`
+ * @param filters the filters of the playlist to check the info item against
+ */
+api.patch(`/info/:kind/test`, Users.verify_token, async (req, res) => {
+    if (!FilterTask.exists(`${req.params.kind}:${req.body.id}`)) {
+        const task = new FilterTask(`${req.params.kind}:${req.body.id}`, ProcessLevel.INFO_ITEM),
+              source = req.body.source,
+              filters = req.body.filters;
+
+        // Start the execution
+        Filters.executeInfoItem(task, await Users.get(req.user.id), source, filters)
+
+        // Wait for the log to be created
+        while (!FilterTask.exists(`${req.params.kind}:${req.body.id}`))
+            await new Promise(resolve => setTimeout(resolve, 100))
+
+        // Reply
+        return res.status(201).send("Started running the playlist filters on the info item");
+    } else {
+        const task = await FilterTask.get(`${req.params.kind}:${req.body.id}`).logChange();
+
+        if (task.finalized) {
+            res.status(task.result.status).json(task.log);
+            task.delete();
+        } else {
+            return res.status(302).json({
+                status: "Still processing info item",
+                log: task.log
+            });
+        }
+    }
+})
+
+/**
+ * Gets Spotify Client Tokens based on the user's access token
+ * Can't be done in the browser
+ */
 api.get('/spclient-tokens', Users.verify_token, async (req, res) => {
     const client = await Fetch.get('https://open.spotify.com/get_access_token');
 

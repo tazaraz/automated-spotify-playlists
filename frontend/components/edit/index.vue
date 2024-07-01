@@ -339,13 +339,13 @@ export default class Edit extends Vue {
     showLog = false;
     /** 0: default, 1: pending, 2: finished */
     saveState = 0;
+    /** 0: default, 1: pending, 2: finished */
+    executeState = 0;
     /** Interval after which a message will be displayed */
     applyFiltersStuckMessage: {
         timeout: NodeJS.Timeout;
         show: boolean;
     } = { timeout: null as any, show: false };
-    /** 0: default, 1: pending, 2: finished */
-    executeState = 0;
     /** 0: uncopied, 1: copied */
     copied = 0;
     /** 0: invalid config, 1: valid config */

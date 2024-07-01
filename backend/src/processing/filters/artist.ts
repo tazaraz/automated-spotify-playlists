@@ -1,6 +1,8 @@
 import { FilterString, FilterValue } from "../../shared/matching";
 import { FilterItem, Generic, SAlbum, SArtist, STrack } from "../../shared/types/server";
-import { filter_async, get_by_kind } from ".";
+import { filter_async, get_by_kind, log_single } from ".";
+import { ProcessLevel } from "..";
+import FilterTask from "../../stores/filtertask";
 
 export class Artist {
     static async convert(item: FilterItem<Generic>){
@@ -20,13 +22,15 @@ export class Artist {
     static async Name(items: FilterItem<Generic>[],
                       operation: keyof typeof FilterString.operation,
                       filter: string,
-                      dry_run=false){
-        if (dry_run) {
+                      task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterString.matches(operation, filter, "")
             return [];
         }
 
         return await filter_async(items, Artist.convert, async filter_item => {
+            log_single(task, filter, filter_item.name)
+
             // Get the artist names
             if (FilterString.matches(operation, filter, filter_item.name))
                 return true;
@@ -36,13 +40,15 @@ export class Artist {
     static async Genres(items: FilterItem<Generic>[],
                         operation: keyof typeof FilterString.operation,
                         filter: string,
-                        dry_run=false){
-        if (dry_run) {
+                        task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterString.matches(operation, filter, "")
             return [];
         }
 
         return await filter_async(items, Artist.convert, async filter_item => {
+            log_single(task, filter, filter_item.genres.toString())
+
             // Get the track artists
             if (FilterString.matches(operation, filter, filter_item.genres.toString()))
                 return true;
@@ -52,13 +58,15 @@ export class Artist {
     static async Popularity(items: FilterItem<SArtist>[],
                             operation: keyof typeof FilterValue.operation,
                             filter: number,
-                            dry_run=false){
-        if (dry_run) {
+                            task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterValue.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, Artist.convert, async filter_item => {
+            log_single(task, filter, filter_item.popularity)
+
             // Popularity ranges from 0 - 100
             if (FilterValue.matches(operation, filter, filter_item.popularity / 100))
                 return true;
@@ -68,13 +76,15 @@ export class Artist {
     static async Followers(items: FilterItem<SArtist>[],
                            operation: keyof typeof FilterValue.operation,
                            filter: number,
-                           dry_run=false){
-        if (dry_run) {
+                           task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterValue.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, Artist.convert, async filter_item => {
+            log_single(task, filter, filter_item.followers)
+
             // Get the track artists
             if (FilterValue.matches(operation, filter, filter_item.followers))
                 return true;

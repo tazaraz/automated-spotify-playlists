@@ -7,6 +7,7 @@ import { FilterItem, STrack, SUser } from "../shared/types/server";
 import { FilterParserOptions } from "../shared/types/descriptions";
 import { Track } from "./filters";
 import { FilterBoolean } from "../shared/matching/boolean";
+import { ProcessLevel } from ".";
 
 export default class FilterParser {
     public static readonly mode = FilterParserOptions;
@@ -20,8 +21,7 @@ export default class FilterParser {
     public static async process(statement: PlaylistStatement,
                                 items: FilterItem<any>[],
                                 user: SUser,
-                                task: FilterTask,
-                                dryrun=false): Promise<FilterItem<any>[]> {
+                                task: FilterTask) {
         let result: FilterItem<any>[];
 
         // If the user specified no filters at all
@@ -29,14 +29,14 @@ export default class FilterParser {
             result = items
             task.log.filters.push("No filters specified");
         } else {
-            result = await FilterParser.checkStatement(statement, items, user, task, dryrun);
+            result = await FilterParser.checkStatement(statement, items, user, task);
         }
 
         // Convert the FilterItems to STracks and flatten (FilterItem can always map to a STrack[])
         const tracks: FilterItem<STrack>[] = (await Promise.all(result.map(item => Track.convert(item)))).flat()
               tracks.forEach(item => (item as FilterItem<STrack>).kind = "track")
 
-        task.log.filters.push(`Converted ${result.length} items to ${tracks.length} tracks`)
+        task.log.filters.push(`Converted ${result.length} item${result.length == 1 ? '' : 's'} to ${tracks.length} track${tracks.length == 1 ? '' : 's'}`)
 
         // Now they are STracks but stored as a FilterItem
         return tracks;
@@ -51,8 +51,7 @@ export default class FilterParser {
     private static async checkStatement(statement: PlaylistStatement,
                                         items: FilterItem<any>[],
                                         user: SUser,
-                                        task: FilterTask,
-                                        dryrun=false
+                                        task: FilterTask
     ): Promise<FilterItem<any>[]>{
         // If the filter is not an object or does not have the required entries
         if (!FilterParser.isStatement(statement)) {
@@ -72,24 +71,22 @@ export default class FilterParser {
             // If the filter is an statement
             if ((f as PlaylistCondition).value === undefined){
                 // the loop again
-                task.log.filters.push(`Start statement (${String((f as PlaylistStatement).mode)})`)
+                task.log.filters.push(`Start Statement (${String((f as PlaylistStatement).mode)})`)
                 result = await FilterParser.checkStatement(
                     f as PlaylistStatement,
                     input,
                     user,
-                    task,
-                    dryrun
+                    task
                 );
 
-                task.log.filters.push(`End statement: filtered ${result.length} of ${input.length} items (${result.length - input.length})`);
+                task.log.filters.push(`End Statement: matched ${result.length} of ${input.length} items`);
             } else {
                 // Execute the filter
                 result = await FilterParser.checkCondition(
                     f as PlaylistCondition,
                     input,
                     user,
-                    task,
-                    dryrun
+                    task
                 )
                 if (result === undefined)
                     continue;
@@ -98,7 +95,7 @@ export default class FilterParser {
                 const counts = {} as {[key: string]: number}
                 result.forEach(item => counts[item.kind] = (counts[item.kind] || 0) + 1)
 
-                task.log.filters.push(`Filter '${(f as any).category} ${(f as any).filter}' matched ${result.length} of ${input.length} items (${Object.entries(counts).map(([kind, count]) => `${count} ${kind}${count == 1 ? '' : 's'}`).join(", ")})`);
+                task.log.filters.push(`Filter '${(f as any).category} ${(f as any).filter}' matched ${result.length} of ${input.length} items`);
             }
 
             /**Otherwise pipe the output into the next input, in effect filtering out all
@@ -111,9 +108,13 @@ export default class FilterParser {
                     break;
 
                 case "all":
-                case "none":
                     // If the filter actually did anything
                     input = [...result];
+                    break;
+
+                case "none":
+                    // If the filter actually did anything
+                    input = input.filter(track => !result.includes(track));
                     break;
 
                 // Someone tried funky business with the filter
@@ -149,8 +150,7 @@ export default class FilterParser {
     private static async checkCondition(condition: PlaylistCondition,
                                         input: FilterItem<any>[],
                                         user: SUser,
-                                        task: FilterTask,
-                                        dryrun=false): Promise<FilterItem<any>[] | undefined> {
+                                        task: FilterTask): Promise<FilterItem<any>[] | undefined> {
         if (!FilterParser.isCondition(condition)) {
             task.log.filters.push(`Invalid condition: ${JSON.stringify(condition)}`)
             THROW_DEBUG_ERROR(`Invalid condition: ${JSON.stringify(condition)}`);
@@ -164,7 +164,7 @@ export default class FilterParser {
         }
 
         if (`${condition.category} ${condition.filter}` == "Track is Loved") {
-            if (dryrun) return input
+            if (task.plevel == ProcessLevel.DRY_RUN) return input
 
             // Store the loved status of each track
             const loved: {[id: string]: boolean} = {}
@@ -190,7 +190,7 @@ export default class FilterParser {
             return loved_tracks
         } else {
             return (await (Filters as any)[condition.category][condition.filter]
-                    .filter(input, condition.operation, condition.value, dryrun)) as FilterItem<any>[];
+                    .filter(input, condition.operation, condition.value, task)) as FilterItem<any>[];
         }
     }
 

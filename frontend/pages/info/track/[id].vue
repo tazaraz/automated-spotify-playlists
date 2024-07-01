@@ -106,6 +106,7 @@
                 </ol>
             </template>
             <h4 v-else class="text-white ms-3 ps-2 pb-2">This track does not appear in any of your playlists</h4>
+            <Testinfoitem kind="track" :id="$route.params.id"></Testinfoitem>
         </div>
     </article>
 </template>

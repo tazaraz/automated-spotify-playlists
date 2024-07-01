@@ -1,6 +1,8 @@
 import { FilterSlider, FilterString, FilterValue } from "../../shared/matching";
 import { FilterItem, Generic, SAlbum, SArtist, STrack } from "../../shared/types/server";
-import { filter_async, get_by_kind } from ".";
+import { filter_async, get_by_kind, log_single } from ".";
+import { ProcessLevel } from "..";
+import FilterTask from "../../stores/filtertask";
 
 export class Track {
     /**
@@ -31,13 +33,15 @@ export class Track {
     static async Name(items: FilterItem<Generic>[],
                       operation: keyof typeof FilterString.operation,
                       filter: string,
-                      dry_run=false){
-        if (dry_run) {
+                      task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterString.matches(operation, filter, "")
             return [];
         }
 
         return await filter_async(items, Track.convert, async filter_item => {
+            log_single(task, filter, filter_item.name)
+
             if (FilterString.matches(operation, filter, filter_item.name))
                 return true;
         })
@@ -46,13 +50,15 @@ export class Track {
     static async Popularity(items: FilterItem<Generic>[],
                             operation: keyof typeof FilterSlider.operation,
                             filter: number,
-                            dry_run=false){
-        if (dry_run) {
+                            task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterSlider.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, Track.convert, async filter_item => {
+            log_single(task, filter, filter_item.popularity)
+
             // Popularity ranges from 0 - 100
             if (FilterSlider.matches(operation, filter, filter_item.popularity))
                 return true;
@@ -62,13 +68,15 @@ export class Track {
     static async Duration(items: FilterItem<Generic>[],
                           operation: keyof typeof FilterValue.operation,
                           filter: number,
-                          dry_run=false){
-        if (dry_run) {
+                          task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterValue.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, Track.convert, async filter_item => {
+            log_single(task, filter, filter_item.duration_ms / 1000)
+
             // Convert milliseconds to seconds
             if (FilterValue.matches(operation, filter, filter_item.duration_ms / 1000))
                 return true;

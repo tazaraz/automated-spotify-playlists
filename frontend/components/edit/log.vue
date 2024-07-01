@@ -24,7 +24,7 @@
             </span>
         </template>
         <template v-else>
-            <div class="d-flex">
+            <div v-if="!infoLog" class="d-flex">
                 <h5 class="m-auto ms-0 me-3">
                     Log:
                 </h5>
@@ -33,24 +33,33 @@
                 </select>
             </div>
 
-            <h5 class="mb-0">Sources</h5>
-            <span v-if="logs[selectedLog].sources[logs[selectedLog].sources.length - 1]?.startsWith('All')" class="d-block mb-2 text-body-secondary">
-                Result: {{ logs[selectedLog].sources[logs[selectedLog].sources.length - 1] }}
-            </span>
-            <ul class="list-unstyled">
-                <template v-for="source of logs[selectedLog].sources">
-                    <li class="ms-3" v-if="!source.startsWith('All')">{{ source }}</li>
-                </template>
-            </ul>
+            <template v-if="!infoLog">
+                <h5 class="mb-0 mt-4">Sources</h5>
+                <span v-if="logs[selectedLog].sources[logs[selectedLog].sources.length - 1]?.startsWith('All')" class="d-block mb-2 text-body-secondary">
+                    Result: {{ logs[selectedLog].sources[logs[selectedLog].sources.length - 1] }}
+                </span>
+                <ul class="list-unstyled">
+                    <template v-for="source of logs[selectedLog].sources">
+                        <li class="ms-3" v-if="!source.startsWith('All')">{{ source }}</li>
+                    </template>
+                </ul>
+            </template>
 
             <h5 class="mt-4 mb-0">Filters</h5>
-            <span v-if="logs[selectedLog].filters[logs[selectedLog].filters.length - 1]?.startsWith('Converted')" class="d-block mb-2 text-body-secondary">
+            <span v-if="!infoLog && logs[selectedLog].filters[logs[selectedLog].filters.length - 1]?.startsWith('Converted')" class="d-block mb-2 text-body-secondary">
                 Result: {{ logs[selectedLog].filters[logs[selectedLog].filters.length - 1] }}
             </span>
             <div class="d-block">
-                <template v-for="log of statements">
-                    <div v-if="!log.value.startsWith('Converted')" class="d-flex"><i v-for="i of log.indent" class="ms-4"></i>
-                        <span class="border-start border-top-0 border-2 border-info ps-2 mt-1 mb-1">{{ log.value }}</span>
+                <template v-for="log, index of statements">
+                    <div v-if="!log.value.startsWith('Converted') && !log.value.startsWith('Info:')" class="d-flex">
+                        <i v-for="i of log.indent" class="ms-4"></i>
+                        <div class="d-flex flex-column border-start border-top-0 border-2 border-info ps-2 mt-1 mb-1">
+                            {{ log.value }}
+
+                            <small class="ms-2 text-secondary" v-for="data of getDataAttributes(index)">
+                                {{ log.value.split("'")[1] }}: "<i>{{ data.value.split(":")[1] }}</i>"
+                            </small>
+                        </div>
                     </div>
                 </template>
             </div>
@@ -59,29 +68,40 @@
 </template>
 <script lang="ts">
 import { Vue, Prop } from 'vue-property-decorator';
-import { Playlist } from '../../../backend/src/shared/types/playlist';
+import { PlaylistCondition, PlaylistLog } from '../../../backend/src/shared/types/playlist';
 import Playlists from '~/stores/playlists';
+import Editor from '~/stores/editor';
 
 export default class EditLog extends Vue {
-    playlists: Playlists = null as any;
-    logs: Playlist['logs'] = [];
+    @Prop({ default: null }) infoLog!: PlaylistLog;
+    editor: Editor = null as any;
 
+    logs: PlaylistLog[] = [];
     selectedLog: number = 0;
+
     indent: number = 0;
     statements: {value: string, indent: number}[] = [];
 
     created() {
-        this.playlists = new Playlists();
-        this.logs = this.playlists.editor.logs;
-        this.selectedLog = Math.max(0, this.logs.length - 1);
+        this.editor = new Editor();
+
+        watch(() => [this.infoLog, this.editor.logs], () => {
+            this.logs = this.infoLog ? [this.infoLog] : this.editor.logs;
+            this.parseLogs();
+        });
+
+        if (!this.editor.logs) return;
+
+        if (this.infoLog) {
+            this.logs = [this.infoLog];
+            this.selectedLog = 0;
+        } else {
+            this.logs = this.editor.logs;
+            this.selectedLog = Math.max(0, this.logs.length - 1);
+        }
 
         // Parse the last log
         if (this.logs.length > 0) this.parseLogs();
-
-        watch(() => this.playlists.editor.logs, () => {
-            this.logs = this.playlists.editor.logs;
-            this.parseLogs();
-        });
     }
 
     /**
@@ -106,8 +126,8 @@ export default class EditLog extends Vue {
             } else if (l.startsWith('End')) {
                 this.removeIndent(l, stack.pop()!);
             } else {
-                index++;
                 this.statements.push({value: l, indent: this.indent});
+                index++;
             }
         }
     }
@@ -121,8 +141,17 @@ export default class EditLog extends Vue {
 
     removeIndent(log: string, index: number) {
         this.indent--;
-        this.statements[index].value = log.replace('End ', '').charAt(0).toUpperCase() + log.replace('End ', '').slice(1);
+        this.statements[index].value = log.slice(4);
         return true;
+    }
+
+    getDataAttributes(index: number) {
+        const info: typeof this.statements = [];
+        while (this.statements[--index]?.value.startsWith('Info:')) {
+            info.push(this.statements[index]);
+        }
+
+        return info;
     }
 }
 </script>

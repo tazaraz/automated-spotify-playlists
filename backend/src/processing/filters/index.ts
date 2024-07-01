@@ -1,4 +1,6 @@
+import { ProcessLevel } from "..";
 import { FilterItem, Generic } from "../../shared/types/server";
+import FilterTask from "../../stores/filtertask";
 
 export { Album } from "./album";
 export { Artist } from "./artist";
@@ -85,4 +87,16 @@ export async function filter_async<T extends Generic>(
     // Wait for all promises to be resolved
     await Promise.all(tasks);
     return matches;
+}
+
+/**
+ * Logs extra data if the task's plevel is in info item mode.
+ * Stuff like operation and filter name are known in the client, but this data is not.
+ * @param task Task to log to
+ * @param data The data retrieved from Spotify (or the cache)
+ * @param filter The filter that was matched
+ */
+export function log_single(task: FilterTask, data: string | number, filter: string | number) {
+    if (task.plevel !== ProcessLevel.INFO_ITEM) return;
+    task.log.filters.push(`Info:${filter}:${data}`)
 }

@@ -3,7 +3,8 @@ import FilterTask from "../stores/filtertask";
 import Metadata from "../stores/metadata";
 import { Sources } from "../shared/types/filters";
 import { PlaylistSource } from "../shared/types/playlist";
-import { FilterItem, SAlbum, STrack, SUser } from "../shared/types/server";
+import { FilterItem, Generic, SAlbum, STrack, SUser } from "../shared/types/server";
+import { ProcessLevel } from ".";
 
 export default class MusicSources {
     public static readonly origin = Sources;
@@ -11,17 +12,15 @@ export default class MusicSources {
     public static async get(
         sources: PlaylistSource[],
         user: SUser,
-        task: FilterTask,
-        dry_run=false
-    ): Promise<FilterItem<any>[]> {
-        let tracks: STrack[], albums: SAlbum[], artists, items: any[],
-            filteritems: FilterItem<any>[] = [];
+        task: FilterTask
+    ) {
+        let items: FilterItem<Generic>[], filteritems: FilterItem<Generic>[] = [];
 
         Metadata.API_USER = user;
 
         for (const [index, source] of sources.entries()) {
             // Execute the dry_run if necessary
-            if (dry_run) {
+            if (task.plevel == ProcessLevel.DRY_RUN) {
                 if (Object.keys(Sources).indexOf(source.origin) === -1) {
                     task.log.sources.push(`Source ${index + 1} is not a supported source: ${source.origin}`);
                     THROW_DEBUG_ERROR(`Source ${index + 1} is not a supported source: ${source.origin}`);
@@ -85,6 +84,23 @@ export default class MusicSources {
                 //     artists.map(item => (item as FilterItem).kind = "artist");
                 //     items = artists
                 //     break;
+
+                /**
+                 * These cases are specifically for testing if a track, artist or album matches a playlist's filters.
+                 * They are not visible in the UI, and hence are not specified in the descriptions.ts
+                 */
+                // @ts-ignore
+                case "Track":
+                    items = [await Metadata.getTrack(source.value)];
+                    break;
+                // @ts-ignore
+                case "Album":
+                    items = [await Metadata.getAlbum(source.value)];
+                    break;
+                // @ts-ignore
+                case "Artist":
+                    items = [await Metadata.getArtist(source.value)];
+                    break;
             }
 
             filteritems.push(...items)

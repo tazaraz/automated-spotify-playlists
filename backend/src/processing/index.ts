@@ -4,7 +4,7 @@ import Fetch from "../tools/fetch";
 import FilterParser from "./parser";
 import MusicSources from "./sources";
 import { LOG, LOG_DEBUG } from "../main";
-import { Playlist } from "../shared/types/playlist";
+import { Playlist, PlaylistSource, PlaylistStatement } from "../shared/types/playlist";
 import { FilterItem, STrack, SUser } from "../shared/types/server";
 import FilterTask from "../stores/filtertask";
 import Cache from "../stores/cache";
@@ -13,6 +13,18 @@ export interface FilterResult {
     message: string;
     status: number;
     playlist?: Playlist;
+}
+
+/**
+ * The level of processing to be done. This is used to determine how much information is needed and logged
+ */
+export enum ProcessLevel {
+    /** Default operation. Logs only basic general info and processes a playlsiy */
+    PLAYLIST = 0,
+    /** Used when checking if an info item matches the filters. Specific logs */
+    INFO_ITEM = 1,
+    /** Used for checking validity of playlist filters. No actual processing or logging */
+    DRY_RUN = 2,
 }
 
 export default class Filters {
@@ -24,12 +36,12 @@ export default class Filters {
      * @param user              The user who owns the playlist
      * @param auto              Whether the playlist was auto updated
      */
-    static async execute(playlist: Playlist | string, user: SUser, auto: boolean = false): Promise<void> {
+    static async executePlaylist(playlist: Playlist | string, user: SUser, auto: boolean = false): Promise<void> {
         // If the playlist is already being processed, return
         if (FilterTask.exists((playlist as any).id || playlist))
             return;
 
-        const task = new FilterTask((playlist as any).id || playlist, auto);
+        const task = new FilterTask(`playlist:${(playlist as any).id || playlist}`, ProcessLevel.PLAYLIST, auto);
 
         // If we are rate limited, wait until we are not
         if (Filters.retry_after !== undefined && Filters.retry_after > new Date())
@@ -75,7 +87,12 @@ export default class Filters {
         const input = [...new Map(source_tracks.map(item => [item.id, item])).values()]
 
         // Update the playlist
-        const {resulting_playlist, to_be_added, to_be_removed} = await Filters.process(playlist, input, user, task);
+        const {resulting_playlist, to_be_added, to_be_removed} = await Filters.processPlaylist(
+            playlist,
+            input,
+            user,
+            task
+        );
 
         // Update the playlist
         await Promise.all([
@@ -118,7 +135,10 @@ export default class Filters {
      * @param playlist  The playlist config
      * @param tracks    Tracks to match
      */
-    static async process(playlist: Playlist, input : FilterItem<any>[], user: SUser, task: FilterTask, dryrun=false) {
+    private static async processPlaylist(playlist: Playlist,
+                                         input : FilterItem<any>[],
+                                         user: SUser,
+                                         task: FilterTask) {
         /** We must account for the following things:
          * - Nothing changed
          * - Included and/or excluded changed
@@ -143,7 +163,7 @@ export default class Filters {
          */
         delete Cache.url_cache[`/playlists/${playlist.id}/tracks`]
 
-        const spotify_tracks = dryrun ? [] :
+        const spotify_tracks = task.plevel == ProcessLevel.DRY_RUN ? [] :
             await Metadata.getMultipleTracks(`/playlists/${playlist.id}/tracks`,{
                 user,
                 pagination: true
@@ -160,8 +180,7 @@ export default class Filters {
             playlist.filters,
             input,
             user,
-            task,
-            dryrun
+            task
         );
 
         LOG_DEBUG(`1: filter input: ${input.length}, filter output: ${matched_tracks.length}`)
@@ -200,6 +219,25 @@ export default class Filters {
         playlist.included_tracks    = included_tracks
 
         return {resulting_playlist: playlist, to_be_added, to_be_removed};
+    }
+
+    static async executeInfoItem(task: FilterTask,
+                                 user: SUser,
+                                 sources: PlaylistSource[],
+                                 filters: PlaylistStatement): Promise<void> {
+        const source_tracks = await MusicSources.get(sources, user, task);
+        if (source_tracks.length === 0)
+            return task.finalize({ message: `No tracks found`, status: 404 });
+
+        // If the track does not exist, return
+        const matched = await FilterParser.process(
+            filters,
+            source_tracks,
+            user,
+            task,
+        );
+
+        task.finalize({ message: `Ran filters`, status: 200 });
     }
 
     /**

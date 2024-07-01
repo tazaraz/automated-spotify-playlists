@@ -1,6 +1,8 @@
 import { FilterValue, FilterSlider } from "../../shared/matching";
 import { FilterItem, Generic, SAlbum, SArtist, STrack } from "../../shared/types/server";
-import { filter_async, get_by_kind } from ".";
+import { filter_async, get_by_kind, log_single } from ".";
+import { ProcessLevel } from "..";
+import FilterTask from "../../stores/filtertask";
 
 export class TrackFeatures {
     private static async convert(item: FilterItem<Generic>) {
@@ -25,16 +27,19 @@ export class TrackFeatures {
     }
 
     static async Acoustic(items: FilterItem<Generic>[],
-                      operation: keyof typeof FilterSlider.operation,
-                      filter: number,
-                      dry_run=false){
-        if (dry_run) {
+                          operation: keyof typeof FilterSlider.operation,
+                          filter: number,
+                          task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterSlider.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
-            if (FilterSlider.matches(operation, filter, (await filter_item.features()).acousticness * 100))
+            const acousticness = (await filter_item.features()).acousticness * 100
+            log_single(task, filter, acousticness)
+
+            if (FilterSlider.matches(operation, filter, acousticness))
                 return true;
         })
     }
@@ -42,15 +47,18 @@ export class TrackFeatures {
     static async Danceability(items: FilterItem<Generic>[],
                               operation: keyof typeof FilterSlider.operation,
                               filter: number,
-                              dry_run=false){
-        if (dry_run) {
+                              task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterSlider.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
+            const danceability = (await filter_item.features()).danceability * 100
+            log_single(task, filter, danceability)
+
             // Sliders on the client side range from 0 - 100, whereas the API ranges from 0.0 - 1.0
-            if (FilterSlider.matches(operation, filter, (await filter_item.features()).danceability * 100))
+            if (FilterSlider.matches(operation, filter, danceability))
                 return true;
         })
     }
@@ -58,30 +66,36 @@ export class TrackFeatures {
     static async Energy(items: FilterItem<Generic>[],
                         operation: keyof typeof FilterSlider.operation,
                         filter: number,
-                        dry_run=false){
-        if (dry_run) {
+                        task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterSlider.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
-            if (FilterSlider.matches(operation, filter, (await filter_item.features()).energy * 100))
+            const energy = (await filter_item.features()).energy * 100
+            log_single(task, filter, energy)
+
+            if (FilterSlider.matches(operation, filter, energy))
                 return true;
         })
     }
 
     static async Vocality(items: FilterItem<Generic>[],
-                              operation: keyof typeof FilterSlider.operation,
-                              filter: number,
-                              dry_run=false){
-        if (dry_run) {
+                          operation: keyof typeof FilterSlider.operation,
+                          filter: number,
+                          task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterSlider.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
+            const instrumentalness = (1 - (await filter_item.features()).instrumentalness) * 100
+            log_single(task, filter, instrumentalness)
+
             // The UI displays this as 'Vocality', but the API calls it 'instrumentalness', which is the opposite
-            if (FilterSlider.matches(operation, filter, (1 - (await filter_item.features()).instrumentalness) * 100))
+            if (FilterSlider.matches(operation, filter, instrumentalness))
                 return true;
         })
     }
@@ -89,14 +103,17 @@ export class TrackFeatures {
     static async Loudness(items: FilterItem<Generic>[],
                           operation: keyof typeof FilterValue.operation,
                           filter: number,
-                          dry_run=false){
-        if (dry_run) {
+                          task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterValue.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
-            if (FilterValue.matches(operation, filter, (await filter_item.features()).loudness * 100))
+            const liveness = (await filter_item.features()).liveness * 100
+            log_single(task, filter, liveness)
+
+            if (FilterValue.matches(operation, filter, liveness))
                 return true;
         })
     }
@@ -104,29 +121,35 @@ export class TrackFeatures {
     static async Live(items: FilterItem<Generic>[],
                       operation: keyof typeof FilterSlider.operation,
                       filter: number,
-                      dry_run=false){
-        if (dry_run) {
+                      task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterSlider.matches(operation, filter, 0)
             return [];
         }
 
-        return await filter_async(items, TrackFeatures.convert, async filter_item => {;
-            if (FilterSlider.matches(operation, filter, (await filter_item.features()).liveness * 100))
+        return await filter_async(items, TrackFeatures.convert, async filter_item => {
+            const liveness = (await filter_item.features()).liveness * 100
+            log_single(task, filter, liveness)
+
+            if (FilterSlider.matches(operation, filter, liveness))
                 return true;
         })
     }
 
     static async BPM(items: FilterItem<Generic>[],
-                       operation: keyof typeof FilterValue.operation,
-                       filter: number,
-                       dry_run=false){
-        if (dry_run) {
+                     operation: keyof typeof FilterValue.operation,
+                     filter: number,
+                     task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterValue.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
-            if (FilterValue.matches(operation, filter, (await filter_item.features()).tempo))
+            const tempo = (await filter_item.features()).tempo
+            log_single(task, filter, tempo)
+
+            if (FilterValue.matches(operation, filter, tempo))
                 return true;
         })
     }
@@ -134,15 +157,18 @@ export class TrackFeatures {
     static async Positivity(items: FilterItem<Generic>[],
                             operation: keyof typeof FilterSlider.operation,
                             filter: number,
-                            dry_run=false){
-        if (dry_run) {
+                            task: FilterTask){
+        if (task.plevel == ProcessLevel.DRY_RUN) {
             FilterSlider.matches(operation, filter, 0)
             return [];
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
+            const valence = (await filter_item.features()).valence * 100
+            log_single(task, filter, valence)
+
             // Sliders on the client side range from 0 - 100, whereas the API ranges from 0.0 - 1.0
-            if (FilterSlider.matches(operation, filter, (await filter_item.features()).valence * 100))
+            if (FilterSlider.matches(operation, filter, valence))
                 return true;
         })
     }
