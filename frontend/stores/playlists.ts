@@ -336,7 +336,7 @@ export default class Playlists extends Pinia {
             this.loadingPlaylistsTrackIds = Promise.all(playlists.map(async playlist => {
                 // If the playlist is not an automated playlist, we need to load the track ids
                 const tracks = (await Fetch.get<any[]>(`spotify:/playlists/${playlist.id}/tracks`, {
-                    query: { fields: 'items.track.id' },
+                    query: { fields: 'total,items.track.id' },
                     pagination: true
                 })).data;
 
@@ -401,7 +401,6 @@ export default class Playlists extends Pinia {
      */
     removeMatched(tracks: PartialTrackList){
         // Remove the tracks from the from the origin
-        this.loaded.matched_tracks = this.filterOut(this.loaded.matched_tracks, tracks);
         this.loaded.all_tracks     = this.filterOut(this.loaded.all_tracks, tracks);
 
         // Add the tracks to the destination
@@ -420,7 +419,6 @@ export default class Playlists extends Pinia {
         this.loaded.excluded_tracks = this.filterOut(this.loaded.excluded_tracks, tracks);
 
         // Add the tracks to the destination
-        this.loaded.matched_tracks.push(...tracks);
         this.loaded.all_tracks.push(...tracks);
 
         // Let the server know the change

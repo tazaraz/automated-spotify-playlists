@@ -54,7 +54,7 @@ export default class MusicSources {
                 case "Artist's Albums":
                     items = await Metadata.getMultipleAlbums(
                         `/artists/${source.value}/albums`,
-                        { user, pagination: true, query: { market: user.country, include_groups: "album,single" } }
+                        { user, pagination: true, query: { market: user.country, include_groups: "total,album,single" } }
                     );
                     break;
 
