@@ -249,27 +249,6 @@ export default class PlaylistDisplay extends Vue {
         /** Style the loading placeholders accordingly */
         await this.layout.render(null, true);
 
-        /** Watch for changes in the loaded playlist */
-        this.watcher = {
-            stop: watch(
-                () => [
-                    this.playlists.loaded?.all_tracks,
-                    this.playlists.loaded?.matched_tracks,
-                    this.playlists.loaded?.excluded_tracks,
-                    this.playlists.loaded?.included_tracks
-                ], () => {
-                    // clearTimeout(this.watcher.delay);
-                    // if (!this.loading) {
-                    //     this.watcher.delay = setTimeout(() => this.showTracks(this.shown.kind), 500);
-                    // }
-                }, {
-                    deep: true,
-                    immediate: true
-                }
-            ),
-            delay: null as any
-        }
-
         if (id == 'unpublished') {
             await this.showTracks("all");
             this.loading = false;
@@ -455,7 +434,7 @@ export default class PlaylistDisplay extends Vue {
                 break;
         }
 
-        this.showTracks(this.shown.kind)
+        this.$nextTick(() => this.showTracks(this.shown.kind))
     }
 
     /**
@@ -476,7 +455,7 @@ export default class PlaylistDisplay extends Vue {
                 break;
         }
 
-        this.showTracks(this.shown.kind)
+        this.$nextTick(() => this.showTracks(this.shown.kind))
     }
 
     /**
