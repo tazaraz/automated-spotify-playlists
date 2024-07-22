@@ -24,7 +24,7 @@
                             &nbsp;&nbsp;━&nbsp;&nbsp;
                             <span>{{ followers.length }} follower{{ followers.length == 1 ? '' : 's' }}</span>
                             &nbsp;&nbsp;━&nbsp;&nbsp;
-                            <InfoField description="Spotify does not allow us to view this information">? following</InfoField>
+                            <InfoTooltip description="Spotify does not allow us to view this information">? following</InfoTooltip>
                         </div>
                     </template>
                     <Spotify v-if="user" :to="`https://open.spotify.com/user/${user.id}`" class="mt-2 mb-3">SHOW IN SPOTIFY</Spotify>

@@ -30,18 +30,18 @@
                     <span v-else>{{ artist.id }} </span>
                 </div>
                 <div class="col-12 mb-2 col-4 mb-2 multilayer">
-                    <InfoField :description="Filters.Artist.Genres.description">Genres</InfoField>
+                    <InfoTooltip :description="Filters.Artist.Genres.description">Genres</InfoTooltip>
                     <span v-if="!artist" class="placeholder rounded-1"></span>
                     <span v-else>{{ artist.genres.join(', ') || "No genres for this artist" }}</span>
                 </div>
                 <div class="d-flex">
                     <div class="me-5 multilayer">
-                        <InfoField :description="Filters.Artist.Popularity.description">Popularity</InfoField>
+                        <InfoTooltip :description="Filters.Artist.Popularity.description">Popularity</InfoTooltip>
                         <span v-if="!artist" class="placeholder rounded-1"></span>
                         <span v-else>{{ artist!.popularity / 10 }} / 10</span>
                     </div>
                     <div class="multilayer">
-                        <InfoField :description="Filters.Artist.Followers.description">Followers</InfoField>
+                        <InfoTooltip :description="Filters.Artist.Followers.description">Followers</InfoTooltip>
                         <span v-if="!artist" class="placeholder rounded-1"></span>
                         <span v-else>{{ artist.followers.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</span>
                     </div>

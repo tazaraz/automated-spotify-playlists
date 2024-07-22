@@ -49,47 +49,47 @@
                     <span v-else>{{ track.id }} </span>
                 </div>
                 <div class="col-12 mb-2 multilayer">
-                    <InfoField description="Genres of all artists who contributed to the album this track belongs to.">Album Genres</InfoField>
+                    <InfoTooltip description="Genres of all artists who contributed to the album this track belongs to.">Album Genres</InfoTooltip>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ albumGenres }}</span>
                 </div>
                 <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                    <InfoField :description="Filters.Track.BPM.description">BPM</InfoField>
+                    <InfoTooltip :description="Filters.Track.BPM.description">BPM</InfoTooltip>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ Math.round(track.features.tempo) }}</span>
                 </div>
                 <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                    <InfoField :description="Filters.Track.Popularity.description">Popularity</InfoField>
+                    <InfoTooltip :description="Filters.Track.Popularity.description">Popularity</InfoTooltip>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ track.popularity / 10 }} / 10</span>
                 </div>
                 <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                    <InfoField :description="Filters.Track.Danceability.description">Danceability</InfoField>
+                    <InfoTooltip :description="Filters.Track.Danceability.description">Danceability</InfoTooltip>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ Math.round(track.features.danceability * 100) / 10 }} / 10</span>
                 </div>
                 <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                    <InfoField :description="Filters.Track.Positivity.description">Positivity</InfoField>
+                    <InfoTooltip :description="Filters.Track.Positivity.description">Positivity</InfoTooltip>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ Math.round(track.features.valence * 100) / 10 }} / 10</span>
                 </div>
                 <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                    <InfoField :description="Filters.Track.Energy.description">Energy</InfoField>
+                    <InfoTooltip :description="Filters.Track.Energy.description">Energy</InfoTooltip>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ Math.round(track.features.energy * 100) / 10 }} / 10</span>
                 </div>
                 <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                    <InfoField :description="Filters.Track.Accousticness.description">Acoustic</InfoField>
+                    <InfoTooltip :description="Filters.Track.Accousticness.description">Acoustic</InfoTooltip>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ Math.round(track.features.acousticness * 100) / 10 }} / 10</span>
                 </div>
                 <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                    <InfoField :description="Filters.Track.Vocality.description">Vocals</InfoField>
+                    <InfoTooltip :description="Filters.Track.Vocality.description">Vocals</InfoTooltip>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ Math.round((1 - track.features.instrumentalness) * 100) / 10 }} / 10</span>
                 </div>
                 <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                    <InfoField :description="Filters.Track.Liveness.description">Live</InfoField>
+                    <InfoTooltip :description="Filters.Track.Liveness.description">Live</InfoTooltip>
                     <span v-if="!track || !track.features" class="placeholder rounded-1"></span>
                     <span v-else>{{ Math.round(track.features.liveness * 100) / 10 }} / 10</span>
                 </div>
@@ -106,7 +106,7 @@
                 </ol>
             </template>
             <h4 v-else class="text-white ms-3 ps-2 pb-2">This track does not appear in any of your playlists</h4>
-            <Testinfoitem kind="track" :id="$route.params.id"></Testinfoitem>
+            <InfoTestitem kind="track" :id="$route.params.id"></InfoTestitem>
         </div>
     </article>
 </template>

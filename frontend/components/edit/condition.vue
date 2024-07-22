@@ -11,7 +11,7 @@
                         :value="category"
                         :selected="condition.category == category">{{ category }}</option>
                 </select>
-                <InfoField :description="SubFilters[condition.filter].description">
+                <InfoTooltip :description="SubFilters[condition.filter].description">
                     <select class="ms-2 form-select form-select-sm w-auto"
                             @change="filterChange($event, 'filter')">
                         <option
@@ -19,13 +19,13 @@
                             :value="filter"
                             :selected="condition.filter == filter">{{ filter }}</option>
                     </select>
-                </InfoField>
+                </InfoTooltip>
                 <i></i>
             </span>
         </template>
 
         <span class="center operation" data-edit-class="small-d-none">
-            <InfoField :description="Operations[condition.operation]">
+            <InfoTooltip :description="Operations[condition.operation]">
                 <select class="form-select form-select-sm w-auto"
                         @change="filterChange($event, 'operation')">
                     <option
@@ -33,7 +33,7 @@
                         :value="op"
                         :selected="condition.operation == op">{{ op }}</option>
                 </select>
-            </InfoField>
+            </InfoTooltip>
         </span>
         <span data-edit-class="small-d-block normal-d-none large-d-none" style="grid-column: span 2;"></span>
 
@@ -91,7 +91,7 @@
             <span v-if="i < indent" class="tree indent"><i></i></span>
             <template v-else>
                 <span class="center stacked-operation">
-                    <InfoField :description="Operations[condition.operation]">
+                    <InfoTooltip :description="Operations[condition.operation]">
                         <select class="form-select form-select-sm w-auto ms-4"
                             @change="filterChange($event, 'operation')">
                             <option
@@ -99,7 +99,7 @@
                                 :value="op"
                                 :selected="condition.operation == op">{{ op }}</option>
                         </select>
-                    </InfoField>
+                    </InfoTooltip>
                 </span>
             </template>
         </template>

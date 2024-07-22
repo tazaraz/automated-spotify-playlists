@@ -1,7 +1,7 @@
 <template>
-    <div class="info-item">
+    <div class="tool-tip">
         <slot></slot>
-        <span ref="info" data-bs-toggle="tooltip" data-bs-delay='{"show":750,"hide":0}' :data-bs-title="description"
+        <span ref="info" data-bs-toggle="InfoTooltip" data-bs-delay='{"show":750,"hide":0}' :data-bs-title="description"
             @click="clicked" v-click-outside="hide">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path stroke="currentColor" stroke-width="3"
@@ -16,41 +16,41 @@ import { Tooltip } from 'bootstrap';
 import { Vue, Prop } from 'vue-property-decorator';
 
 /**
- * An easy wrapper for the bootstrap tooltip
+ * An easy wrapper for the bootstrap InfoTooltip
  */
-export default class InfoField extends Vue {
+export default class InfoTooltip extends Vue {
     @Prop({ required: true }) description!: string
-    tooltip: Tooltip = null as any;
+    InfoTooltip: Tooltip = null as any;
 
     mounted() {
-        this.tooltip = new this.$bootstrap.Tooltip(this.$refs.info as HTMLElement);
+        this.InfoTooltip = new this.$bootstrap.Tooltip(this.$refs.info as HTMLElement);
     }
 
     updated() {
-        this.tooltip.setContent({".tooltip-inner": this.description});
+        this.InfoTooltip.setContent({".InfoTooltip-inner": this.description});
     }
 
     beforeUnmount() {
         this.hide();
-        this.tooltip.dispose();
+        this.InfoTooltip.dispose();
     }
 
     hide() {
         this.$refs.info.classList.remove('active');
-        this.tooltip.hide();
+        this.InfoTooltip.hide();
     }
 
     clicked() {
         this.$refs.info.classList.contains('active') ?
-            this.tooltip.hide() :
-            this.tooltip.show();
+            this.InfoTooltip.hide() :
+            this.InfoTooltip.show();
         this.$refs.info.classList.toggle('active');
     }
 }
 </script>
 
 <style lang="scss" scoped>
-.info-item {
+.tool-tip {
     display: flex;
     gap: 0.25rem;
     align-items: center;
