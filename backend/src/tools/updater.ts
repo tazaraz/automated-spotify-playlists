@@ -1,9 +1,10 @@
 import { LOG, THROW_DEBUG_ERROR } from "../main";
-import Filters from "../processing";
+import Filters, { ProcessLevel } from "../processing";
 import Database from "../tools/database";
 import Users from "../stores/users";
 import Fetch from "./fetch";
 import { Playlist } from "../shared/types/playlist";
+import FilterTask from "../stores/filtertask";
 
 export default class Updater {
     /**
@@ -39,7 +40,7 @@ export default class Updater {
                         timer = process.hrtime();
                         /** We wait for each playlist to be processed.
                          * This should get faster and faster as more metadata is cached */
-                        await Filters.executePlaylist(playlist.id, user, true);
+                        await Filters.executePlaylist(task, playlist.id, user, true);
                         performance.push(process.hrtime(timer)[1] / 1000000);
                     } catch (e) {
                         LOG(`Something went wrong while updating playlist with id: ${playlist.id}: \n${e}`);

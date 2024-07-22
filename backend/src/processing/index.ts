@@ -32,17 +32,12 @@ export default class Filters {
 
     /**
      *                          Runs one filters for a playlist
+     * @param task              The process associated with this process
      * @param playlist          Either a Playlist or a playlist_id
      * @param user              The user who owns the playlist
      * @param auto              Whether the playlist was auto updated
      */
-    static async executePlaylist(playlist: Playlist | string, user: SUser, auto: boolean = false): Promise<void> {
-        // If the playlist is already being processed, return
-        if (FilterTask.exists((playlist as any).id || playlist))
-            return;
-
-        const task = new FilterTask(`playlist:${(playlist as any).id || playlist}`, ProcessLevel.PLAYLIST, auto);
-
+    static async executePlaylist(task: FilterTask, playlist: Playlist | string, user: SUser, auto: boolean = false): Promise<void> {
         // If we are rate limited, wait until we are not
         if (Filters.retry_after !== undefined && Filters.retry_after > new Date())
             return task.finalize({ message: `Retry after:${Filters.retry_after.toLocaleString()}`, status: 429 });

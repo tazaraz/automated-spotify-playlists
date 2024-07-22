@@ -231,14 +231,12 @@ api.delete('/playlist', Users.verify_token, async (req, res) => {
  */
 api.patch(`/playlist/:playlistid`, Users.verify_token, async (req, res) => {
     if (!FilterTask.exists(`playlist:${req.params.playlistid}`)) {
+        // If the playlist is already being processed, return
+        const task = new FilterTask(`playlist:${req.params.playlistid}`, ProcessLevel.PLAYLIST);
         // Start the execution
-        Filters.executePlaylist(req.params.playlistid, await Users.get(req.user.id))
-        // Wait for the log to be created
-        while (!FilterTask.exists(`playlist:${req.params.playlistid}`))
-            await new Promise(resolve => setTimeout(resolve, 100))
-
+        Filters.executePlaylist(task, req.params.playlistid, await Users.get(req.user.id))
         // Reply
-        return res.status(201).send("Started running the playlist filters");
+        return res.status(201).json({pid: `playlist:${req.params.playlistid}`});
     } else {
         const task = await FilterTask.get(`playlist:${req.params.playlistid}`).logChange();
 
@@ -251,7 +249,7 @@ api.patch(`/playlist/:playlistid`, Users.verify_token, async (req, res) => {
             task.delete();
         } else {
             return res.status(302).json({
-                status: "Playlist is already running",
+                pid: `playlist:${req.params.playlistid}`,
                 log: task.log
             });
         }
