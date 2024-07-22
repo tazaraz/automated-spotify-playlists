@@ -261,7 +261,7 @@
                                                       class="w-100 border-0 bg-white text-black rounded-2 p-2 pe-1 mt-3"
                                                       style="height: 20rem;"
                                                       @focusout="checkImportConfig"
-                                                      @keyup="checkImportConfig"
+                                                      @input="checkImportConfig"
                                                       @paste="checkImportConfig"
                                             ></textarea>
                                         </div>
@@ -293,7 +293,7 @@
                     </div>
                     <button type="button" id="editSave" class="d-flex align-items-center btn btn-primary me-3 mt-3" @click="execute" :disabled="editor.id == 'example' || !validName || (saveState > 0 || executeState > 0)">
                         <span v-if="saveState == 0 && executeState == 0">
-                            Save and apply filters
+                            {{ editor.id == 'unpublished' ? 'Create playlist' : 'Save' }} and apply filters
                         </span>
                         <span v-if="saveState == 1">
                             Saving

@@ -17,7 +17,7 @@
                  @click="click(`/info/${kind}/${id}`, name)"
                  class="link-primary text-decoration-underline source-input form-control bg-body-secondary"
             >{{ name }}</url>
-            <input v-else ref="input" @focusout="updateInput" @paste="updateInput" @keyup="updateInput" type="text" class="source-input form-control" :placeholder="`Insert ${kind} ID`" :value="name"/>
+            <input v-else ref="input" @focusout="updateInput" @paste="updateInput" @input="updateInput" type="text" class="source-input form-control" :placeholder="`Insert ${kind} ID`" :value="name"/>
             <button v-if="isValid" type="button" class="btn btn-primary" @click="edit">Edit</button>
             <button v-if="removable && (!isValid || name !== '')" class="btn btn-danger" @click="$emit('remove')"><fa-icon :icon="['fas', 'trash-can']"></fa-icon></button>
         </div>

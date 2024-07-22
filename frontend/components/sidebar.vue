@@ -25,7 +25,7 @@
                 <ol class="mt-3 nav nav-pills flex-column">
                     <li v-for="item in [
                         {name: 'Library', to: '/library', icon: ['fas', 'heart']},
-                        {name: 'Search', to: '/info', icon: ['fas', 'search']},
+                        {name: 'Search', to: '/info/search', icon: ['fas', 'search']},
                     ]" class="nav-item cursor-pointer">
                         <url :class="`d-flex align-items-center nav-link ps-0 pe-0${user?.info ? '' : ' disabled'}`" :to="item.to" @click="tryClose">
                             <h4 class="ms-3 mb-0" style="width: 3rem"><fa-icon :icon="item.icon" style="width: 2rem"></fa-icon></h4>

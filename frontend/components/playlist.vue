@@ -36,7 +36,7 @@
                         </template>
                     </div>
                 </header>
-                <div v-if="playlists && playlists.loaded" id="playlist-toolbar" :class="`d-flex sticky-top shadow-lg flex-wrap rounded-3 bg-body-tertiary ps-3 pe-3 pt-2 pb-2 mb-3${playlistToolbarSticky?' border-bottom':''}`" data-main-class="normal-normal tiny-tiny">
+                <div v-if="playlists && playlists.loaded" id="playlist-toolbar" :class="`d-flex sticky-top shadow-lg flex-wrap gap-2 rounded-3 bg-body-tertiary ps-3 pe-3 pt-2 pb-2 mb-3${playlistToolbarSticky?' border-bottom':''}`" data-main-class="normal-normal tiny-tiny">
                     <template v-if="!playlistToolbarSticky">
                         <button v-if="playlists.loaded.ownership == 'following'" class="d-flex border-0 bg-transparent p-2 ps-3 p-1 me-auto" @click="unfollow">
                             <fa-icon style="font-size: 150%;" :icon="['fas', 'heart']"></fa-icon>
@@ -161,7 +161,7 @@
                         <Track
                             :track="isVisibleTrack(index) ? track : index"
                             :id="index" :class="`playlist-track${layout.main.state == 'tiny' ? ' tiny' : ''}`"
-                            :deleteable="shown.kind !== 'all'"
+                            :deleteable="shown.kind !== 'all' && !(typeof track === 'string' || track.id)"
                             @delete="removeTrack"/>
                     </template>
                     <h4 v-else class="m-5">
@@ -181,7 +181,6 @@ import Playlists, { LoadedPlaylist, PartialTrackList, TrackKind } from '~/stores
 import User from '~/stores/user';
 import { CPlaylist, CTrack } from '../../backend/src/shared/types/client';
 import Layout from '~/stores/layout';
-import { WatchStopHandle } from 'nuxt/dist/app/compat/capi';
 import Editor from '~/stores/editor';
 
 export default class PlaylistDisplay extends Vue {
@@ -197,12 +196,6 @@ export default class PlaylistDisplay extends Vue {
 
     /** Whether the playlist toolbar is behaving sticky */
     playlistToolbarSticky: boolean = false;
-
-    /** Contains the watchers function to stop watching */
-    watcher: {
-        stop: WatchStopHandle;
-        delay: NodeJS.Timer;
-    } = {} as any;
 
     /**Tracks which should be shown. Only possible if the playlist is an automated playlist */
     shown: {
@@ -300,10 +293,11 @@ export default class PlaylistDisplay extends Vue {
         this.loading = false;
         await this.layout.render(null, true);
         this.detectSticyPlaylistToolbar();
-    }
 
-    beforeUnmount() {
-        this.watcher?.stop();
+        // If the playlist tracks are updated, reload the list
+        watch(() => this.editor.executing, () => {
+            if (!this.editor.executing) this.showTracks(this.shown.kind);
+        })
     }
 
     /**
@@ -557,6 +551,10 @@ export default class PlaylistDisplay extends Vue {
 
     remove() {
         this.playlists.delete(this.playlists.loaded)
+
+        if (this.editor.id == this.playlists.loaded.id)
+            this.editor.close();
+
         this.$router.push("/library");
     }
 
