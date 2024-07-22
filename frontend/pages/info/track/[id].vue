@@ -98,9 +98,9 @@
                 <h4 class="text-white ms-3 ps-2 pb-2">Appears in:</h4>
                 <ol class="nav nav-pills flex-column h-100 ms-5 d-block">
                     <li v-for="playlist in appearsIn" class="nav-item cursor-pointer mb-3">
-                        <url :to="`/info/playlist/${playlist.id}`">
+                        <url :to="`/info/playlist/${playlist.id}`" class="d-flex">
                             <img class="rounded-1" style="width: 3.2rem" :src="playlist.image">
-                            <span class="m-auto ms-3 text-truncate">{{ playlist.name }}</span>
+                            <span class="m-auto ms-3">{{ playlist.name }}</span>
                         </url>
                     </li>
                 </ol>
