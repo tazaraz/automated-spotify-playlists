@@ -313,8 +313,10 @@ export default class Editor extends Pinia {
                      JSON.stringify(this.sources) != JSON.stringify(this.playlist.sources)
         )))) {
             const packet_playlist = this.playlists.copy(this.playlist as CPlaylist)
-            packet_playlist.sources = this.sources
-            packet_playlist.filters = this.filters
+            packet_playlist.name        = this.name
+            packet_playlist.description = this.description
+            packet_playlist.sources     = this.sources
+            packet_playlist.filters     = this.filters
 
             // If the playlist has been converted to an automated playlist, move the old tracks to the included tracks
             if (this.includedTracks.length > 0) {
@@ -367,29 +369,33 @@ export default class Editor extends Pinia {
             /** Response is when running only the log, and when completed a playlist */
             const response = await Fetch.patch(`server:/playlist/${this.id}`, { retries: 0 });
 
-            if (response.status === 302) {
-                this.logs = [response.data.log];
-                continue;
-            } else if (response.status === 200) {
-                // Store the log
-                this.logs = response.data.logs;
-                response.data.owner = this.playlist.owner
+            switch (response.status) {
+                case 302:
+                    this.logs = [response.data.log];
+                    continue;
+                case 200:
+                    // Store the log
+                    this.logs = response.data.logs;
+                    response.data.owner = this.playlist.owner
 
-                let all_tracks = response.data.matched_tracks.concat(response.data.included_tracks)
-                    all_tracks = all_tracks.filter((track: string) => !response.data.excluded_tracks.includes(track));
+                    // Update the all_tracks
+                    let all_tracks = response.data.matched_tracks.concat(response.data.included_tracks)
+                        all_tracks = all_tracks.filter((track: string) => !response.data.excluded_tracks.includes(track));
 
-                response.data.all_tracks = all_tracks;
-                this.playlists.save(response.data);
+                    // Update the container
+                    response.data.all_tracks = all_tracks;
+                    await this.playlists.save(response.data);
 
-                // If it is the loaded playlist, load the new tracks
-                if (this.playlist.id === this.playlists.loaded.id)
-                    await this.playlists.loadUserPlaylistByID(this.playlists.loaded.id)
-            } else {
-                break;
+                    // If it is the loaded playlist, load the new tracks
+                    if (this.playlist.id === this.playlists.loaded.id || this.playlists.loaded.id == 'unpublished')
+                        await this.playlists.loadUserPlaylistByID(this.playlist.id)
+
+                default:
+                    // Stop the execution
+                    this.executing = false;
+                    return;
             }
         }
-
-        this.executing = false;
     }
 
     /**
