@@ -79,7 +79,7 @@ export default class FilterParser {
                     task
                 );
 
-                task.log.filters.push(`End Statement: matched ${result.length} of ${input.length} items`);
+                task.log.filters.push(`End Statement: matched ${result.length}`);
             } else {
                 // Execute the filter
                 result = await FilterParser.checkCondition(
@@ -95,7 +95,7 @@ export default class FilterParser {
                 const counts = {} as {[key: string]: number}
                 result.forEach(item => counts[item.kind] = (counts[item.kind] || 0) + 1)
 
-                task.log.filters.push(`Filter '${(f as any).category} ${(f as any).filter}' matched ${result.length} of ${input.length} items`);
+                task.log.filters.push(`Filter '${(f as any).category} ${(f as any).filter}' matched ${result.length}`);
             }
 
             /**Otherwise pipe the output into the next input, in effect filtering out all

@@ -29,7 +29,7 @@ export class Artist {
         }
 
         return await filter_async(items, Artist.convert, async filter_item => {
-            log_single(task, filter, filter_item.name)
+            log_single(task, filter_item.name, filter, filter_item.name)
 
             // Get the artist names
             if (FilterString.matches(operation, filter, filter_item.name))
@@ -47,7 +47,7 @@ export class Artist {
         }
 
         return await filter_async(items, Artist.convert, async filter_item => {
-            log_single(task, filter, filter_item.genres.toString())
+            log_single(task, filter_item.name, filter, filter_item.genres.toString())
 
             // Get the track artists
             if (FilterString.matches(operation, filter, filter_item.genres.toString()))
@@ -65,7 +65,7 @@ export class Artist {
         }
 
         return await filter_async(items, Artist.convert, async filter_item => {
-            log_single(task, filter, filter_item.popularity)
+            log_single(task, filter_item.name, filter, filter_item.popularity)
 
             // Popularity ranges from 0 - 100
             if (FilterValue.matches(operation, filter, filter_item.popularity / 100))
@@ -83,7 +83,7 @@ export class Artist {
         }
 
         return await filter_async(items, Artist.convert, async filter_item => {
-            log_single(task, filter, filter_item.followers)
+            log_single(task, filter_item.name, filter, filter_item.followers)
 
             // Get the track artists
             if (FilterValue.matches(operation, filter, filter_item.followers))

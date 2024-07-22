@@ -36,8 +36,11 @@ export class TrackFeatures {
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
-            const acousticness = (await filter_item.features()).acousticness * 100
-            log_single(task, filter, acousticness)
+            const features = await filter_item.features();
+            if (features == undefined || features == null) return false;
+
+            const acousticness = features.acousticness * 100;
+            log_single(task, filter_item.name, filter, acousticness)
 
             if (FilterSlider.matches(operation, filter, acousticness))
                 return true;
@@ -54,8 +57,11 @@ export class TrackFeatures {
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
-            const danceability = (await filter_item.features()).danceability * 100
-            log_single(task, filter, danceability)
+            const features = await filter_item.features();
+            if (features == undefined || features == null) return false;
+
+            const danceability = features.danceability * 100;
+            log_single(task, filter_item.name, filter, danceability)
 
             // Sliders on the client side range from 0 - 100, whereas the API ranges from 0.0 - 1.0
             if (FilterSlider.matches(operation, filter, danceability))
@@ -73,8 +79,11 @@ export class TrackFeatures {
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
-            const energy = (await filter_item.features()).energy * 100
-            log_single(task, filter, energy)
+            const features = await filter_item.features();
+            if (features == undefined || features == null) return false;
+
+            const energy = features.energy * 100;
+            log_single(task, filter_item.name, filter, energy)
 
             if (FilterSlider.matches(operation, filter, energy))
                 return true;
@@ -91,8 +100,11 @@ export class TrackFeatures {
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
-            const instrumentalness = (1 - (await filter_item.features()).instrumentalness) * 100
-            log_single(task, filter, instrumentalness)
+            const features = await filter_item.features();
+            if (features == undefined || features == null) return false;
+
+            const instrumentalness = (1 - features.instrumentalness) * 100;
+            log_single(task, filter_item.name, filter, instrumentalness)
 
             // The UI displays this as 'Vocality', but the API calls it 'instrumentalness', which is the opposite
             if (FilterSlider.matches(operation, filter, instrumentalness))
@@ -110,8 +122,11 @@ export class TrackFeatures {
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
-            const liveness = (await filter_item.features()).liveness * 100
-            log_single(task, filter, liveness)
+            const features = await filter_item.features();
+            if (features == undefined || features == null) return false;
+
+            const liveness = features.liveness * 100;
+            log_single(task, filter_item.name, filter, liveness)
 
             if (FilterValue.matches(operation, filter, liveness))
                 return true;
@@ -128,8 +143,11 @@ export class TrackFeatures {
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
-            const liveness = (await filter_item.features()).liveness * 100
-            log_single(task, filter, liveness)
+            const features = await filter_item.features();
+            if (features == undefined || features == null) return false;
+
+            const liveness = features.liveness * 100;
+            log_single(task, filter_item.name, filter, liveness)
 
             if (FilterSlider.matches(operation, filter, liveness))
                 return true;
@@ -146,8 +164,11 @@ export class TrackFeatures {
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
-            const tempo = (await filter_item.features()).tempo
-            log_single(task, filter, tempo)
+            const features = await filter_item.features();
+            if (features == undefined || features == null) return false;
+
+            const tempo = features.tempo;
+            log_single(task, filter_item.name, filter, tempo)
 
             if (FilterValue.matches(operation, filter, tempo))
                 return true;
@@ -164,8 +185,11 @@ export class TrackFeatures {
         }
 
         return await filter_async(items, TrackFeatures.convert, async filter_item => {
-            const valence = (await filter_item.features()).valence * 100
-            log_single(task, filter, valence)
+            const features = await filter_item.features();
+            if (features == undefined || features == null) return false;
+
+            const valence = features.valence * 100;
+            log_single(task, filter_item.name, filter, valence)
 
             // Sliders on the client side range from 0 - 100, whereas the API ranges from 0.0 - 1.0
             if (FilterSlider.matches(operation, filter, valence))

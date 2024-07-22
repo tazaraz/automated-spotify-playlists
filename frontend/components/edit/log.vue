@@ -54,11 +54,33 @@
                     <div v-if="!log.value.startsWith('Converted') && !log.value.startsWith('Info:')" class="d-flex">
                         <i v-for="i of log.indent" class="ms-4"></i>
                         <div class="d-flex flex-column border-start border-top-0 border-2 border-info ps-2 mt-1 mb-1">
-                            {{ log.value }}
+                            <span role="button"
+                                  data-bs-toggle="collapse"
+                                  :data-bs-target="`#log${index}`"
+                                  @click="rotateCollapseIcon(index)">
+                                <fa-icon
+                                    :id="`log-collapse-${index}`"
+                                    class="rotation me-1"
+                                    :icon="['fas', 'angle-right']" v-if="getDataAttributes(index).length > 0"></fa-icon>
+                                {{ log.value }}
+                            </span>
 
-                            <small class="ms-2 text-secondary" v-for="data of getDataAttributes(index)">
-                                {{ log.value.split("'")[1] }}: "<i>{{ data.value.split(":")[1] }}</i>"
-                            </small>
+                            <table :id="`log${index}`"
+                                   class="collapse"
+                                   style="border-collapse: separate; border-spacing: 1rem 0">
+                                <thead class="text-info">
+                                    <th>Name</th>
+                                    <th>Value</th>
+                                    <th>Filter</th>
+                                </thead>
+                                <tbody class="text-secondary">
+                                    <tr v-for="data of getDataAttributes(index)">
+                                        <td>{{ data.value[1] }}</td>
+                                        <td>{{ Math.round(Number(data.value[2])) / 10 }}</td>
+                                        <td>{{ Math.round(Number(data.value[3])) / 10 }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </template>
@@ -146,12 +168,29 @@ export default class EditLog extends Vue {
     }
 
     getDataAttributes(index: number) {
-        const info: typeof this.statements = [];
+        const info: {indent: number, value: string[]}[] = [];
         while (this.statements[--index]?.value.startsWith('Info:')) {
-            info.push(this.statements[index]);
+            info.push({
+                indent: this.statements[index].indent,
+                value: this.statements[index].value.split(':')
+            });
         }
 
         return info;
     }
+
+    rotateCollapseIcon(index: number) {
+        const collapseIcon = document.getElementById(`log-collapse-${index}`)
+        collapseIcon?.classList.toggle('rotated')
+    }
 }
 </script>
+
+<style lang="scss">
+.rotation {
+    transition: 0.2s ease-in;
+}
+.rotated {
+    transform: rotate(90deg);
+}
+</style>

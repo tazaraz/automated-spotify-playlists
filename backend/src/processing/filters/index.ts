@@ -93,10 +93,11 @@ export async function filter_async<T extends Generic>(
  * Logs extra data if the task's plevel is in info item mode.
  * Stuff like operation and filter name are known in the client, but this data is not.
  * @param task Task to log to
+ * @param name Applicable name of the item being processed
  * @param data The data retrieved from Spotify (or the cache)
  * @param filter The filter that was matched
  */
-export function log_single(task: FilterTask, data: string | number, filter: string | number) {
+export function log_single(task: FilterTask, name: string, data: string | number, filter: string | number) {
     if (task.plevel !== ProcessLevel.INFO_ITEM) return;
-    task.log.filters.push(`Info:${filter}:${data}`)
+    task.log.filters.push(`Info:${name}:${filter}:${data}`)
 }

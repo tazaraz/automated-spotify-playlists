@@ -1,6 +1,6 @@
 import { FilterString, FilterValue } from "../../shared/matching";
 import { FilterItem, Generic, SAlbum, SArtist, STrack } from "../../shared/types/server";
-import { filter_async, get_by_kind, log_single as log_info_item } from ".";
+import { filter_async, get_by_kind, log_single as log_info_item, log_single } from ".";
 import { ProcessLevel } from "..";
 import FilterTask from "../../stores/filtertask";
 
@@ -31,7 +31,7 @@ export class Album {
         return await filter_async(items, Album.convert, async filter_item => {
             // Get the item album artists
             for (const artist of await filter_item.artists()) {
-                log_info_item(task, filter, artist.name)
+                log_single(task, filter_item.name, filter, artist.name)
 
                 if (FilterString.matches(operation, filter, artist.name))
                     return true;
@@ -49,7 +49,7 @@ export class Album {
         }
 
         return await filter_async(items, Album.convert, async filter_item => {
-            log_info_item(task, filter, filter_item.name)
+            log_single(task, filter_item.name, filter, filter_item.name)
 
             // Get the track album name
             if (FilterString.matches(operation, filter, filter_item.name))
@@ -67,7 +67,7 @@ export class Album {
         }
 
         return await filter_async(items, Album.convert, async filter_item => {
-            log_info_item(task, filter, filter_item.release_date)
+            log_single(task, filter_item.name, filter, filter_item.release_date)
 
             // Get the track album release date
             if (FilterValue.matches(operation, filter, filter_item.release_date))
@@ -85,7 +85,7 @@ export class Album {
         }
 
         return await filter_async(items, Album.convert, async filter_item => {
-            log_info_item(task, filter, filter_item.total_tracks)
+            log_single(task, filter_item.name, filter, filter_item.total_tracks)
 
             // Get the track album total tracks
             if (FilterValue.matches(operation, filter, filter_item.total_tracks))
@@ -107,7 +107,7 @@ export class Album {
             const artists = await Promise.all(await filter_item.artists());
             const genres  = artists.map(a => a.genres).flat().join(", ");
 
-            log_info_item(task, filter, genres)
+            log_single(task, filter_item.name, filter, genres)
             if (!genres || genres.length == 0) return;
             if (FilterString.matches(operation, filter, genres))
                 return true;
@@ -124,7 +124,7 @@ export class Album {
         }
 
         return await filter_async(items, Album.convert, async filter_item => {
-            log_info_item(task, filter, filter_item.popularity)
+            log_single(task, filter_item.name, filter, filter_item.popularity)
 
             if (FilterValue.matches(operation, filter, filter_item.popularity))
                 return true;

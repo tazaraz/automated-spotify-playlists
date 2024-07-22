@@ -35,6 +35,7 @@ export default class Updater {
                 /* Sequentially update all playlists. Don't spam Spotify */
                 for (const playlist of playlists) {
                     try {
+                        const task = new FilterTask(`playlist:${playlist.id}`, ProcessLevel.PLAYLIST);
                         timer = process.hrtime();
                         /** We wait for each playlist to be processed.
                          * This should get faster and faster as more metadata is cached */

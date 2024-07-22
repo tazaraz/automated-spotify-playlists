@@ -40,7 +40,7 @@ export class Track {
         }
 
         return await filter_async(items, Track.convert, async filter_item => {
-            log_single(task, filter, filter_item.name)
+            log_single(task, filter_item.name, filter, filter_item.name)
 
             if (FilterString.matches(operation, filter, filter_item.name))
                 return true;
@@ -57,7 +57,7 @@ export class Track {
         }
 
         return await filter_async(items, Track.convert, async filter_item => {
-            log_single(task, filter, filter_item.popularity)
+            log_single(task, filter_item.name, filter, filter_item.popularity)
 
             // Popularity ranges from 0 - 100
             if (FilterSlider.matches(operation, filter, filter_item.popularity))
@@ -75,7 +75,7 @@ export class Track {
         }
 
         return await filter_async(items, Track.convert, async filter_item => {
-            log_single(task, filter, filter_item.duration_ms / 1000)
+            log_single(task, filter_item.name, filter, filter_item.duration_ms / 1000)
 
             // Convert milliseconds to seconds
             if (FilterValue.matches(operation, filter, filter_item.duration_ms / 1000))
