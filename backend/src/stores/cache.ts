@@ -202,7 +202,7 @@ export default class Cache {
             popularity: data.popularity,
 
             // Only used when loading the Album object
-            tracks_ids: data.tracks?.items.map((item: any) => item.id),
+            track_ids: data.tracks?.items.map((item: any) => item.id),
             artist_ids: data.artists.map((artist: any) => artist.id),
         }), { EX: Cache.expiry.data })
         .finally(() => {
@@ -312,7 +312,7 @@ export default class Cache {
                     delete Cache.albums[album.id];
                     await Metadata.getAlbum(album.id);
                     // Return the tracks
-                    return Cache.albums[album.id].tracks();
+                    return (await Cache.albums[album.id]).tracks();
                 }
                 return Promise.all(album.track_ids.map((id: string) => Metadata.getTrack(id)))
             },
