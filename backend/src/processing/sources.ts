@@ -92,14 +92,17 @@ export default class MusicSources {
                 // @ts-ignore
                 case "Track":
                     items = [await Metadata.getTrack(source.value)];
+                    items[0].kind = "track";
                     break;
                 // @ts-ignore
                 case "Album":
                     items = [await Metadata.getAlbum(source.value)];
+                    items[0].kind = "album";
                     break;
                 // @ts-ignore
                 case "Artist":
                     items = [await Metadata.getArtist(source.value)];
+                    items[0].kind = "artist";
                     break;
             }
 
