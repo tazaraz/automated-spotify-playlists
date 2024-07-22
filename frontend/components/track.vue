@@ -24,17 +24,27 @@
         </h2>
         <template v-else>
             <h2 class="m-0">
-                <button class="accordion-button shadow-none collapsed" type="button" @click="getFeatures()" data-bs-toggle="collapse" :data-bs-target="`#track:${track.id}`">
+                <button class="accordion-button shadow-none collapsed"
+                        @click="getFeatures()"
+                        data-bs-toggle="collapse"
+                        :data-bs-target="`#track:${track.id}`">
                     <div class="container ms-0 d-flex gap-3 align-items-center ps-0">
                         <Image :src="track" />
                         <div class="flex-grow-1 multilayer m-0 gap-1">
                             <div class="text-truncate">
-                                <url @click="follow" class="text-white" :to="`/info/track/${track.id}`">{{ track.name }}</url>
+                                <url v-if="track.id"
+                                     @click="follow"
+                                     class="text-white"
+                                     :to="`/info/track/${track.id}`">{{ track.name }}</url>
+                                <span v-else>{{ track.name }}</span>
                             </div>
                             <div class="text-truncate">
                                 <template v-for="(artist, index) in track.artists">
                                     {{ index > 0 ? ", " : "" }}
-                                    <url @click="follow" :to="`/info/artist/${artist.id}`">{{ artist.name }}</url>
+                                    <url v-if="artist.id"
+                                         @click="follow"
+                                         :to="`/info/artist/${artist.id}`">{{ artist.name }}</url>
+                                    <span v-else>{{ artist.name }}</span>
                                 </template>
                             </div>
                         </div>
@@ -52,21 +62,26 @@
                             </template>
                         </div>
                         <div v-else-if="track.album" class="flex-shrink-0 text-truncate tiny-hidden" style="width: 40%;">
-                            <url @click="follow" class="text-truncate d-inline-block text-body" :to="`/info/album/${track.album.id}`">{{ track.album.name }}</url>
+                            <url v-if="track.album.id" @click="follow" class="text-truncate d-inline-block text-body" :to="`/info/album/${track.album.id}`">
+                                {{ track.album.name }}
+                            </url>
+                            <span v-else>{{ track.album.name }}</span>
                         </div>
                         <div class="flex-shrink-0" style="width: 10%;">{{ track.duration }}</div>
                         <i v-if="deleteable" @click="$emit('delete', track)" data-bs-toggle="collapse" data-bs-target=""><fa-icon style="color: rgb(155, 0, 0)" :icon="['fas', 'trash-can']"></fa-icon></i>
                     </div>
                 </button>
             </h2>
-            <div v-if="(typeof track != 'string')" :id="`track:${track.id}`" class="accordion-collapse collapse">
+            <div v-if="!track.is_local && (typeof track != 'string')" :id="`track:${track.id}`" class="accordion-collapse collapse">
                 <div class="accordion-body">
                     <div class="row">
                         <div class="col-12 mb-2 multilayer" data-main-class="normal-d-none">
                             <span>Album</span>
                             <span v-if="!track.features" class="placeholder rounded-1"></span>
-                            <url v-else :to="`/info/album/${track.album!.id}`" class="text-decoration-underline">{{
-                                track.album!.name }}</url>
+                            <url v-else-if="track.album" :to="`/info/album/${track.album.id}`" class="text-decoration-underline">
+                                {{ track.album!.name }}
+                            </url>
+                            <span v-else>{{ track.album }}</span>
                         </div>
                         <div v-if="track.appearsIn" class="mb-2 multilayer" data-main-class="normal-d-none tiny-d-grid">
                             <template v-if="track.appearsIn.length > 0">
@@ -159,6 +174,9 @@ export default class Track extends Vue {
      * @param state State of the accordion. If undefined, it will be toggled
      */
     async getFeatures(state: boolean | undefined = undefined) {
+        // This wont work if it is a local track
+        if (this.track.is_local) return;
+
         Fetch.get<CArtist[]>(`spotify:/artists`, { ids: (this.track as CTrack).artists!.map(artist => artist.id) })
         .then(response => {
             // Get the genres of the artists. Remove duplicates
