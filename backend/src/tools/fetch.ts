@@ -254,10 +254,8 @@ export default class Fetch {
 
             /**Converting items in the container to a simple form */
             if (Array.isArray(data)) {
-
-                    // Tracks are nested in the data: track.track.id instead of track.id
-                    data = data.map((track: any) => track.track ? track.track : track);
-
+                // Tracks are nested in the data: track.track.id instead of track.id
+                data = data.map((track: any) => track?.track ? track.track : track);
             }
         } catch (e) {
             THROW_DEBUG_ERROR(`Failed to format data: ${JSON.stringify(data)}\n${e}`);
