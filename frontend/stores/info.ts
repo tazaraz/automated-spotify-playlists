@@ -15,9 +15,6 @@ export interface SearchConfig {
     artist: boolean;
     playlist: boolean;
 
-    /* Whether to save the configuration and result to localStorage */
-    save?: boolean;
-
     is_advanced: boolean;
     advanced?: {
         tracks: string[];
@@ -41,8 +38,7 @@ export interface InfoItem {
  * The search store
  */
 export default class Info extends Pinia {
-    currentItem: InfoItem | null = null;
-    searchConfig: SearchConfig | null = null;
+    config: SearchConfig = null as any;
 
     searchResult: {[key in InfoItemType]: InfoItem[] | null} = {
         tracks: null,
@@ -55,55 +51,48 @@ export default class Info extends Pinia {
         super();
         if (!process.client) return;
         // Get the persistent search config
-        this.searchConfig = JSON.parse(localStorage.getItem('sc') || 'null');
+        this.config = JSON.parse(localStorage.getItem('sc') || 'null');
     }
 
-    setCurrenItem(item: any, type: InfoItemType) {
-        this.currentItem = this.parseItem(item, type);
-    }
+    async search() {
+        // Stop if no config is set
+        if (this.config == null) return
+        let query = "";
+        const original_query = this.config.query;
 
-    async search(config: SearchConfig) {
-        let query = config.query;
-
-        if (config.is_advanced) {
-            query += config.advanced?.tracks ? config.advanced.tracks.map(t => ` track:${t}`) : '';
-            query += config.advanced?.albums ? config.advanced.albums.map(t => ` album:${t}`) : '';
-            query += config.advanced?.artists ? config.advanced.artists.map(t => ` artist:${t}`) : '';
-            query += config.advanced?.year ? ` year:${config.advanced.year}` : '';
-            query += config.advanced?.tag_new ? ` tag:new` : '';
-            query += config.advanced?.tag_hipster ? ` tag:hipster` : '';
+        if (this.config.is_advanced) {
+            query += this.config.advanced?.tracks ? this.config.advanced.tracks.map(t => ` track:${t}`) : '';
+            query += this.config.advanced?.albums ? this.config.advanced.albums.map(t => ` album:${t}`) : '';
+            query += this.config.advanced?.artists ? this.config.advanced.artists.map(t => ` artist:${t}`) : '';
+            query += this.config.advanced?.year ? ` year:${this.config.advanced.year}` : '';
+            query += this.config.advanced?.tag_new ? ` tag:new` : '';
+            query += this.config.advanced?.tag_hipster ? ` tag:hipster` : '';
         }
 
         let type: string[] = [];
         let searchResult: typeof this.searchResult = { tracks: null, albums: null, artists: null, playlists: null };
 
-        if (config.track)    { type.push('track');    searchResult.tracks = [];    }
-        if (config.album)    { type.push('album');    searchResult.albums = [];    }
-        if (config.artist)   { type.push('artist');   searchResult.artists = [];   }
-        if (config.playlist) { type.push('playlist'); searchResult.playlists = []; }
+        if (this.config.track)    { type.push('track');    searchResult.tracks = [];    }
+        if (this.config.album)    { type.push('album');    searchResult.albums = [];    }
+        if (this.config.artist)   { type.push('artist');   searchResult.artists = [];   }
+        if (this.config.playlist) { type.push('playlist'); searchResult.playlists = []; }
 
         const response = await Fetch.get<{[key in InfoItemType]: any}>(`spotify:/search`, { query: {
-            q: query,
+            q: this.config.query + query,
             type: [
-                config.track ? 'track' : '',
-                config.album ? 'album' : '',
-                config.artist ? 'artist' : '',
-                config.playlist ? 'playlist' : ''
+                this.config.track ? 'track' : '',
+                this.config.album ? 'album' : '',
+                this.config.artist ? 'artist' : '',
+                this.config.playlist ? 'playlist' : ''
             ].filter(Boolean).join(','),
-            limit: config.track || config.album ? '12' : '6',
+            limit: this.config.track || this.config.album ? '12' : '6',
         }});
+
+        // If the query has changed, stop
+        if (original_query !== this.config.query) return;
 
         if (response.status !== 200)
             return { error: response.statusText };
-
-        if (!config?.save) {
-            // Clear the previous results
-            this.searchResult = searchResult;
-
-            // Save the config
-            this.searchConfig = config;
-            localStorage.setItem('sc', JSON.stringify(config));
-        }
 
         // For every type requested
         for (const kind of Object.keys(response.data) as InfoItemType[]) {
@@ -111,7 +100,7 @@ export default class Info extends Pinia {
             const items = Fetch.format(response.data[kind]);
 
             for (const item of items)
-                searchResult[kind]!.push(this.parseItem(item, kind));
+                searchResult[kind]!.push(this.parseSearchItem(item, kind));
         }
 
         // Limit the amount of items in each result
@@ -120,13 +109,10 @@ export default class Info extends Pinia {
         searchResult[InfoItemType.tracks] = searchResult[InfoItemType.tracks]?.slice(0, 6) || null;
         searchResult[InfoItemType.albums] = searchResult[InfoItemType.albums]?.slice(0, 6) || null;
 
-        if (!config?.save)
-            this.searchResult = searchResult;
-
-        return searchResult;
+        this.searchResult = searchResult;
     }
 
-    parseItem(item: any, kind: InfoItemType): InfoItem {
+    private parseSearchItem(item: any, kind: InfoItemType): InfoItem {
         // Store the result accordingly
         switch (kind) {
             case InfoItemType.tracks:
@@ -171,5 +157,14 @@ export default class Info extends Pinia {
                     }],
                 }
         }
+    }
+
+    /**
+     * Save the search config to local storage
+     * @param config The search config to save
+     */
+    storeSearchConfig(config: SearchConfig) {
+        this.config = config;
+        localStorage.setItem('sc', JSON.stringify(config));
     }
 }
