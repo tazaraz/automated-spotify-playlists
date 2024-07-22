@@ -598,6 +598,7 @@ export default class Playlists extends Pinia {
             disc_number:    track.disc_number,
             track_number:   track.track_number,
             image:          Fetch.bestImage(track.album.images),
+            is_local:       track.is_local,
             artists:        track.artists.map((artist: CArtist) => { return {
                 name: artist.name,
                 id: artist.id,

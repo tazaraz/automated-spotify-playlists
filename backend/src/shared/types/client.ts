@@ -45,6 +45,8 @@ export interface CTrack {
     artists?: CArtist[]
     // The track's features
     features?: CTrackFeatures
+    // If the track is a local track
+    is_local?: boolean
 }
 
 export interface CAlbum {
