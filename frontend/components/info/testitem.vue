@@ -6,9 +6,9 @@
             Open an automatic playlist's config editor to run this {{ kind }} against the filters of that playlist
         </template>
         <template v-else>
-            <button class="btn btn-primary me-1" @click="execute">
+            <button class="btn btn-primary me-1" :disabled="executeState > 0" @click="execute">
                 <template v-if="executeState === 0">Run</template>
-                <template v-else-if="executeState === 1">Running...</template>
+                <template v-else-if="executeState === 1">Running{{ runningDots }}</template>
                 <template v-else-if="executeState === 2">Ran</template>
             </button>
             this {{ kind }} against the filters in the currently open editor
@@ -21,10 +21,11 @@
 import { Prop, Vue } from  'vue-property-decorator';
 import Editor from '~/stores/editor';
 import Fetch from '~/stores/fetch';
-import { PlaylistLog } from '../../backend/src/shared/types/playlist';
+import { PlaylistLog } from '../../../backend/src/shared/types/playlist';
 import FetchError from '~/stores/error';
 
-export default class TestInfoItem extends Vue {
+export default class InfoTestitem extends Vue {
+    /** Artist is not yet enabled as I'm afraid of the amount of requests this might yield */
     @Prop() kind!: "track" | "album" | "artist"
     @Prop() id!: string
 
@@ -45,10 +46,12 @@ export default class TestInfoItem extends Vue {
     }
 
     async execute() {
-        if (this.executeState === 2) return;
+        if (this.executeState > 1) return;
 
         this.executeState = 1;
+        this.runDots();
         this.log = null as any;
+        const origin = this.kind.charAt(0).toUpperCase() + this.kind.slice(1);
 
         this.applyTestStuckMessage.timeout = setTimeout(() => {
             this.applyTestStuckMessage.show = true;
@@ -57,7 +60,7 @@ export default class TestInfoItem extends Vue {
         /** Start the execution of the playlist */
         const result = await Fetch.patch(`server:/info/${this.kind}/test`, { data: {
             id: this.id,
-            source: [{ origin: "Track", value: this.id }],
+            source: [{ origin: origin, value: this.id }],
             filters: this.editor.filters
         }})
 
@@ -66,7 +69,7 @@ export default class TestInfoItem extends Vue {
             /** Response is when running only the log, and when completed a playlist */
             const response = await Fetch.patch(`server:/info/${this.kind}/test`, { data: {
                 id: this.id,
-                source: [{ origin: "Track", value: this.id }],
+                source: [{ origin: origin, value: this.id }],
                 filters: this.editor.filters
             }})
 
@@ -91,6 +94,16 @@ export default class TestInfoItem extends Vue {
 
         await this.$nextTick();
         document.getElementById("test-matching")?.scrollIntoView({ behavior: "smooth" });
+    }
+
+    runningDots = ""
+    async runDots() {
+        if (this.executeState !== 1) return;
+
+        await new Promise(resolve => setTimeout(() => resolve(true), 500))
+        if (this.runningDots.length == 3) this.runningDots = ""
+        else this.runningDots += "."
+        this.runDots();
     }
 }
 </script>
