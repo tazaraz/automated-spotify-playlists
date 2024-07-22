@@ -171,7 +171,10 @@ export default class Metadata {
                     case "/tracks": await Metadata.getTrack(item.id); break;
                     case "/albums": await Metadata.getAlbum(item.id); break;
                     case "/artists": await Metadata.getArtist(item.id); break;
-                    case "/audio-features": await Metadata.getTrackFeatures(item.id); break;
+                    case "/audio-features":
+                        // If the item has not analysis yet, it will be null. Skip
+                        if (!item) continue;
+                        await Metadata.getTrackFeatures(item.id); break;
                     default:
                         THROW_DEBUG_ERROR(`getMultiple: The endpoint '${url}' returned incomplete data'`);
                 }
