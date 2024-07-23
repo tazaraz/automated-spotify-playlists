@@ -1,7 +1,7 @@
 <template>
     <nav id="toolbar" class="d-flex gap-3 bg-dark-subtle justify-content-between align-items-center rounded-3 mb-2 p-2 ps-3 pe-3">
         <ClientOnly>
-            <button class="navbar-toggler d-sm-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" @click="player.update()">
+            <button class="navbar-toggler d-sm-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" @click="player.update()">
                 <h2 class="p-1 m-0"><fa-icon :icon="['fas', 'bars']"></fa-icon></h2>
             </button>
             <ToolbarPlaying class="d-none d-md-flex"/>
@@ -10,18 +10,18 @@
         </ClientOnly>
         <div class="d-flex">
             <div class="nav-item">
-                <button v-if="playlists?.storage && playlists?.editor?.playlist" id="mobile-open-edit" class="navbar-toggler d-sm-none h-100 p-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#edit">
+                <button v-if="playlists?.storage && playlists?.editor?.playlist" id="mobile-open-edit" class="navbar-toggler d-sm-none h-100 p-2" data-bs-toggle="offcanvas" data-bs-target="#edit">
                     <span class="fs-5"><fa-icon :icon="['fas', 'wand-magic']"></fa-icon></span>
                 </button>
             </div>
             <div v-if="user && user.info" class="nav-item cursor-pointer dropdown">
-                <button class="btn" type="button" data-bs-toggle="dropdown">
+                <button class="btn" data-bs-toggle="dropdown">
                     <span class="d-md-inline d-none me-3">{{ user.info.name }}</span>
                     <i><fa-icon :icon="['fas', 'user']"></fa-icon></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end py-1" style="z-index: 1030;">
-                    <li><button class="dropdown-item" type="button" @click="logout()">Log out</button></li>
-                    <!-- <li><button class="dropdown-item" type="button">Settings</button></li> -->
+                    <li><url :to="`/user/${user.info.id}`" class="dropdown-item">Profile</url></li>
+                    <li><button class="dropdown-item" @click="logout()">Log out</button></li>
                 </ul>
             </div>
             <div v-else>
