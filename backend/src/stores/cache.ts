@@ -161,7 +161,7 @@ export default class Cache {
      * @param data Data of which the track constists
      */
     private static setTrack(tracks: typeof Cache.tracks, id: string, data: any) {
-        Cache.redisClient.set(`track:${id}`, JSON.stringify({
+        const track = {
             disc_number: data.disc_number,
             track_number: data.track_number,
             duration_ms: data.duration_ms,
@@ -169,12 +169,21 @@ export default class Cache {
             id: data.id,
             name: data.name,
             popularity: data.popularity,
-            is_local: data.is_local || false,
+            is_local: data.is_local,
 
             // Only used when loading the Track object
             album_id: data.album.id,
             artist_ids: data.artists.map((artist: any) => artist.id),
-        }), { EX: Cache.expiry.data })
+        }
+        // If the track is local, we can only store the album and artist name. We don't have the full object
+        if (track.is_local) {
+            // @ts-ignore
+            track._album = {name: data.album.name}
+            // @ts-ignore
+            track._artists = data.artists.map((artist: any) => ({name: artist.name}))
+        }
+
+        Cache.redisClient.set(`track:${id}`, JSON.stringify(track), { EX: Cache.expiry.data })
         .finally(() => {
             tracks[id] = true as any;
         })
@@ -279,12 +288,18 @@ export default class Cache {
         // Store the presence of the track
         tracks[track_id] = true as any;
         const track = JSON.parse(item);
-        return {
-            ...track,
-            kind: "track",
-            album: () => Metadata.getAlbum(track.album_id),
-            artists: () => Promise.all(track.artist_ids.map((id: string) => Metadata.getArtist(id))),
-            features: () => Metadata.getTrackFeatures(track.id),
+              track.kind = "track";
+
+        // If the track is local, we can only store the album and artist name. We don't have the full object
+        if (track.is_local) {
+            track.album = () => track._album;
+            track.artists = () => track._artists;
+            return track;
+        } else {
+            track.album = () => Metadata.getAlbum(track.album_id);
+            track.artists = () => Promise.all(track.artist_ids.map((id: string) => Metadata.getArtist(id)));
+            track.features = () => Metadata.getTrackFeatures(track.id);
+            return track;
         }
     }
 

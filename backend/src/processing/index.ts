@@ -378,6 +378,6 @@ export default class Filters {
         if (typeof list[0] === "string")
             return list as string[];
 
-        return (list as FilterItem<any>[]).map(t => t.id);
+        return (list as FilterItem<any>[]).map(t => t.id || `local:${t.name}`);
     }
 }
