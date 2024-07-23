@@ -44,20 +44,52 @@
                         <button v-else-if="playlists.loaded.ownership == 'none'" class="d-flex border-0 bg-transparent p-2 ps-3 p-1 me-auto" @click="follow">
                             <fa-icon style="font-size: 150%;" :icon="['far', 'heart']"></fa-icon>
                         </button>
-                        <Modal v-else-if="playlists.loaded.ownership == 'user' && playlists.loaded.id !== 'library'" :button-icon="['fas', 'trash-can']" button-class="modal-delete ps-3 p-1 me-auto">
+                        <Modal v-else-if="playlists.loaded.ownership == 'user' && playlists.loaded.id !== 'library'"
+                               :button-icon="['fas', 'trash-can']"
+                               button-class="modal-delete ps-3 p-1 me-auto"
+                               @open="startDeleteTimeout">
                             <div class="modal-header">
                                 <h1 class="modal-title fs-5" id="exampleModalLabel">Delete</h1>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div v-if="playlists.loaded.filters" class="modal-body">
-                                This will delete the automated playlist and remove it in spotify. People following the playlist will still have it, however it will not be updated anymore.
+                                You can either convert this automated playlist to a normal playlist or delete it entirely.
+                                <ol class="list-group list-group-numbered my-3">
+                                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                                        <div class="ms-2 me-auto">
+                                            <div class="fw-bold text-info">
+                                                Convert to a normal playlist
+                                            </div>
+                                            This will keep your playlist in Spotify, but it will not automatically update anymore
+                                        </div>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-start">
+                                        <div class="ms-2 me-auto">
+                                            <div class="fw-bold text-danger">
+                                                Delete the playlist
+                                            </div>
+                                            will remove the automated playlist here and it in spotify. People following the playlist will still have it and it will not be updated anymore
+                                        </div>
+                                    </li>
+                                </ol>
                             </div>
                             <div v-else class="modal-body">
-                                This will remove the playlist from spotify. People following the playlist will still have it.
+                                This will remove the playlist from Spotify. People following the playlist will still have it.
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="remove">Delete</button>
+                                <button class="btn btn-secondary me-auto" data-bs-dismiss="modal">Cancel</button>
+                                <span v-if="deleteTimer > 0" class="me-2">
+                                    ({{ deleteTimer }})
+                                </span>
+                                <button class="btn btn-danger"
+                                        data-bs-dismiss="modal"
+                                        :disabled="deleteTimer > 0"
+                                        @click="remove">Delete</button>
+                                <button v-if="playlists.loaded.filters"
+                                        class="btn btn-info"
+                                        data-bs-dismiss="modal"
+                                        :disabled="deleteTimer > 0"
+                                        @click="convert">Convert</button>
                             </div>
                         </Modal>
                     </template>
@@ -193,6 +225,8 @@ export default class PlaylistDisplay extends Vue {
     /** The amount of tracks to load at once */
     batchLoadingSize: number = 50;
     loading: boolean = true;
+    /** When the buttons for deletion in the modal are clickable */
+    deleteTimer: number = 0;
 
     /** Whether the playlist toolbar is behaving sticky */
     playlistToolbarSticky: boolean = false;
@@ -549,8 +583,15 @@ export default class PlaylistDisplay extends Vue {
                   index < Math.max(...this.shown.visible) + margin);
     }
 
+    convert() {
+        this.playlists.delete(this.playlists.loaded, true)
+
+        if (this.editor.id == this.playlists.loaded.id)
+            this.editor.close();
+    }
+
     remove() {
-        this.playlists.delete(this.playlists.loaded)
+        this.playlists.delete(this.playlists.loaded, false)
 
         if (this.editor.id == this.playlists.loaded.id)
             this.editor.close();
@@ -566,6 +607,14 @@ export default class PlaylistDisplay extends Vue {
     follow() {
         this.playlists.follow(this.playlists.loaded)
         this.playlists.loaded.ownership = "following";
+    }
+
+    startDeleteTimeout() {
+        this.deleteTimer = 3;
+        const interval = setInterval(() => {
+            this.deleteTimer--;
+            if (this.deleteTimer == 0) clearInterval(interval);
+        }, 1000);
     }
 }
 </script>

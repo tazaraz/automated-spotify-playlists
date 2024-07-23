@@ -206,23 +206,25 @@ api.put('/playlist', Users.verify_token, async (req, res) => {
  * Deletes an automated playlist for the user
  */
 api.delete('/playlist', Users.verify_token, async (req, res) => {
-    /**Spotify does not do 'deleting', it just unfollows
-     * We make sure the playlist does exist by first checking if spotify succeeds */
-    Fetch.delete(`/playlists/${req.body.id}/followers`, {
-        user: await Users.get(req.user.id),
-        query: { playlist_id: req.body.id }
-    }).then(result => {
-        // If the request failed, return the error
-        if (result.status !== 200)
-            return res.status(result.status).json({status: "Spotify Error", error: result.statusText})
-
-        // Delete the playlist from the database
-        Database.deletePlaylist(req.user.id, req.body.id)
-        .then(() => { res.sendStatus(200)})
-        .catch(error => {
-            LOG_DEBUG("Failed to delete automated playlist:\n" + error)
-            res.status(400).json({status: "Failed to delete automated playlist", error: error})
+    if (!req.body.convert) {
+        /**Spotify does not do 'deleting', it just unfollows
+         * We make sure the playlist does exist by first checking if spotify succeeds */
+        const request = await Fetch.delete(`/playlists/${req.body.id}/followers`, {
+            user: await Users.get(req.user.id),
+            query: { playlist_id: req.body.id }
         })
+
+        // If the request failed, return the error
+        if (request.status !== 200)
+            return res.status(request.status).json({status: "Spotify Error", error: request.statusText})
+    }
+
+    // Delete the playlist from the database
+    Database.deletePlaylist(req.user.id, req.body.id)
+    .then(() => { res.sendStatus(200)})
+    .catch(error => {
+        LOG_DEBUG("Failed to delete automated playlist:\n" + error)
+        res.status(400).json({status: "Failed to delete automated playlist", error: error})
     })
 });
 

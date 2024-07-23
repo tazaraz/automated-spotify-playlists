@@ -449,15 +449,14 @@ export default class Playlists extends Pinia {
     /**
      * Deletes a playlist on the server if automated and unfollows it on Spotify
      * @param playlist Playlist to delete
+     * @param convert Whether to only convert it to a normal playlist
      */
-    async delete(playlist: LoadedPlaylist) {
+    async delete(playlist: LoadedPlaylist, convert: boolean) {
         if (playlist.id !== "unpublished") {
-            let result = await Fetch.delete(`spotify:/playlists/${playlist.id}/followers`);
-
-            if (result.status !== 200)
-                return false;
-
-            result = await Fetch.delete("server:/playlist", { data: { id: playlist.id } })
+            const result = await Fetch.delete("server:/playlist", { data: {
+                id: playlist.id,
+                convert
+            }})
 
             // We failed to delete the playlist on the server, so we follow it again
             if (result.status !== 200) {

@@ -14,11 +14,12 @@
 
 <script lang="ts">
 import { Modal as bsModal } from 'bootstrap';
-import { Prop, Vue } from  'vue-property-decorator';
+import { Prop, Vue, Emit } from  'vue-property-decorator';
 
 /**
  * An easy wrapper for the bootstrap model
  */
+ @Emit('open')
 export default class Modal extends Vue {
     @Prop({ default: null }) buttonText!: string;
     @Prop({ default: null }) buttonIcon!: [string, string];
@@ -29,6 +30,7 @@ export default class Modal extends Vue {
 
     openModal() {
         const modalElement = document.getElementById(`modal-${this.id}`);
+        this.$emit('open', true);
 
         // If the element is already present in the body, don't append it again
         if (modalElement?.parentElement == document.body) {
