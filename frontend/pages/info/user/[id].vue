@@ -32,11 +32,13 @@
             </header>
 
             <div>
-                <h5 class="text-white mt-3 p-2 pb-0">Playlists</h5>
+                <h5 class="text-white mt-3 p-2 pb-0">Playlists (public)</h5>
                 <div class="d-flex overflow-auto gap-3 m-3 mt-4">
-                    <Card v-for="playlist of playlists" :card="{image: playlist.image, title: playlist.name, url: `/info/playlist/${playlist.id}`}" :fallback="['far', 'user']">
-                        <span class="word-wrap text-body-secondary">{{ playlist.name }}</span>
-                    </Card>
+                    <template v-for="playlist of playlists">
+                        <Card :card="{image: playlist.image, title: playlist.name, url: `/info/playlist/${playlist.id}`}" :fallback="['far', 'user']">
+                            <span class="word-wrap text-body-secondary">{{ playlist.name }}</span>
+                        </Card>
+                    </template>
                 </div>
 
                 <h5 class="text-white mt-3 p-2 pb-0">Followers</h5>
@@ -68,7 +70,7 @@ interface LoadedUser {
 export default class InfoUser extends Vue {
     breadcrumbs: BreadCrumbs = null as any;
 
-    playlists: CPlaylist[] = [];
+    playlists: (CPlaylist & {public: boolean})[] = [];
     followers: LoadedUser[] = [];
     following: LoadedUser[] = [];
 
@@ -96,20 +98,37 @@ export default class InfoUser extends Vue {
             if (response.status !== 200)
                 return FetchError.create({ status: response.status, message: response.statusText })
 
-            this.playlists = response.data.items.map((playlist: any) => { return {
+            this.playlists = response.data.items.map((playlist: any) => ({
                 id: playlist.id,
                 name: playlist.name,
                 image: Fetch.bestImage(playlist.images),
-                url: playlist.external_urls.spotify
-            }});
+                url: playlist.external_urls.spotify,
+            }));
         })
 
         /* Get the users' followers
          * Hacky method which gets a tiny bit more priviliged Spotify token */
         response = await Fetch.get('server:/spclient-tokens')
         if (response.status != 200) {
-            return FetchError.create({ status: response.status, message: `Failed to get permission keys from Spotify to load the people who follow ${this.loadedUser.name}` })
+            return FetchError.create({ status: response.status, message: `Failed to get permission keys from Spotify to load public data for user ${this.loadedUser.name}` })
         }
+
+        Fetch.get(`https://spclient.wg.spotify.com/user-profile-view/v3/profile/${this.$route.params.id}/playlists`, {
+            user: false,
+            headers: {
+                'accept': 'application/json',
+                'app-platform': 'WebPlayer',
+                'authorization': 'Bearer ' + response.data.authorization,
+                'client-token': response.data.client_token,
+                'spotify-app-version': '1.2.19.72.ge5768733',
+            }
+        })
+        .then(result => {
+            // Get the public playlists ids
+            const public_playlists = result.data.public_playlists.map((p: any) => p.uri.replace('spotify:playlist:', ''))
+            // Only keep the public playlists
+            this.playlists = this.playlists.filter(p => public_playlists.includes(p.id))
+        })
 
         Fetch.get(`https://spclient.wg.spotify.com/user-profile-view/v3/profile/${this.$route.params.id}/followers`, {
             user: false,
