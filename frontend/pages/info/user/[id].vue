@@ -1,13 +1,13 @@
 <template>
     <article key="album" class="rounded-2 p-2 bg-dark-subtle flex-grow-1 overflow-hidden">
-        <SmallHeader :item="user"></SmallHeader>
+        <SmallHeader :item="loadedUser"></SmallHeader>
         <div class="h-100 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
-            <Title v-if="!user">Loading user...</Title>
-            <Title v-else>{{ user.name }}</Title>
+            <Title v-if="!loadedUser">Loading user...</Title>
+            <Title v-else>{{ loadedUser.name }}</Title>
             <header class="p-4 pt-5 d-flex gap-4" data-main-class="normal-flex-row normal-align-items-stretch tiny-flex-column tiny-align-items-center">
-                <Image :src="user" style="font-size: 300%;"/>
+                <Image :src="loadedUser" style="font-size: 300%;"/>
                 <div class="flex-fill d-flex flex-column text-white">
-                    <template v-if="!user">
+                    <template v-if="!loadedUser">
                         <span class="mt-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>
                         <div class="mt-5 mb-3">
                             <span class="placeholder rounded-2" style="width: 10rem"></span>
@@ -18,7 +18,7 @@
                         </div>
                     </template>
                     <template v-else>
-                        <h1 class="mt-auto rounded-2">{{ user.name }}</h1>
+                        <h1 class="mt-auto rounded-2">{{ loadedUser.name }}</h1>
                         <div class="d-flex mt-2 mb-3">
                             <span>{{ playlists.length }} playlist{{ playlists.length == 1 ? '' : 's' }}</span>
                             &nbsp;&nbsp;━&nbsp;&nbsp;
@@ -27,7 +27,7 @@
                             <InfoTooltip description="Spotify does not allow us to view this information">? following</InfoTooltip>
                         </div>
                     </template>
-                    <Spotify v-if="user" :to="`https://open.spotify.com/user/${user.id}`" class="mt-2 mb-3">SHOW IN SPOTIFY</Spotify>
+                    <Spotify v-if="loadedUser" :to="`https://open.spotify.com/user/${loadedUser.id}`" class="mt-2 mb-3">SHOW IN SPOTIFY</Spotify>
                 </div>
             </header>
 
@@ -56,8 +56,9 @@ import BreadCrumbs from '~/stores/breadcrumbs';
 import FetchError from '~/stores/error';
 import Fetch from '~/stores/fetch';
 import { CPlaylist } from '~/stores/playlists';
+import User from '~/stores/user';
 
-interface User {
+interface LoadedUser {
     id: string;
     name: string;
     image: string | [string, string];
@@ -68,13 +69,15 @@ export default class InfoUser extends Vue {
     breadcrumbs: BreadCrumbs = null as any;
 
     playlists: CPlaylist[] = [];
-    followers: User[] = [];
-    following: User[] = [];
+    followers: LoadedUser[] = [];
+    following: LoadedUser[] = [];
 
     user: User = null as any;
+    loadedUser: LoadedUser = null as any;
 
     async created() {
         if (!process.client) return;
+        this.user = new User();
         this.breadcrumbs = new BreadCrumbs();
     }
 
@@ -85,7 +88,7 @@ export default class InfoUser extends Vue {
             throw createError({ statusCode: 404, message: response.statusText, fatal: true })
 
         // Format the response
-        this.user = this.formatUser(response.data);
+        this.loadedUser = this.formatUser(response.data);
 
         // Get the users' playlists
         Fetch.get(`spotify:/users/${this.$route.params.id}/playlists`)
@@ -105,7 +108,7 @@ export default class InfoUser extends Vue {
          * Hacky method which gets a tiny bit more priviliged Spotify token */
         response = await Fetch.get('server:/spclient-tokens')
         if (response.status != 200) {
-            return FetchError.create({ status: response.status, message: `Failed to get permission keys from Spotify to load the people who follow ${this.user.name}` })
+            return FetchError.create({ status: response.status, message: `Failed to get permission keys from Spotify to load the people who follow ${this.loadedUser.name}` })
         }
 
         Fetch.get(`https://spclient.wg.spotify.com/user-profile-view/v3/profile/${this.$route.params.id}/followers`, {
@@ -132,7 +135,7 @@ export default class InfoUser extends Vue {
      * Formats a Spotify user object to a more usable object
      * @param user Spotify user object
      */
-    formatUser(user: any): User {
+    formatUser(user: any): LoadedUser {
         return {
             id: user.id || user.uri?.replace('spotify:user:', ''),
             name: user.display_name || user.name,

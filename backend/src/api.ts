@@ -451,7 +451,7 @@ api.get('/spclient-tokens', Users.verify_token, async (req, res) => {
     }
 
     const client_token = await Fetch.post('https://clienttoken.spotify.com/v1/clienttoken', {
-        data: {"client_data":{"client_id": client.data.clientId,"js_sdk_data":{}}},
+        data: {"client_data": {"client_version": "1.2.43.309.gc03518bb", "client_id": client.data.clientId, "js_sdk_data": {}}},
         headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
