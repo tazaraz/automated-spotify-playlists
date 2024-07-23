@@ -20,7 +20,7 @@
                     <i><fa-icon :icon="['fas', 'user']"></fa-icon></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end py-1" style="z-index: 1030;">
-                    <li><url :to="`/user/${user.info.id}`" class="dropdown-item">Profile</url></li>
+                    <li><url :to="`/info/user/${user.info.id}`" class="dropdown-item">Profile</url></li>
                     <li><button class="dropdown-item" @click="logout()">Log out</button></li>
                 </ul>
             </div>
