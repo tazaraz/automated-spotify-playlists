@@ -5,6 +5,7 @@ import Users from "../stores/users";
 import Fetch from "./fetch";
 import { Playlist } from "../shared/types/playlist";
 import FilterTask from "../stores/filtertask";
+import { SUser } from "../shared/types/server";
 
 export default class Updater {
     /**
@@ -112,14 +113,39 @@ export default class Updater {
             }
         }
 
-        LOG(`Cleaning database. Playlists removed: ${sp_remove.length}`)
-
         // Remove the playlists
+        const users: {[id: string]: string[] | false} = {};
         for (const playlist of sp_remove) {
-            LOG(`Removed playlist ${playlist.name} (${playlist.id}). Attributes: \n - Followers: ${playlist.followers.total}\n - User: ${(playlist as any).owner.display_name}\n - url: https://open.spotify.com/playlist/${playlist.id}\nRaw object:`);
-            console.log(playlist);
-            console.log();
-            // await Database.deletePlaylist(playlist.user_id, playlist.id);
+            const user_id = (playlist as any).owner.id;
+            // If we failed to get the user's playlists, we don't want to try again
+            if (users[user_id] === false) continue;
+            if (users[user_id] === undefined) {
+                // Get the user's playlists
+                const response = await Fetch.get(`/users/${user_id}/playlists`, {
+                    user: await Users.get(user_id),
+                    query: { fields: 'items.id' }
+                });
+
+                // If we failed to retrieve the user's playlists, we don't want to try again
+                if (response.status !== 200) {
+                    users[user_id] = false;
+                    continue;
+                }
+
+                // Store the user's playlists
+                users[user_id] = response.data.items.map((p: {id: string}) => p.id);
+            }
+
+            // If the playlist does not exist in the owner's playlists, we can delete it
+            if (users[user_id] && !users[user_id].includes(playlist.id)) {
+                LOG(`Removed playlist ${playlist.name} (${playlist.id}). Attributes: \n - Followers: ${playlist.followers.total}\n - User: ${(playlist as any).owner.display_name}\n - url: https://open.spotify.com/playlist/${playlist.id}\nUser playlists ids:`);
+                LOG(users[user_id]);
+                LOG(`Playlist object:`);
+                LOG(playlist);
+                LOG();
+                // await Database.deletePlaylist(user_id, playlist.id);
+                continue;
+            }
         }
     }
 }
