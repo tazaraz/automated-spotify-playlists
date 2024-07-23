@@ -162,7 +162,7 @@ export default class Filters {
             await Metadata.getMultipleTracks(`/playlists/${playlist.id}/tracks`,{
                 user,
                 pagination: true
-            }) as FilterItem<STrack>[];
+            });
 
         // Get the tracks that are in the playlist
         let playlist_tracks = Filters.merge(playlist.matched_tracks, playlist.included_tracks)

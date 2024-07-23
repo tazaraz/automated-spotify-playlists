@@ -1,4 +1,4 @@
-import { LOG_DEBUG, THROW_DEBUG_ERROR } from "../main";
+import { LOG, LOG_DEBUG, THROW_DEBUG_ERROR } from "../main";
 import Fetch, { FetchOptions } from "../tools/fetch";
 import { FilterItem, SUser } from "../shared/types/server";
 import { SAlbum, SArtist, STrack, STrackFeatures } from "../shared/types/server";
@@ -176,7 +176,7 @@ export default class Metadata {
                         if (!item) continue;
                         await Metadata.getTrackFeatures(item.id); break;
                     default:
-                        THROW_DEBUG_ERROR(`getMultiple: The endpoint '${url}' returned incomplete data'`);
+                        THROW_DEBUG_ERROR(`getMultiple: The endpoint '${url}' returned incomplete data. ${error}`);
                 }
             }
 
@@ -200,19 +200,13 @@ export default class Metadata {
 
     static async getMultipleTracks(url="/tracks", options: FetchOptions = {}): Promise<FilterItem<STrack>[]> {
         const items = await Metadata.getMultiple(url, Cache.tracks, options) as FilterItem<STrack>[];
-        //       items.forEach(item => item.kind = "track");
-        // return items;
+
         try {
             items.forEach(item => item.kind = "track");
             return items;
         } catch (error) {
             // Count how many items are undefined, not and the total and log this
-            console.log(
-                "Undefined items:",
-                items.map(i => i == undefined).length,
-                "out of",
-                items.length
-            );
+            LOG("Undefined items:", items.map(i => !Boolean(i)).length, "out of", items.length);
             throw error;
         }
     }
