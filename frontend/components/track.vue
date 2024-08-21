@@ -1,7 +1,7 @@
 <template>
-    <div class="accordion-item border-0 border-bottom">
+    <div class="accordion-item border-0">
         <h2 v-if="(typeof track !== 'object')" class="accordion-header m-0">
-            <div class="accordion-button shadow-none collapsed">
+            <div :class="`accordion-button shadow-none collapsed py-2 ${layout?.main.state=='tiny'?'ps-2':''}`">
                 <div class="container ms-0 d-flex gap-3 align-items-center ps-0">
                     <span class="placeholder image flex-shrink-0"></span>
                     <div class="flex-grow-1 multilayer m-0 d-grid gap-1">
@@ -24,7 +24,7 @@
         </h2>
         <template v-else>
             <h2 class="m-0">
-                <button class="accordion-button shadow-none collapsed"
+                <button :class="`accordion-button shadow-none collapsed py-2 ${layout?.main.state=='tiny'?'ps-2':''}`"
                         @click="getFeatures()"
                         data-bs-toggle="collapse"
                         :data-bs-target="`#track:${track.id}`">
@@ -73,7 +73,7 @@
                 </button>
             </h2>
             <div v-if="!track.is_local && (typeof track != 'string')" :id="`track:${track.id}`" class="accordion-collapse collapse">
-                <div class="accordion-body">
+                <div class="accordion-body border-bottom">
                     <div class="row">
                         <div class="col-12 mb-2 multilayer" data-main-class="normal-d-none">
                             <span>Album</span>
@@ -186,7 +186,7 @@ export default class Track extends Vue {
 
         if (!(this.track as CTrack).features) {
             (this.track as CTrack).features = (await Fetch.get<CTrackFeatures>(`spotify:/audio-features/${(this.track as CTrack).id}`)).data;
-            this.layout.render(null, true);
+            this.layout.rerender();
         }
 
         this.expanded = state ?? !this.expanded;
@@ -217,8 +217,8 @@ export default class Track extends Vue {
     }
 
     .image {
-        width: 3rem;
-        height: 3rem;
+        width: 2.5rem;
+        height: 2.5rem;
     }
 }
 

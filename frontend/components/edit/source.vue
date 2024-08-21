@@ -47,7 +47,7 @@ export default class EditSource extends Vue {
 
     mounted() {
         this.layout = new Layout();
-        this.layout.render(null, true);
+        this.layout.rerender();
         this.playlists = new Playlists();
         this.playlists.setUser(new User());
     }
@@ -75,7 +75,7 @@ export default class EditSource extends Vue {
         // If it is the library, we want to hide the input
         this.getKind();
         this.source.value = '';
-        this.layout.render(null, true);
+        this.layout.rerender();
     }
 
     /**

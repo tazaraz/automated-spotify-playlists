@@ -122,6 +122,10 @@ export default class Layout extends Pinia {
         tiny: { min: 0, max: 27*16 },
     }
 
+    rerender() {
+        return this.render(null, true);
+    }
+
     async render(user: TouchEvent | MouseEvent | number | null = null, force = false) {
         /** If we are on mobile */
         if (window.innerWidth <= this.app.threshold_mobile) {
@@ -194,7 +198,7 @@ export default class Layout extends Pinia {
         this[kind].resizing = value;
     }
 
-    open(what: "main" | "edit") {
+    async open(what: "main" | "edit") {
         let handle: number;
         if (what == "main") {
             /** If the main view is already open */
@@ -209,7 +213,7 @@ export default class Layout extends Pinia {
         this.setResizing('edit', true);
         this.render(handle, true);
         this.setResizing('edit', false);
-        this.render(null, true);
+        this.rerender();
     }
 
     /**

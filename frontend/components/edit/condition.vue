@@ -86,8 +86,7 @@
             <fa-icon style="color: rgb(155, 0, 0)" :icon="['fas', 'trash-can']"></fa-icon>
         </button>
 
-        <template v-for="i in indent"
-            v-if="layout && layout.edit.width <= layout.edit.normal.min">
+        <template v-for="i in indent" v-if="layout && layout.edit.width <= layout.edit.normal.min">
             <span v-if="i < indent" class="tree indent"><i></i></span>
             <template v-else>
                 <span class="center stacked-operation">
@@ -188,7 +187,7 @@ export default class EditCondition extends Vue {
     mounted() {
         this.update();
         this.layout = new Layout();
-        this.layout.render(null, true);
+        this.layout.rerender();
     }
 
     updated() {

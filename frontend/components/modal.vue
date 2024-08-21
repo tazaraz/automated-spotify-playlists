@@ -1,5 +1,5 @@
 <template>
-    <button @click="openModal" :class="`border-0 ${buttonClass}`">
+    <button @click="openModal" :class="`${buttonClass} border-0`">
         <fa-icon v-if="buttonIcon" :icon="buttonIcon"></fa-icon>
         {{ buttonText }}
     </button>

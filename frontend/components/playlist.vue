@@ -30,7 +30,9 @@
                                 </span>
                             </div>
                             <span v-if="playlists.loaded.id != 'unpublished' && playlists.loaded.id != 'library'">ID: {{ playlists.loaded.id }}</span>
-                            <span v-if="playlists.loaded.filters">Automated playlist</span>
+                            <div v-if="playlists.loaded.filters" class="d-flex">
+                                <span class="rounded-1 bg-light-subtle" style="padding: 0.1rem 0.3rem">Automated playlist</span>
+                            </div>
                             <Spotify v-if="playlists.loaded.id === 'library'" :to="`https://open.spotify.com/collection/tracks`" class="mt-3 mb-3">SHOW IN SPOTIFY</Spotify>
                             <Spotify v-else-if="playlists.loaded.id !== playlists.unpublished?.id" :to="`https://open.spotify.com/playlist/${playlists.loaded.id}`" class="mt-3 mb-3">SHOW IN SPOTIFY</Spotify>
                         </template>
@@ -98,32 +100,22 @@
                         <h4 class="m-auto">{{ playlists.loaded.name }}</h4>
                     </div>
 
-                    <Modal v-if="(shown.kind == 'excluded' || shown.kind == 'included') && shown.tracks.length > 0" :button-text="`Clear ${shown.kind} tracks`" button-class="btn btn-secondary text-nowrap me-3">
-                        <div class="modal-header">
-                            <h1 class="modal-title fs-5" id="exampleModalLabel">Clear all {{ shown.kind }} tracks?</h1>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            This operation will clear the {{ shown.kind }} list and {{ shown.kind == 'excluded' ? 'include' : 'exclude' }} all {{ shown.tracks.length }} tracks again.
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="clearShownTracks">Yes</button>
-                        </div>
-                    </Modal>
-
                     <template v-if="editor && playlists.loaded.filters !== undefined && playlists.loaded.ownership == 'user'">
                         <button v-if="!editor.shown"
-                                class="btn btn-primary d-inline-flex text-nowrap me-3" @click="loadEditor">
-                            <h5 class="m-auto me-2"><fa-icon :icon="['fas', 'wand-magic']" /></h5>
-                            Edit config
+                                class="btn btn-primary d-inline-flex text-nowrap" @click="loadEditor">
+                            <h5 class="m-auto"><fa-icon :icon="['fas', 'wand-magic']" /></h5>
+                            <span v-if="layout.main.state != 'tiny'" class="ms-3">
+                                Edit config
+                            </span>
                         </button>
                         <button v-else-if="playlists.loaded?.id === editor.id"
-                                class="btn btn-primary d-inline-flex text-nowrap me-3" disabled>
-                            <h5 class="m-auto me-2"><fa-icon :icon="['fas', 'wand-magic']" /></h5>
-                            Config open
+                                class="btn btn-primary d-inline-flex text-nowrap" disabled>
+                            <h5 class="m-auto"><fa-icon :icon="['fas', 'wand-magic']" /></h5>
+                            <span v-if="layout.main.state != 'tiny'" class="ms-3">
+                                Config open
+                            </span>
                         </button>
-                        <Modal v-else button-text="Edit config" :button-icon="['fas', 'wand-magic']" button-class="btn btn-primary me-2">
+                        <Modal v-else :button-text="layout.main.state != 'tiny' ? 'Edit config' : ''" :button-icon="['fas', 'wand-magic']" button-class="btn btn-primary">
                             <div class="modal-header">
                                 <h1 class="modal-title fs-5" id="exampleModalLabel">Discard current editor?</h1>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -137,6 +129,20 @@
                             </div>
                         </Modal>
                     </template>
+
+                    <Modal v-if="(shown.kind == 'excluded' || shown.kind == 'included') && shown.tracks.length > 0" :button-icon="['fas', 'eraser']" button-class="btn btn-secondary text-nowrap fs-5">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="exampleModalLabel">Clear all {{ shown.kind }} tracks?</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            This operation will clear the {{ shown.kind }} list and {{ shown.kind == 'excluded' ? 'include' : 'exclude' }} all {{ shown.tracks.length }} tracks again.
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal" @click="clearShownTracks">Yes</button>
+                        </div>
+                    </Modal>
 
                     <div v-if="playlists.loaded.filters" class="d-flex align-items-end dropdown">
                         <button class="btn" type="button" data-bs-toggle="dropdown">
@@ -182,7 +188,7 @@
                         </ul>
                     </div>
                 </div>
-                <div v-if="layout" class="accordion rounded-5" :style="`min-height: ${rendered.min_height}px;`">
+                <div v-if="layout" class="accordion rounded-5" :style="`min-height: ${rendered.min_height}px`">
                     <Track v-if="loading || editor.executing || !playlists.loaded || !playlists.loaded.all_tracks"
                            v-for="index in 20"
                            track=""
@@ -193,12 +199,15 @@
                         <Track
                             :track="isVisibleTrack(index) ? track : index"
                             :id="index" :class="`playlist-track${layout.main.state == 'tiny' ? ' tiny' : ''}`"
-                            :deleteable="shown.kind !== 'all' && !(typeof track === 'string' || track.id)"
+                            :deleteable="shown.kind == 'excluded' || shown.kind == 'included'"
                             @delete="removeTrack"/>
                     </template>
                     <h4 v-else class="m-5">
                         No tracks here.
                     </h4>
+                </div>
+                <div class="d-flex mt-4 mb-3">
+                    <span class="rounded-1 bg-light-subtle fs-5 mx-auto" style="padding: 0.1rem 0.3rem">Showing {{ shown.tracks.length }} tracks</span>
                 </div>
             </div>
         </template>
@@ -274,7 +283,7 @@ export default class PlaylistDisplay extends Vue {
         });
 
         /** Style the loading placeholders accordingly */
-        await this.layout.render(null, true);
+        await this.layout.rerender();
 
         if (id == 'unpublished') {
             await this.showTracks("all");
@@ -284,7 +293,7 @@ export default class PlaylistDisplay extends Vue {
             if (this.playlists.unpublished)
                 this.playlists.loadUserPlaylistByID(this.playlists.unpublished.id);
 
-            await this.layout.render(null, true);
+            await this.layout.rerender();
             return;
         }
 
@@ -325,7 +334,7 @@ export default class PlaylistDisplay extends Vue {
         await this.showTracks("all");
         this.breadcrumbs.add(useRoute().fullPath, this.playlists.loaded.name)
         this.loading = false;
-        await this.layout.render(null, true);
+        await this.layout.rerender();
         this.detectSticyPlaylistToolbar();
 
         // If the playlist tracks are updated, reload the list
@@ -376,7 +385,8 @@ export default class PlaylistDisplay extends Vue {
                 break;
         }
 
-        this.rendered.min_height = document.getElementsByClassName("playlist-track")[0].clientHeight
+        // Set the min height of the track list
+        this.rendered.min_height = (document.getElementsByClassName("playlist-track")[0].clientHeight || 0)
                                    * this.shown.tracks.length;
         this.loading = false;
 
@@ -510,7 +520,7 @@ export default class PlaylistDisplay extends Vue {
             await this.$nextTick();
             document.getElementById("mobile-open-edit")?.click();
             this.layout.open('edit');
-            this.layout.render(null, true);
+            this.layout.rerender();
         }
     }
 
