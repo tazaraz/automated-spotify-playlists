@@ -3,15 +3,13 @@
         <slot></slot>
         <span ref="info" data-bs-toggle="InfoTooltip" data-bs-delay='{"show":750,"hide":0}' :data-bs-title="description"
             @click="clicked" v-click-outside="hide">
-            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke="currentColor" stroke-width="3"
-                    d="M12,22 C17.5228475,22 22,17.5228475 22,12 C22,6.4771525 17.5228475,2 12,2 C6.4771525,2 2,6.4771525 2,12 C2,17.5228475 6.4771525,22 12,22 Z M12,15 L12,14 C12,13 12,12.5 13,12 C14,11.5 15,11 15,9.5 C15,8.5 14,7 12,7 C10,7 9,8.26413718 9,10 M12,16 L12,18" />
-            </svg>
+            <fa-icon :icon="['far', 'circle-question']"></fa-icon>
         </span>
     </div>
 </template>
 
 <script lang="ts">
+import { icon } from '@fortawesome/fontawesome-svg-core';
 import { Tooltip } from 'bootstrap';
 import { Vue, Prop } from 'vue-property-decorator';
 
