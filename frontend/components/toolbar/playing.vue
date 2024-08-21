@@ -1,10 +1,10 @@
 <template>
-    <div v-if="player && player.playing" class="flex-shrink-0 flex-grow-1 d-flex align-items-center flex-nowrap" style="max-width: 16rem;">
-        <span class="now-playing m-0 me-2 p-0">Now playing</span>
-        <url @click="breadcrumbs.clear()" :to="`/info/track/${player.playing.track.id}`" class="loading-container">
+    <div v-if="player && player.playing" class="d-flex flex-nowrap align-items-center">
+        <span class="now-playing m-0 p-0 ps-1">Now playing</span>
+        <url @click="breadcrumbs.clear()" :to="`/info/track/${player.playing.track.id}`" class="loading-container me-2">
             <Image :src="player.playing"/>
         </url>
-        <span v-if="!(layout.sidebar.state == 'tiny' && !layout.app.isMobile)" class="multilayer ms-3 pe-3">
+        <div v-if="!(layout.sidebar.state == 'tiny' && !layout.app.isMobile)" class="multilayer">
             <url @click="breadcrumbs.clear()" :to="`/info/track/${player.playing.track.id}`" class="text-truncate text-white">{{ player.playing.track.name }}</url>
             <div class="text-truncate">
                 <template v-for="(artist, index) in player.playing.artists">
@@ -12,7 +12,7 @@
                     <url @click="breadcrumbs.clear()" :to="`/info/artist/${artist.id}`">{{ artist.name }}</url>
                 </template>
             </div>
-        </span>
+        </div>
     </div>
     <div v-else></div>
 </template>
@@ -40,6 +40,7 @@ export default class ToolbarPlaying extends Vue {
 .loading-container,
 .loading-container img,
 .loading-container span {
+    display: block;
     width: 2.5rem;
     height: 2.5rem;
 }

@@ -1,7 +1,7 @@
 <template>
     <nav class="d-flex flex-column text-white h-100">
         <div class="mb-2 p-3 rounded-3 bg-dark">
-            <div class="d-flex align-items-center mb-3 text-white text-decoration-none" data-sidebar-class="normal-mb-0 normal-me-auto">
+            <div class="d-flex align-items-center text-white text-decoration-none" data-sidebar-class="normal-mb-0 normal-me-auto">
                 <url to="/" class="d-flex text-white" @click="tryClose">
                     <h4 class="ms-3 mb-0" style="width: 3rem"><fa-icon :icon="['fas', 'gear']" style="width: 2rem"></fa-icon></h4>
                     <h4 class="m-0" data-sidebar-class="normal-d-block tiny-d-none">
@@ -10,15 +10,6 @@
                 </url>
                 <button type="button" id="sidebarClose" class="d-sm-none d-block ms-auto me-3 btn-close" data-bs-dismiss="offcanvas"></button>
             </div>
-
-            <ClientOnly>
-                <div class="d-block d-md-none">
-                    <hr>
-                    <ToolbarPlaying
-                        :style="`margin-left: ${layout && layout.sidebar.state == 'tiny' && !layout.app.isMobile ? '-' : ''}0.25rem;`"
-                        @click="tryClose"/>
-                </div>
-            </ClientOnly>
 
             <div class="d-none d-md-block">
                 <hr>
@@ -35,7 +26,12 @@
                 </ol>
             </div>
         </div>
-        <div id="playlists" class="p-2 rounded-3 bg-dark-subtle h-100 overflow-hidden">
+        <ClientOnly>
+            <ToolbarPlaying
+                class="d-md-none rounded-3 bg-dark p-3 mb-2"
+                @click="tryClose"/>
+        </ClientOnly>
+        <div id="playlists" class="p-2 rounded-3 bg-dark h-100 overflow-hidden">
             <ol v-if="playlists && user && user.info" class="nav nav-pills d-block overflow-y-auto h-100">
                 <li v-for="item in [
                     {name: 'Library', to: '/library', icon: ['fas', 'heart']},
