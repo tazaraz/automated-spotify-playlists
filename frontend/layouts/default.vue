@@ -62,6 +62,11 @@ import Layout from '~/stores/layout';
 import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
+useHead({
+    meta: [
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1' },
+    ],
+})
 export default class App extends Vue {
     user: User = null as any;
     playlists: Playlists = null as any;
@@ -110,7 +115,7 @@ export default class App extends Vue {
 
         /** When the basic stuff is loaded */
         watch(() => [this.user.info, this.playlists?.storage], () => {
-            this.layout.render(null, true)
+            this.layout.rerender()
         })
 
         /** Watch the url */
@@ -118,25 +123,25 @@ export default class App extends Vue {
             /** When the url changes, the info view changes. Update it */
             await this.$nextTick();
             this.layout.mainElement = this.layout.appElement.getElementsByTagName('main')[0].firstElementChild as HTMLElement;
-            this.layout.render(null, true);
+            this.layout.rerender();
 
         })
 
         /** When we start/stop editing */
         watch(() => this.editor.shown, async () => {
             this.layout.editorShown = this.editor.shown;
-            this.layout.render(null, true);
+            this.layout.rerender();
         })
 
         /** When the user resizes the window */
         addEventListener("resize", () => {
             this.layout.app.width = this.layout.appElement.clientWidth;
             this.layout.setPadding();
-            this.layout.render(null, true);
+            this.layout.rerender();
         })
 
         this.layout.setPadding();
-        this.layout.render(null, true);
+        this.layout.rerender();
     }
 }
 </script>
