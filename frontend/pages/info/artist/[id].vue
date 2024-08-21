@@ -1,5 +1,5 @@
 <template>
-    <article key="artist" class="rounded-2 p-2 bg-dark-subtle flex-grow-1 overflow-hidden">
+    <article key="artist" class="rounded-2 p-2 bg-dark flex-grow-1 overflow-hidden">
         <SmallHeader :item="artist"></SmallHeader>
         <div class="h-100 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
             <Title v-if="!artist">Loading artist...</Title>

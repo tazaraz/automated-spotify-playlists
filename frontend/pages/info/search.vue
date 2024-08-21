@@ -1,6 +1,6 @@
 <template>
     <Title>Search</Title>
-    <article class="rounded-2 p-2 bg-dark-subtle flex-grow-1 overflow-hidden">
+    <article class="rounded-2 p-2 bg-dark flex-grow-1 overflow-hidden">
         <SmallHeader :item="{name: 'Search', image: ['fas', 'search']}"></SmallHeader>
         <div class="overflow-hidden overflow-y-auto h-100" data-edit-class="full-d-none">
             <div v-if="error" class="alert alert-info" role="alert">
@@ -13,7 +13,7 @@
                        placeholder="Type to search"
                        :value="info.config?.query"
                        @input="search" @paste="search">
-                <span v-if="info.config?.query !== ''"
+                <span v-if="info.config?.query !== '' && info.config?.query !== undefined"
                         id="clear-button"
                         class="btn input-group-text ps-2 pe-2 border-top border-bottom"
                         @click="resetSearch">

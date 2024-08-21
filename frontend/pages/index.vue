@@ -1,5 +1,5 @@
 <template>
-    <article key="album" class="rounded-2 p-2 bg-dark-subtle flex-grow-1 overflow-hidden">
+    <article key="album" class="rounded-2 p-2 bg-dark flex-grow-1 overflow-hidden">
         <SmallHeader :item="{name: 'Homepage'}"></SmallHeader>
         <div v-if="playlists" class="h-100 p-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
             <Title>Automated playlists</Title>
@@ -98,7 +98,7 @@ export default class Homepage extends Vue {
         this.playlists.setUser(this.user)
         this.layout = new Layout();
 
-        await this.layout.render(null, true);
+        await this.layout.rerender();
     }
 
     /**
@@ -114,7 +114,7 @@ export default class Homepage extends Vue {
         // Click the edit button to try and open the offcanvas edit view
         document.getElementById("mobile-open-edit")?.click();
         this.layout.open('edit');
-        this.layout.render(null, true);
+        this.layout.rerender();
     }
 
     /**

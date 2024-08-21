@@ -1,5 +1,5 @@
 <template>
-    <article class="rounded-2 p-2 bg-dark-subtle overflow-hidden">
+    <article class="rounded-2 p-2 bg-dark overflow-hidden">
         <template v-if="playlists && editor">
             <div class="d-none h-100 p-3 overflow-hidden flex-column align-items-center" data-edit-class="tiny-d-flex small-d-none normal-d-none large-d-none full-d-none">
                 <h4 class="d-flex mb-4" style="width: 3rem"><fa-icon class="m-auto" :icon="['fas', 'wand-magic']" style="width: 2rem"></fa-icon></h4>
@@ -11,7 +11,7 @@
                 <h4 class="text-nowrap" style="writing-mode:vertical-rl;">{{ editor.name }}</h4>
             </div>
             <div class="h-100 p-1 overflow-y-auto m-auto" data-edit-class="tiny-d-none" style="max-width: 50rem;">
-                <div class="position-sticky bg-dark-subtle z-3" style="top: -0.25rem;">
+                <div class="position-sticky bg-dark z-3" style="top: -0.25rem;">
                     <div class="d-flex align-items-center pt-2 pb-3 text-white text-decoration-none" >
                         <h4 class="ms-3 me-3 mb-0"><fa-icon :icon="['fas', 'wand-magic']" style="width: 2rem"></fa-icon></h4>
                         <h4 class="m-0">

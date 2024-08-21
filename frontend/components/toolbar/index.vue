@@ -1,5 +1,5 @@
 <template>
-    <nav id="toolbar" class="d-flex gap-3 bg-dark-subtle justify-content-between align-items-center rounded-3 mb-2 p-2 ps-3 pe-3">
+    <nav id="toolbar" class="d-flex gap-3 bg-dark justify-content-between align-items-center rounded-3 mb-2 p-2 ps-3 pe-3">
         <ClientOnly>
             <button class="navbar-toggler d-sm-none" data-bs-toggle="offcanvas" data-bs-target="#sidebar" @click="player.update()">
                 <h2 class="p-1 m-0"><fa-icon :icon="['fas', 'bars']"></fa-icon></h2>

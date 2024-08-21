@@ -1,6 +1,6 @@
 <template>
     <nav class="d-flex flex-column text-white h-100">
-        <div class="mb-2 p-3 rounded-3 bg-dark-subtle">
+        <div class="mb-2 p-3 rounded-3 bg-dark">
             <div class="d-flex align-items-center mb-3 text-white text-decoration-none" data-sidebar-class="normal-mb-0 normal-me-auto">
                 <url to="/" class="d-flex text-white" @click="tryClose">
                     <h4 class="ms-3 mb-0" style="width: 3rem"><fa-icon :icon="['fas', 'gear']" style="width: 2rem"></fa-icon></h4>

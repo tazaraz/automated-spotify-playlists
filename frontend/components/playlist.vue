@@ -1,5 +1,5 @@
 <template>
-    <article class="rounded-2 p-2 bg-dark-subtle flex-grow-1 overflow-hidden">
+    <article class="rounded-2 p-2 bg-dark flex-grow-1 overflow-hidden">
         <template v-if="playlists">
             <SmallHeader :item="playlists.loaded"></SmallHeader>
             <div id="playlist-wrapper" class="h-100 overflow-y-auto overflow-hidden" data-edit-class="full-d-none">
