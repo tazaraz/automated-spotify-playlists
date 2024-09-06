@@ -57,7 +57,7 @@ export interface CAlbum {
     // Name of the album
     name: string
     // Release date
-    release_date: number
+    release_date: string
     // ID of the album
     id: string
     // Popularity of the album

@@ -39,13 +39,13 @@
 
         <template v-if="layout && layout.edit.width >= layout.edit.large.min">
             <span v-if="inputType == inputTypes.value" class="center input input-group input-group-sm">
-                <input @input="condition.value = $event.target!.value"
+                <input @input="filterValueChange"
                        type="text"
                        class="source-input form-control"
                        :value="condition.value"/>
             </span>
             <span v-if="inputType == inputTypes.date" class="center input input-group input-group-sm">
-                <input @input="condition.value = $event.target!.value"
+                <input @input="filterValueChange"
                        type="date"
                        class="source-input form-control"
                        :value="condition.value"/>
@@ -66,7 +66,7 @@
                 </div>
             </span>
             <span v-if="inputType == inputTypes.slider" class="center input input-group flex-column input-group-sm gap-3">
-                <input @input="condition.value = $event.target!.value"
+                <input @input="filterValueChange"
                        type="range"
                        class="source-input form-range m-auto"
                        :value="condition.value"/>
@@ -102,20 +102,19 @@
                 </span>
             </template>
         </template>
-
         <template v-for="i in indent"
             v-if="layout && layout.edit.width < layout.edit.large.min &&
                 inputType != inputTypes.boolean">
             <span v-if="i < indent" class="tree indent"><i></i></span>
             <template v-else>
                 <span v-if="inputType == inputTypes.value" class="center stacked-input input-group input-group-sm ps-4">
-                    <input @input="condition.value = $event.target!.value"
+                    <input @input="filterValueChange"
                            type="text"
                            class="source-input form-control"
                            :value="condition.value"/>
                 </span>
                 <span v-if="inputType == inputTypes.date" class="center stacked-input input-group input-group-sm ps-4">
-                    <input @input="condition.value = $event.target!.value"
+                    <input @input="filterValueChange"
                            type="date"
                            class="source-input form-control"
                            :value="condition.value"/>
@@ -135,7 +134,7 @@
                     </div>
                 </span>
                 <span v-if="inputType == inputTypes.slider" class="center stacked-input input-group flex-column input-group-sm gap-3">
-                    <input @input="condition.value = $event.target!.value"
+                    <input @input="filterValueChange"
                            type="range"
                            class="source-input form-range m-auto"
                            :value="condition.value"/>
@@ -213,6 +212,10 @@ export default class EditCondition extends Vue {
         return false;
     }
 
+    async filterValueChange(event: Event) {
+        this.condition.value = (event.target! as HTMLInputElement).value;
+    }
+
     filterChange(event: Event, kind: "category" | "filter" | "operation") {
         const value = (event.target! as HTMLSelectElement).value;
         if (kind == "category") {
@@ -248,7 +251,6 @@ export default class EditCondition extends Vue {
 
         switch (Filters[this.condition.category][this.condition.filter].type) {
             case FilterDate:
-                this.condition.value = new Date().toISOString().split('T')[0];
                 this.inputType = inputTypes.date; break;
             case FilterSlider:
                 this.condition.value = this.condition.value.toString() || "50";

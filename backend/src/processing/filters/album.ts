@@ -1,4 +1,4 @@
-import { FilterString, FilterValue } from "../../shared/matching";
+import { FilterDate, FilterString, FilterValue } from "../../shared/matching";
 import { FilterItem, Generic, SAlbum, SArtist, STrack } from "../../shared/types/server";
 import { filter_async, get_by_kind, log_single as log_info_item, log_single } from ".";
 import { ProcessLevel } from "..";
@@ -58,11 +58,11 @@ export class Album {
     }
 
     static async ReleaseDate(items: FilterItem<Generic>[],
-                             operation: keyof typeof FilterValue.operation,
-                             filter: number,
+                             operation: keyof typeof FilterDate.operation,
+                             filter: string,
                              task: FilterTask){
         if (task.plevel == ProcessLevel.DRY_RUN) {
-            FilterValue.matches(operation, filter, 0)
+            FilterDate.matches(operation, filter, "")
             return [];
         }
 
@@ -70,7 +70,7 @@ export class Album {
             log_single(task, filter_item.name, filter, filter_item.release_date)
 
             // Get the track album release date
-            if (FilterValue.matches(operation, filter, filter_item.release_date))
+            if (FilterDate.matches(operation, filter, filter_item.release_date))
                 return true;
         })
     }
