@@ -70,6 +70,8 @@ export default class FilterTask {
     delete() {
         // Delete the log
         delete FilterTask.logs[this.pid];
+        // Unset the process ID
+        this.pid = "";
     }
 
     /**
@@ -81,8 +83,11 @@ export default class FilterTask {
         // Finalize the last promise
         if (this.logChangeResolver) this.logChangeResolver(this);
 
-        // Delete the log after 50 seconds
-        setTimeout(() => this.delete(), 20000);
+        // Delete the log after 60 seconds
+        setTimeout(() => {
+            // If the pid still exists (log not deleted)
+            if (this.pid !== "") this.delete()
+        }, 60000);
     }
 
     /**
