@@ -59,6 +59,7 @@ import { Vue } from 'vue-property-decorator';
 import BreadCrumbs from '~/stores/breadcrumbs';
 import Editor from '~/stores/editor';
 import Layout from '~/stores/layout';
+import NowPlaying from '~/stores/player';
 import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
@@ -72,6 +73,7 @@ export default class App extends Vue {
     playlists: Playlists = null as any;
     editor: Editor = null as any;
     layout: Layout = null as any;
+    nowplaying: NowPlaying = null as any;
     offcanvas: Offcanvas[] = null as any;
 
     beforeCreate() {
@@ -89,6 +91,7 @@ export default class App extends Vue {
         this.editor.playlists = this.playlists;
         this.playlists.editor = this.editor;
         this.layout = new Layout();
+        this.nowplaying = new NowPlaying();
 
         // If the user is not logged in, don't load the playlists
         if (!this.user.info)
@@ -96,6 +99,7 @@ export default class App extends Vue {
 
         this.playlists.setUser(this.user)
         await this.playlists.loadUserPlaylists();
+        this.nowplaying.update();
     }
 
     beforeMount() {
