@@ -199,7 +199,7 @@
                         <Track
                             :track="isVisibleTrack(index) ? track : index"
                             :id="index" :class="`playlist-track${layout.main.state == 'tiny' ? ' tiny' : ''}`"
-                            :deleteable="shown.kind == 'excluded' || shown.kind == 'included'"
+                            :deleteable="shown.kind == 'matched' || shown.kind == 'excluded' || shown.kind == 'included'"
                             @delete="removeTrack"/>
                     </template>
                     <h4 v-else class="m-5">
