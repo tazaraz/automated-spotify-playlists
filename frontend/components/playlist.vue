@@ -22,7 +22,7 @@
                             <div class="mt-3 d-flex align-items-center flex-wrap gap-2">
                                 <url :to="`/info/user/${playlists.loaded.owner.id}`" class="rounded-2">{{ playlists.loaded.owner.display_name }}</url>
                                 &nbsp;&nbsp;━&nbsp;&nbsp;
-                                <template v-if="loading || editor.executing || !playlists.loaded || !playlists.loaded.all_tracks">
+                                <template v-if="(loading || !playlists.loaded || !playlists.loaded.all_tracks) || (editor.executing && playlists.loaded.id == editor.id)">
                                     <span class="d-inline-block loading-icon"></span>loading tracks
                                 </template>
                                 <span v-else>{{ playlists.loaded.all_tracks.length }}
@@ -189,7 +189,7 @@
                     </div>
                 </div>
                 <div v-if="layout" class="accordion rounded-5" :style="`min-height: ${rendered.min_height}px`">
-                    <Track v-if="loading || editor.executing || !playlists.loaded || !playlists.loaded.all_tracks"
+                    <Track v-if="(loading || !playlists.loaded || !playlists.loaded.all_tracks) || (editor.executing && playlists.loaded.id == editor.id)"
                            v-for="index in 20"
                            track=""
                            :id="index"
@@ -339,7 +339,7 @@ export default class PlaylistDisplay extends Vue {
 
         // If the playlist tracks are updated, reload the list
         watch(() => this.editor.executing, () => {
-            if (!this.editor.executing) this.showTracks(this.shown.kind);
+            if (!this.editor.executing && this.playlists.loaded.id == this.editor.id) this.showTracks(this.shown.kind);
         })
     }
 
