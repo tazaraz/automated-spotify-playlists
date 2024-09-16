@@ -35,9 +35,10 @@ export default class NowPlaying extends Pinia {
     }
 
     update() {
-        if (this.user.dataExists()) {
+        if (this.user.dataExists())
             this.updatePlayer();
-        }
+        else
+            this.playing = null;
     }
 
     private updatePlayer() {
