@@ -189,8 +189,6 @@ export default class FilterParser {
 
             return loved_tracks
         } else {
-            console.log(condition.category, condition.filter, condition.operation, condition.value)
-            console.log(Filters[condition.category][condition.filter])
             return (await Filters[condition.category][condition.filter]
                     .filter(input, condition.operation, condition.value, task)) as FilterItem<any>[];
         }

@@ -14,8 +14,6 @@ export class FilterDate {
     public static matches(operation: keyof typeof FilterDate.operation,
                           filter: string,
                           value: string): boolean{
-        console.log(FilterValue.matches(operation, new Date(filter).getTime(), new Date(value).getTime()),
-        operation, new Date(filter).getTime(), new Date(value).getTime());
         return FilterValue.matches(operation, new Date(filter).getTime(), new Date(value).getTime());
     }
 }
