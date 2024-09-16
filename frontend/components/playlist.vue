@@ -207,7 +207,7 @@
                     </h4>
                 </div>
                 <div class="d-flex mt-4 mb-3">
-                    <span class="rounded-1 bg-light-subtle fs-5 mx-auto" style="padding: 0.1rem 0.3rem">Showing {{ shown.tracks.length }} tracks</span>
+                    <span class="rounded-1 bg-light-subtle fs-5 mx-auto" style="padding: 0.1rem 0.3rem">Showing {{ shown.tracks.length }} track {{ shown.tracks.length == 1 ? '' : 's' }}</span>
                 </div>
             </div>
         </template>
