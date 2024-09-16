@@ -5,10 +5,10 @@ import { PlaylistLog } from "../shared/types/playlist";
  * FilterTask allows storing logs, but adds a listener to the log to detect when it updates.
  */
 export default class FilterTask {
-    private static logs: { [id: string]: FilterTask } = {};
+    private static logs: { [pid: string]: FilterTask } = {};
 
-    /** Id of the task */
-    private id: string;
+    /** Id of the task. Unique, so a task cannot be executed twice at the same time */
+    private pid: string;
     // Promise resolve function
     private logChangeResolver: ((value: FilterTask) => void) | undefined;
 
@@ -21,8 +21,8 @@ export default class FilterTask {
     /** Whether the log is finalized */
     finalized = false;
 
-    constructor(id: string, level: ProcessLevel, auto: boolean = false) {
-        this.id = id;
+    constructor(pid: string, level: ProcessLevel, auto: boolean = false) {
+        this.pid = pid;
         this.plevel = level;
         this.log = {
             name: `${new Date().toLocaleDateString()}-${new Date().getHours().toString().padStart(2, '0')}:${new Date().getMinutes().toString().padStart(2, '0')}`,
@@ -33,7 +33,7 @@ export default class FilterTask {
         if (auto) this.log.name = '(auto) ' + this.log.name;
 
         // Store the log
-        FilterTask.logs[id] = this;
+        FilterTask.logs[pid] = this;
 
         // Create a proxy
         for (const logtype of ['sources', 'filters']) {
@@ -68,7 +68,8 @@ export default class FilterTask {
      * Deletes the log.
      */
     delete() {
-        delete FilterTask.logs[this.id];
+        // Delete the log
+        delete FilterTask.logs[this.pid];
     }
 
     /**
