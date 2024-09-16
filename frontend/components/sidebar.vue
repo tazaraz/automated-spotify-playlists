@@ -37,7 +37,7 @@
                     {name: 'Library', to: '/library', icon: ['fas', 'heart']},
                     {name: 'Search', to: '/info/search', icon: ['fas', 'search']},
                 ]" class="d-flex d-md-none nav-item cursor-pointer mt-2">
-                    <url :class="`d-flex align-items-center nav-link ps-0 pe-0${user?.info ? '' : ' disabled'}`" :to="item.to" @click="tryClose">
+                    <url :class="`d-flex align-items-center nav-link ps-0 mx-auto pe-0${user?.info ? '' : ' disabled'}`" :to="item.to" @click="tryClose">
                         <h4 class="ms-3 mb-0" style="width: 3rem"><fa-icon :icon="item.icon" style="width: 2rem"></fa-icon></h4>
                         <h5 class="m-0" data-sidebar-class="normal-d-block tiny-d-none">{{ item.name }}</h5>
                     </url>
@@ -59,7 +59,6 @@
                     <li v-if="playlist.filters" class="nav-item cursor-pointer">
                         <url :to="`/playlist/${playlist.id}`" @click="tryClose"
                             class="ps-2 d-flex align-items-center nav-link">
-                            <!-- <Image :src="playlist" class="rounded-1" data-sidebar-class="tiny-m-auto normal-m-0"/> -->
                             <Image :src="playlist" data-sidebar-class="tiny-m-auto normal-m-0"/>
                             <span class="m-auto ms-3 text-truncate" data-sidebar-class="tiny-d-none">{{ playlist.name }}</span>
                         </url>
@@ -75,7 +74,7 @@
                 <div id="playlist-sp-header" class="flex-column align-items-center gap-3 mt-2 d-none" data-sidebar-class="tiny-d-flex normal-d-none">
                     <url @click="addAutomatedPlaylist" class="d-block border rounded-3 text-white p-2 fs-5" data-sidebar-class="normal-m-0"><i><fa-icon :icon="['fas', 'plus']" style="width:2rem;"></fa-icon></i></url>
                 </div>
-                <h6 class="lh-base mt-3 p-1 pb-0">Normal playlists</h6>
+                <h6 class="lh-base mt-3 p-1 ps-2 pb-0">Normal playlists</h6>
                 <template v-for="(playlist, index) in playlists.storage" :key="index">
                     <li v-if="!playlist.filters" class="nav-item cursor-pointer">
                         <url :to="`/playlist/${playlist.id}`" @click="tryClose"

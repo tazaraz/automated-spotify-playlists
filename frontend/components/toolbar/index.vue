@@ -76,6 +76,7 @@ export default class Sidebar extends Vue {
         // Unload everything
         this.user.logout();
         this.playlists.editor = null as any;
+        this.player.update();
     }
 }
 </script>
