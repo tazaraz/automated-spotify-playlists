@@ -119,11 +119,13 @@ export default class Sidebar extends Vue {
     playlists: Playlists = null as any;
     layout: Layout = null as any;
     user: User = null as any;
+    breadcrumbs: BreadCrumbs = null as any;
 
     async beforeMount() {
         if (!process.client) return;
 
         this.user = new User()
+        this.breadcrumbs = new BreadCrumbs();
 
         watch(() => this.user.info, () => this.update());
         this.update();
@@ -131,7 +133,7 @@ export default class Sidebar extends Vue {
 
     async update() {
         if (!this.user.info) {
-            (new BreadCrumbs()).clear();
+            this.breadcrumbs.clear();
             this.$nextTick(() => {
                 if (!this.user?.info) {
                     this.$router.push('/');
@@ -163,6 +165,7 @@ export default class Sidebar extends Vue {
     }
 
     tryClose() {
+        this.breadcrumbs.clear();
         document.getElementById('sidebarClose')?.click();
     }
 }
