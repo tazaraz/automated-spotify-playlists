@@ -3,12 +3,14 @@ import { defineNuxtConfig } from 'nuxt/config'
 export default defineNuxtConfig({
     // Disable console clearing
     // https://nuxtjs.org/docs/2.x/configuration-glossary/configuration-cli#clearconsole
+    build: {
+        transpile: ['@fortawesome/vue-fontawesome'],
+    },
     css: [
         "~/assets/scss/overrides.scss",
         "@/assets/scss/global.scss",
         '@fortawesome/fontawesome-svg-core/styles.css',
     ],
-
     modules: [
         '@pinia/nuxt',
         'nuxt-tsconfig-relative-paths',
@@ -19,9 +21,6 @@ export default defineNuxtConfig({
             SP_CLIENT_ID: process.env.SP_CLIENT_ID,
             DOMAIN: process.env.DOMAIN
         }
-    },
-    build: {
-        transpile: ['@fortawesome/vue-fontawesome'],
     },
     vite: {
         css: {
