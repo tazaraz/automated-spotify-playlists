@@ -37,7 +37,7 @@
                     {name: 'Library', to: '/library', icon: ['fas', 'heart']},
                     {name: 'Search', to: '/info/search', icon: ['fas', 'search']},
                 ]" class="d-flex d-md-none nav-item cursor-pointer mt-2">
-                    <url :class="`d-flex align-items-center nav-link ps-0 mx-auto pe-0${user?.info ? '' : ' disabled'}`" :to="item.to" @click="tryClose">
+                    <url :class="`d-flex align-items-center nav-link ps-0 ms-2 pe-0${user?.info ? '' : ' disabled'}`" :to="item.to" @click="tryClose">
                         <h4 class="ms-3 mb-0" style="width: 3rem"><fa-icon :icon="item.icon" style="width: 2rem"></fa-icon></h4>
                         <h5 class="m-0" data-sidebar-class="normal-d-block tiny-d-none">{{ item.name }}</h5>
                     </url>
@@ -58,7 +58,7 @@
                 <template v-for="(playlist, index) in playlists.storage" :key="index">
                     <li v-if="playlist.filters" class="nav-item cursor-pointer">
                         <url :to="`/playlist/${playlist.id}`" @click="tryClose"
-                            class="ps-2 d-flex align-items-center nav-link">
+                            class="p-2 d-flex align-items-center nav-link">
                             <Image :src="playlist" data-sidebar-class="tiny-m-auto normal-m-0"/>
                             <span class="m-auto ms-3 text-truncate" data-sidebar-class="tiny-d-none">{{ playlist.name }}</span>
                         </url>
