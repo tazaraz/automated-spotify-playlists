@@ -1,21 +1,20 @@
-version: "3.9"
-
 services:
-  sp-nginx:
+  automated-playlists-nginx:
     image: nginx:alpine
-    container_name: sp-nginx
+    container_name: automated-playlists-nginx
     restart: always
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/site.conf:/etc/nginx/sites-enabled/site.conf
       - ./nginx/logs:/var/log/nginx
     depends_on:
-      - sp-frontend
-      - sp-backend
+      - automated-playlists-frontend
+      - automated-playlists-backend
 
-  sp-frontend:
+  automated-playlists-frontend:
+    user: 1000:1000
     image: node:alpine
-    container_name: sp-frontend
+    container_name: automated-playlists-frontend
     command: npm run deploy
     restart: always
     working_dir: /frontend
@@ -25,11 +24,12 @@ services:
     environment:
       PORT: 8080
       NODE_ENV: production
-      SP_CLIENT_ID: ${SP_CLIENT_ID}
+      AP_CLIENT_ID: ${AP_CLIENT_ID}
 
-  sp-backend:
+  automated-playlists-backend:
+    user: 1000:1000
     image: node:alpine
-    container_name: sp-backend
+    container_name: automated-playlists-backend
     command: npm run deploy
     working_dir: /backend
     restart: always
@@ -37,29 +37,31 @@ services:
       - ./backend:/backend
     environment:
       NODE_ENV: production
-      PGHOST: sp-database
+      PGHOST: automated-playlists-database
       PGUSER: postgres
-      SP_CLIENT_ID: ${SP_CLIENT_ID}
-      SP_CLIENT_SECRET: ${SP_CLIENT_SECRET}
+      AP_CLIENT_ID: ${AP_CLIENT_ID}
+      AP_CLIENT_SECRET: ${AP_CLIENT_SECRET}
       SERVER_TOKEN: ${SERVER_TOKEN}
       PGPASSWORD: ${DATABASE_PASSWORD}
-      REDIS_HOST: sp-cache
+      REDIS_HOST: automated-playlists-cache
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     depends_on:
-      - sp-database
-      - sp-cache
+      - automated-playlists-database
+      - automated-playlists-cache
 
-  sp-cache:
+  automated-playlists-cache:
+    user: 1000:1000
     image: redis:7.0-alpine
-    container_name: sp-cache
+    container_name: automated-playlists-cache
     command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
     volumes:
       - ./cache:/data
 
-  sp-database:
+  automated-playlists-database:
+    user: 1000:1000
     image: postgres:15.3-alpine
-    container_name: sp-database
+    container_name: automated-playlists-database
     restart: always
     environment:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}

@@ -1,5 +1,5 @@
 {
-  "name": "nuxt-app",
+  "name": "automated-playlists",
   "private": true,
   "scripts": {
     "deploy": "NODE_ENV=production nuxt generate && nuxt start",

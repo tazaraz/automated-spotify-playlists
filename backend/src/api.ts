@@ -18,7 +18,7 @@ const api = express.Router();
  */
 api.post('/user/authorize', async (req, res) => {
     // If the data is invalid
-    if (req.body?.response_type !== 'code' || req.body?.client_id !== process.env.SP_CLIENT_ID)
+    if (req.body?.response_type !== 'code' || req.body?.client_id !== process.env.AP_CLIENT_ID)
         return res.status(400).json({ error: "Invalid request" });
 
     // Convert the CodeGrantResponse to an object
@@ -30,7 +30,7 @@ api.post('/user/authorize', async (req, res) => {
         },
         headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': 'Basic ' + Buffer.from(`${process.env.SP_CLIENT_ID}:${process.env.SP_CLIENT_SECRET}`).toString('base64')
+            'Authorization': 'Basic ' + Buffer.from(`${process.env.AP_CLIENT_ID}:${process.env.AP_CLIENT_SECRET}`).toString('base64')
         }
     });
 

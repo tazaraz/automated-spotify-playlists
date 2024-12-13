@@ -67,7 +67,7 @@ export default class User extends Pinia {
 
     login() {
         localStorage.setItem("o", window.location.pathname);
-        this.getCodeGrant(useRuntimeConfig().public.SP_CLIENT_ID)
+        this.getCodeGrant(useRuntimeConfig().public.AP_CLIENT_ID)
     }
 
     finishLogin() {

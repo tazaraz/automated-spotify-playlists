@@ -91,7 +91,7 @@ export default class Users {
         const response = await Fetch.post('https://accounts.spotify.com/api/token', {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': `Basic ${Buffer.from(process.env.SP_CLIENT_ID + ':' + process.env.SP_CLIENT_SECRET).toString('base64')}`,
+                'Authorization': `Basic ${Buffer.from(process.env.AP_CLIENT_ID + ':' + process.env.AP_CLIENT_SECRET).toString('base64')}`,
             },
             data: {
                 grant_type: 'refresh_token',

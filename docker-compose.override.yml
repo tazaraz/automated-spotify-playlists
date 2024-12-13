@@ -1,16 +1,15 @@
-version: "3.9"
 services:
-  sp-nginx:
+  automated-playlists-nginx:
     ports:
-      - 80:80
+      - 8080:8080
       - 24672:24672
 
-  sp-frontend:
+  automated-playlists-frontend:
     command: npm run dev
     environment:
       NODE_ENV: development
 
-  sp-backend:
+  automated-playlists-backend:
     command: npm run dev
     environment:
       NODE_ENV: development

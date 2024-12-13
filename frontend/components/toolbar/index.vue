@@ -63,7 +63,7 @@ export default class Sidebar extends Vue {
 
             // Request tokens
             const error = await this.user.getTokens(
-                useRuntimeConfig().public.SP_CLIENT_ID,
+                useRuntimeConfig().public.AP_CLIENT_ID,
                 code as string
             );
 

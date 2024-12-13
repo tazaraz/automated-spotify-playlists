@@ -18,7 +18,7 @@ export default defineNuxtConfig({
 
     runtimeConfig: {
         public: {
-            SP_CLIENT_ID: process.env.SP_CLIENT_ID,
+            AP_CLIENT_ID: process.env.AP_CLIENT_ID,
             DOMAIN: process.env.DOMAIN
         }
     },
