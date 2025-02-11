@@ -9,45 +9,47 @@
                 :icon="['fas', 'trash-can']"></fa-icon></button>
     </template>
     <template v-else>
-        <span data-edit-class="small-two-layer">from</span>
-        <EditInput data-edit-class="small-d-none large-d-block" :value="source.value" :kind="kind" @update="updateInput"></EditInput>
-        <button class="border-0 bg-transparent p-2" @click="$emit('delete')"><fa-icon style="color: rgb(155, 0, 0)"
-            :icon="['fas', 'trash-can']"></fa-icon></button>
-        <EditInput data-edit-class="small-two-layer small-d-block normal-d-none large-d-none" :value="source.value" :kind="kind" @update="updateInput"></EditInput>
+        <span class="small-span-2">from</span>
+        <UIEditorInput class="small-d-none large-d-flex" :value="source.value" :kind="kind"
+                   @update="updateInput"></UIEditorInput>
+        <button class="border-0 bg-transparent p-2"
+                @click="$emit('delete')">
+                <fa-icon style="color: rgb(155, 0, 0)" :icon="['fas', 'trash-can']"></fa-icon>
+        </button>
+        <UIEditorInput class="small-span-4 small-d-flex d-none" :value="source.value" :kind="kind"
+                   @update="updateInput"></UIEditorInput>
     </template>
 </template>
 
 <script lang="ts">
-import { Vue, Prop, Emit } from 'vue-property-decorator';
-import { PlaylistSource } from '../../../backend/src/shared/types/playlist';
-import { SourceDescription as Sources } from '../../../backend/src/shared/types/descriptions';
-import Info from '~/stores/info';
-import EditInput from './input.vue';
+import { Vue, Component, toNative, Prop } from 'vue-facing-decorator';
+import { SourceDescription } from '@/../backend/src/shared/types/descriptions';
+import { type PlaylistSource } from '@/../backend/src/shared/types/playlist';
+import { EditorInput } from './input.vue';
 import Layout from '~/stores/layout';
 import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
-@Emit('delete')
-export default class EditSource extends Vue {
+@Component({
+    emits: ['delete', 'change']
+})
+export class EditorSource extends Vue {
     @Prop({ required: true }) source!: PlaylistSource
 
     playlists: Playlists = null as any;
-    info: Info = null as any;
     layout: Layout = null as any;
-    SourceDescription = Object.keys(Sources);
 
-    /** Multiple is not yet supported */
+    SourceDescription = Object.keys(SourceDescription);
+
     kind: "album" | "artist" | "playlist" | "library" = "library"
-    invalid = false;
+    valid = true;
 
     created() {
-        this.info = new Info();
         this.getKind();
     }
 
     mounted() {
         this.layout = new Layout();
-        this.layout.rerender();
         this.playlists = new Playlists();
         this.playlists.setUser(new User());
     }
@@ -60,7 +62,7 @@ export default class EditSource extends Vue {
      * Used externally to check if all the required fields are filled
      */
     isValid() {
-        return !this.invalid && this.source.value !== null &&
+        return this.valid && this.source.value !== null &&
             (this.source.origin == "Library" ||
                 (this.source.value !== '' && this.source.value !== this.playlists.editor.id));
     }
@@ -75,7 +77,7 @@ export default class EditSource extends Vue {
         // If it is the library, we want to hide the input
         this.getKind();
         this.source.value = '';
-        this.layout.rerender();
+        this.$emit('change', this.source)
     }
 
     /**
@@ -84,17 +86,17 @@ export default class EditSource extends Vue {
      * @param kind  The kind of input to update. Null if it is the single input.
      * @param index The index of the kind of input to update. -1 if it is the single input.
      */
-    async updateInput(input: EditInput, kind: any = null, index: number = -1) {
+    async updateInput(input: EditorInput, kind: any = null, index: number = -1) {
         if (kind == null) {
             if (input.id == this.playlists.editor.id) {
                 input.isValid = false;
                 input.error = "You can't use the playlist you are editing as a source"
                 input.name = input.id;
-                this.invalid = true;
+                this.valid = false;
                 return;
             }
 
-            this.invalid = false;
+            this.valid = true;
             this.source.value = input.id;
         } else {
             /** If this ID is already present */
@@ -102,11 +104,11 @@ export default class EditSource extends Vue {
                 input.isValid = false;
                 input.error = "This ID is already present"
                 input.name = input.id;
-                this.invalid = true;
+                this.valid = false;
                 return;
             }
 
-            this.invalid = false;
+            this.valid = true;
             (this.source.value as any)[kind][index] = input.id;
             await this.$nextTick();
 
@@ -115,12 +117,8 @@ export default class EditSource extends Vue {
                 (this.source.value as any)[kind].push('');
             }
         }
-    }
 
-    removeInput(kind: string, index: number = -1) {
-        if (index >= 0) {
-            (this.source.value as any)[kind].splice(index, 1);
-        }
+        this.$emit('change', this.source)
     }
 
     getKind() {
@@ -142,17 +140,22 @@ export default class EditSource extends Vue {
         }
     }
 }
+
+export default toNative(EditorSource);
 </script>
 
 <style lang="scss" scoped>
+#editor.small {
+    .small-span-2 {
+        grid-column: span 2;
+    }
+    .small-span-4 {
+        grid-column: span 4;
+        margin: 0 3rem;
+    }
+}
 .source-select {
     height: fit-content;
 }
-span.two-layer {
-    grid-column: span 2;
-}
-div.two-layer {
-    grid-column: span 4;
-    margin: 0 3rem;
-}
+
 </style>

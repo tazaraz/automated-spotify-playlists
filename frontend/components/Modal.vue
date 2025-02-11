@@ -14,13 +14,13 @@
 
 <script lang="ts">
 import { Modal as bsModal } from 'bootstrap';
-import { Prop, Vue, Emit } from  'vue-property-decorator';
+import { Vue, Component, toNative, Prop, Emit } from  'vue-facing-decorator';
 
 /**
  * An easy wrapper for the bootstrap model
  */
- @Emit('open')
-export default class Modal extends Vue {
+@Component({})
+class Modal extends Vue {
     @Prop({ default: null }) buttonText!: string;
     @Prop({ default: null }) buttonIcon!: [string, string];
     @Prop({ default: "" }) buttonClass!: string;
@@ -28,9 +28,9 @@ export default class Modal extends Vue {
     id = Math.random().toString(36).substring(2, 15);
     modal: bsModal = null as any;
 
+    @Emit('open')
     openModal() {
-        const modalElement = document.getElementById(`modal-${this.id}`);
-        this.$emit('open', true);
+        const modalElement = document.getElementById(`modal-${this.id}`)!;
 
         // If the element is already present in the body, don't append it again
         if (modalElement?.parentElement == document.body) {
@@ -53,4 +53,6 @@ export default class Modal extends Vue {
         this.modal.dispose();
     }
 }
+
+export default toNative(Modal);
 </script>

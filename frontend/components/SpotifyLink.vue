@@ -1,6 +1,6 @@
 <template>
     <div class="spotify-ref d-flex">
-        <Image :src="{image: large ? '/spotify-logo-small.svg' : '/spotify-logo.svg'}"></Image>
+        <Image :src="large ? '/spotify-logo-small.svg' : '/spotify-logo.svg'"></Image>
         <url :to="`${to}`" :direct="true" target="_blank" class="d-flex m-auto ms-3 me-0">
             <slot></slot>
         </url>
@@ -8,12 +8,15 @@
 </template>
 
 <script lang="ts">
-import { Prop, Vue } from  'vue-property-decorator';
+import { Vue, Component, toNative, Prop } from  'vue-facing-decorator';
 
-export default class Url extends Vue {
+@Component({})
+class SpotifyLink extends Vue {
     @Prop({default: true}) large!: boolean;
     @Prop({default: ""}) to!: string;
 }
+
+export default toNative(SpotifyLink);
 </script>
 
 <style lang="scss" scoped>

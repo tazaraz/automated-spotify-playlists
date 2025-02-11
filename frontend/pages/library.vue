@@ -1,10 +1,13 @@
 <template>
-    <playlist id="library"></playlist>
+    <Playlist id="library"></Playlist>
 </template>
 
 <script lang="ts">
-import { Vue } from 'vue-property-decorator';
+import { Vue, Component, toNative } from 'vue-facing-decorator';
 
-export default class PlaylistWrapper extends Vue {
+@Component({})
+class PlaylistWrapper extends Vue {
 }
+
+export default toNative(PlaylistWrapper);
 </script>

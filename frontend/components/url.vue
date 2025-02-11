@@ -11,9 +11,10 @@
 </template>
 
 <script lang="ts">
-import { Prop, Vue } from  'vue-property-decorator';
+import { Component, Prop, Vue, toNative } from  'vue-facing-decorator';
 
-export default class Url extends Vue {
+@Component({})
+class Url extends Vue {
     @Prop({default: ""}) to!: string;
     /**Sets the <a></a> target */
     @Prop({default: ""}) target!: string;
@@ -24,4 +25,6 @@ export default class Url extends Vue {
         return url.match(/^(http(s)?|ftp):\/\//) !== null;
     }
 }
+
+export default toNative(Url);
 </script>

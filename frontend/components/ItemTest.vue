@@ -2,7 +2,7 @@
     <h4 id="test-matching" class="ms-4 mt-4 mb-0">Detailed matching info</h4>
     <div class="ms-4 ps-3">
         <div class="mb-2 text-muted">Here you can view what data the server has recieved and is using for matching</div>
-        <template v-if="!editor || !editor.shown">
+        <template v-if="layout.editor.state == 'none'">
             Open an automatic playlist's config editor to run this {{ kind }} against the filters of that playlist
         </template>
         <template v-else>
@@ -12,24 +12,26 @@
                 <template v-else-if="executeState === 2">Ran</template>
             </button>
             this {{ kind }} against the filters in the currently open editor
+            <EditLog v-if="log" :infoLog="log"/>
         </template>
-        <EditLog v-if="editor?.shown && log" :infoLog="log"/>
     </div>
 </template>
 
 <script lang="ts">
-import { Prop, Vue } from  'vue-property-decorator';
+import { Vue, Component, toNative, Prop } from 'vue-facing-decorator';
+import Fetch from '~/composables/fetch';
 import Editor from '~/stores/editor';
-import Fetch from '~/stores/fetch';
-import { PlaylistLog } from '../../../backend/src/shared/types/playlist';
-import FetchError from '~/stores/error';
+import type { PlaylistLog } from '~/../backend/src/shared/types/playlist';
+import Layout from '~/stores/layout';
 
-export default class InfoTestitem extends Vue {
+@Component({})
+class ItemTest extends Vue {
     /** Artist is not yet enabled as I'm afraid of the amount of requests this might yield */
     @Prop() kind!: "track" | "album" | "artist"
     @Prop() id!: string
 
     editor: Editor = null as any;
+    layout: Layout = null as any;
 
     /** The logs of the filtering process */
     log: PlaylistLog = null as any;
@@ -43,6 +45,7 @@ export default class InfoTestitem extends Vue {
 
     created() {
         this.editor = new Editor();
+        this.layout = new Layout();
     }
 
     async execute() {
@@ -106,6 +109,8 @@ export default class InfoTestitem extends Vue {
         this.runDots();
     }
 }
+
+export default toNative(ItemTest);
 </script>
 
 <style scoped>

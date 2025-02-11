@@ -1,97 +1,96 @@
 <template>
-    <article key="album" class="rounded-2 p-2 bg-dark flex-grow-1 overflow-hidden">
-        <SmallHeader :item="album"></SmallHeader>
-        <div class="h-100 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
-            <Title v-if="!album">Loading album...</Title>
-            <Title v-else>{{ album.name }}</Title>
-            <header class="p-4 pt-5 d-flex gap-4" data-main-class="normal-flex-row normal-align-items-stretch tiny-flex-column tiny-align-items-center">
-                <Image :src="album"/>
-                <div class="flex-fill d-flex flex-column text-white">
-                    <template v-if="!album">
-                        <span class="mt-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>
-                        <div class="mt-5 mb-3">
-                            <span class="placeholder rounded-2" style="width: 5rem"></span>
-                            &nbsp;&nbsp;━&nbsp;&nbsp;
-                            <span class="placeholder rounded-2" style="width: 10rem"></span>
-                        </div>
-                    </template>
-                    <template v-else>
-                        <h1 class="mt-auto rounded-2">{{ album.name }}</h1>
-                        <div class="mt-4 mb-3">
-                            <span class="rounded-2">{{ new Date(album.release_date).getFullYear() }}</span>
-                            &nbsp;&nbsp;━&nbsp;&nbsp;
-                            <span class="rounded-2">{{ album.total_tracks }} track{{ album.total_tracks == 1 ? '' : 's' }}</span>
-                            <Spotify :to="`https://open.spotify.com/album/${album.id}`" class="mt-2 mb-3">SHOW IN SPOTIFY</Spotify>
-                        </div>
-                    </template>
-                </div>
-            </header>
-            <h4 v-if="album && album.artists" class="text-white mt-3 ms-3 p-2 pb-0">Artist{{ album.artists.length == 1 ? '' : 's' }}</h4>
-            <ol class="m-4 mt-0 d-flex nav row">
-                <li v-if="!album || !album.artists" class="col-12">
-                    <span class="placeholder rounded-5 bg-light" style="width: 3rem; height: 3rem"></span>
-                    <span class="placeholder rounded-2 ms-3" style="width: 7rem;"></span>
-                </li>
-                <li v-else v-for="artist, index of album.artists" class="col-auto p-2 d-flex">
-                    <Image :src="artist" class="rounded-5" style="width: 3rem; height: 3rem" />
-                    <span class="multilayer ms-3">
-                        <span>{{ index == 0 ? 'Artist' : 'Featuring' }}</span>
-                        <url :to="`/info/artist/${artist.id}`" class="rounded-2">{{ artist.name }}</url>
-                    </span>
-                </li>
-            </ol>
-            <div class="m-lg-5 mt-lg-3 m-4 mt-3 row placeholder-glow">
-                <div class="col-12 mb-2 multilayer">
-                    <span>
-                        Album ID
-                    </span>
-                    <span v-if="!album" class="placeholder rounded-1"></span>
-                    <span v-else>{{ album.id }} </span>
-                </div>
-                <div class="col-12 mb-2 multilayer">
-                    <InfoTooltip :description="Filters.Album.Genres.description">Genres</InfoTooltip>
-                    <span v-if="!album" class="placeholder rounded-1"></span>
-                    <span v-else>{{ albumGenres }}</span>
-                </div>
-                <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                    <InfoTooltip :description="Filters.Album['Release date'].description">Release date</InfoTooltip>
-                    <span v-if="!album" class="placeholder rounded-1"></span>
-                    <span v-else>{{ (new Date(album?.release_date)).getFullYear() }} </span>
-                </div>
-                <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                    <InfoTooltip :description="Filters.Album.Popularity.description">Popularity</InfoTooltip>
-                    <span v-if="!album" class="placeholder rounded-1"></span>
-                    <span v-else>{{ album.popularity / 10 }} / 10</span>
-                </div>
-                <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                    <InfoTooltip :description="Filters.Album['Track count'].description">Total tracks</InfoTooltip>
-                    <span v-if="!album" class="placeholder rounded-1"></span>
-                    <span v-else>{{ album.total_tracks }}</span>
-                </div>
+    <article key="album" class="h-100 p-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow">
+        <Title v-if="!album">Loading album...</Title>
+        <Title v-else>{{ album.name }}</Title>
+        <header class="small-header d-flex p-4 pt-5 gap-4 mb-3">
+            <Image id="header-artwork" class="ms-4" :src="album?.image"/>
+            <div class="flex-fill d-flex flex-column text-white placeholder-glow my-auto">
+                <template v-if="!album">
+                    <span class="mt-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>
+                    <div class="mt-5 mb-3">
+                        <span class="placeholder rounded-2" style="width: 5rem"></span>
+                        &nbsp;&nbsp;━&nbsp;&nbsp;
+                        <span class="placeholder rounded-2" style="width: 10rem"></span>
+                    </div>
+                </template>
+                <template v-else>
+                    <h1 class="mt-auto rounded-2">{{ album.name }}</h1>
+                    <div class="mt-4 mb-3">
+                        <span class="rounded-2">{{ new Date(album.release_date).getFullYear() }}</span>
+                        &nbsp;&nbsp;━&nbsp;&nbsp;
+                        <span class="rounded-2">{{ album.total_tracks }} track{{ album.total_tracks == 1 ? '' : 's' }}</span>
+                        <SpotifyLink :to="`https://open.spotify.com/album/${album.id}`"
+                                     class="mt-2 mb-3">SHOW IN SPOTIFY</SpotifyLink>
+                    </div>
+                </template>
             </div>
-            <div class="text-white row flex-row m-2">
-                <h4 class="m-0 w-auto me-auto">Tracks</h4>
+        </header>
+
+        <div class="d-flex mb-4 flex-wrap">
+            <div class="m-4 mt-0">
+                <h4 v-if="album?.artists" class="text-white p-2 pb-0">Artist{{ album.artists.length == 1 ? '' : 's' }}</h4>
+                <ul class="d-flex m-0 nav row">
+                    <li v-if="!album?.artists" class="col-12">
+                        <span class="placeholder rounded-5 bg-light" style="width: 3rem; height: 3rem"></span>
+                        <span class="placeholder rounded-2 ms-3" style="width: 7rem;"></span>
+                    </li>
+                    <li v-else v-for="artist of album.artists" class="col-auto p-2 d-flex">
+                        <Image :src="artist.image" class="border rounded-5" style="width: 3rem; height: 3rem" />
+                        <url :to="`/info/artist/${artist.id}`" class="rounded-2 ms-3 m-auto">{{ artist.name }}</url>
+                    </li>
+                </ul>
             </div>
-            <div class="accordion rounded-5">
-                <Track v-for="track, index of tracks" :track="track" :id="index" :deleteable="false">
-                </Track>
-            </div>
-            <InfoTestitem kind="album" :id="$route.params.id"></InfoTestitem>
         </div>
+
+        <div class="row placeholder-glow mb-3 mx-4" style="max-width: 60rem;">
+            <div class="col-12 mb-2 multilayer">
+                <span>Album ID</span>
+                <span v-if="!album" class="placeholder rounded-1"></span>
+                <span v-else>{{ album.id }} </span>
+            </div>
+            <div class="mb-4 multilayer">
+                <ToolTip :description="Filters.Album.Genres.description">Album Genres</ToolTip>
+                <span v-if="!album" class="placeholder rounded-1"></span>
+                <span v-else>{{ albumGenres }} </span>
+            </div>
+
+
+            <div class="large-col-2 normal-col-3 small-col-6 mb-2 multilayer">
+                <InfoTooltip :description="Filters.Album['Release date'].description">Release date</InfoTooltip>
+                <span v-if="!album" class="placeholder rounded-1"></span>
+                <span v-else>{{ (new Date(album?.release_date)).getFullYear() }} </span>
+            </div>
+            <div class="large-col-2 normal-col-3 small-col-6 mb-2 multilayer">
+                <InfoTooltip :description="Filters.Album.Popularity.description">Popularity</InfoTooltip>
+                <span v-if="!album" class="placeholder rounded-1"></span>
+                <span v-else>{{ album.popularity / 10 }} / 10</span>
+            </div>
+            <div class="large-col-2 normal-col-3 small-col-6 mb-2 multilayer">
+                <InfoTooltip :description="Filters.Album['Track count'].description">Total tracks</InfoTooltip>
+                <span v-if="!album" class="placeholder rounded-1"></span>
+                <span v-else>{{ album.total_tracks }}</span>
+            </div>
+        </div>
+        <div class="text-white row flex-row m-2">
+            <h4 class="m-0 w-auto me-auto">Tracks</h4>
+        </div>
+        <div class="accordion">
+            <Track v-for="track, index of tracks" :track="track" :id="index" :deleteable="false" />
+        </div>
+        <ItemTest kind="album" :id="$route.params.id"/>
     </article>
 </template>
 
 <script lang="ts">
-import { Vue } from 'vue-property-decorator';
-import { CAlbum, CArtist, CTrack } from "~/../backend/src/shared/types/client";
+import { Vue, Component, toNative } from 'vue-facing-decorator';
+import type { CAlbum, CArtist, CTrack } from "~/../backend/src/shared/types/client";
 import { FilterDescriptions as Filters } from '~/../backend/src/shared/types/descriptions';
-import BreadCrumbs from '~/stores/breadcrumbs';
-import Fetch from '~/stores/fetch';
-import Playlists, { CPlaylist } from '~/stores/playlists';
+import Fetch from '~/composables/fetch';
+import Playlists, { type CPlaylist } from '~/stores/playlists';
 import User from '~/stores/user';
 
-export default class InfoAlbum extends Vue {
-    breadcrumbs: BreadCrumbs = null as any;
+@Component({})
+class InfoAlbum extends Vue {
     playlists: Playlists = null as any;
 
     album: CAlbum = null as any;
@@ -103,8 +102,6 @@ export default class InfoAlbum extends Vue {
     Filters = Filters;
 
     async created() {
-        if (!process.client) return;
-        this.breadcrumbs = new BreadCrumbs();
         this.playlists = new Playlists();
         this.playlists.setUser(new User())
         await this.playlists.loadUserPlaylists();
@@ -116,13 +113,15 @@ export default class InfoAlbum extends Vue {
 
         this.album = response.data;
         this.tracks = Array(this.album.total_tracks).fill("");
-        this.album.image = Fetch.bestImage(this.album.images);
+        this.album.image = Fetch.bestImage((this.album as any).images);
 
         // Get the artists and their images
         Fetch.get<CArtist[]>(`spotify:/artists`, { ids: this.album.artists!.map(artist => artist.id) })
         .then(response => {
             this.album!.artists = response.data;
-            this.album!.artists?.forEach(artist => artist.image = Fetch.bestImage(artist.images))
+            for (const artist of response.data as any)
+                artist.image = Fetch.bestImage(artist.images);
+
             const genres = response.data.map(a => a.genres).flat().filter((v, i, a) => a.indexOf(v) === i);
             this.albumGenres = genres.join(', ') || "No genres. Try an artist."
         })
@@ -137,30 +136,42 @@ export default class InfoAlbum extends Vue {
                 appearsIn: await this.playlists.trackAppearsIn(t.id)
             })));
         })
-
-        this.breadcrumbs.add(`/info/album/${this.album.id}`, this.album.name)
     }
 }
+
+export default toNative(InfoAlbum);
 </script>
 
-<style lang="scss" scoped>
-.image {
-    width: 230px;
-    height: 230px;
-    box-shadow: 0 4px 60px rgba(0,0,0,.8);
-}
-a {
-    color: $gray-500;
-    &:hover {
-        color: $white;
-        text-decoration: underline;
-    }
+<style scoped lang="scss">
+main.small {
+    // col-6
+    .small-col-6 { flex: 0 0 auto; width: 50%; }
 }
 
-@include media-breakpoint-down(lg) {
-    .image {
-        width: 190px;
-        height: 190px;
+main.normal {
+    // col-3
+    .normal-col-3 { flex: 0 0 auto; width: 25%; }
+}
+
+main.large {
+    // col-2
+    .large-col-2 { flex: 0 0 auto; width: 16.66666667%; }
+}
+</style>
+
+<style scoped lang="scss">
+header #header-artwork {
+    box-shadow: 0 4px 60px #000c;
+    height: 230px;
+    width: 230px;
+}
+main.small {
+    .small-header {
+        align-items: center;
+        flex-direction: column;
+    }
+    .small-hide {
+        display: none;
     }
 }
 </style>

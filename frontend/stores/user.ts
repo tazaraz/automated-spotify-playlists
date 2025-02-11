@@ -1,6 +1,6 @@
 import { Store, Pinia } from "pinia-class-component";
-import { CUser } from "~/../backend/src/shared/types/client";
-import Fetch from "./fetch";
+import type { CUser } from "~/../backend/src/shared/types/client";
+import Fetch from "~/composables/fetch";
 
 @Store
 /**
@@ -31,6 +31,24 @@ export default class User extends Pinia {
                 // Frontend only
                 "user-read-currently-playing"
             ].join(" ")}`;
+    }
+
+    async parseCodeGrant(code: string) {
+        // If there is a code in the url, ask our server for tokens
+        if (code){
+            window.history.pushState({}, document.title, "/");
+
+            // Request tokens
+            const error = await this.getTokens(
+                useRuntimeConfig().public.AP_CLIENT_ID,
+                code as string
+            );
+
+            if (!error) {
+                navigateTo(localStorage.getItem("o") || "/");
+                localStorage.removeItem("o");
+            }
+        }
     }
 
     async getTokens(client_id: string, code: string){
@@ -68,11 +86,6 @@ export default class User extends Pinia {
     login() {
         localStorage.setItem("o", window.location.pathname);
         this.getCodeGrant(useRuntimeConfig().public.AP_CLIENT_ID)
-    }
-
-    finishLogin() {
-        navigateTo(localStorage.getItem("o") || "/");
-        localStorage.removeItem("o");
     }
 
     dataExists() {

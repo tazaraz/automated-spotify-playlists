@@ -1,5 +1,5 @@
 <template>
-    <div class="h-100 p-3 overflow-hidden flex-column align-items-center d-none" data-edit-class="tiny-d-none small-d-none normal-d-none large-d-none full-d-flex">
+    <div class="h-100 p-3 overflow-hidden flex-column align-items-center d-none">
         <url class="d-flex fs-4" style="width: 3rem; cursor: pointer;" @click="layout.open('main')">
             <fa-icon class="m-auto" :icon="['fas', 'angles-right']" style="width: 2rem"></fa-icon>
         </url>

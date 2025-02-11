@@ -1,5 +1,5 @@
 <template>
-    <Html data-bs-theme="dark"></Html>
+    <Html data-bs-theme="dark" class="bg-black"></Html>
 
     <Link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"></Link>
     <Link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"></Link>
@@ -12,144 +12,169 @@
     <Meta name="apple-mobile-web-app-capable" content="yes"></Meta>
     <Meta name="theme-color" content="#0d6efd"></Meta>
 
-    <div v-if="layout" id="app" class="bg-black overflow-hidden" ref="app"
-        @touchend="layout.setResizing('sidebar', false); layout.setResizing('edit', false)"
-        @mouseup="layout.setResizing('sidebar', false); layout.setResizing('edit', false)"
-        @touchmove="layout.render($event)"
-        @mousemove="layout.render($event)">
-        <div v-if="layout.app.isMobile" class="offcanvas offcanvas-start bg-black d-sm-flex w-100"
-            tabindex="-1" id="sidebar">
-            <Sidebar></Sidebar>
-        </div>
-        <template v-else>
-            <Sidebar></Sidebar>
-            <span class="resize-handle d-sm-flex d-none"
-                @touchstart="layout.setResizing('sidebar', true)"
-                @mousedown="layout.setResizing('sidebar', true)"><i class="rounded-5"></i></span>
-        </template>
+    <div v-if="layout" id="app" :class="`bg-black overflow-hidden${layout.app.mobile ? '':' rounded'}`" ref="app" :style="`padding: ${layout.app.padding}px; grid-template-columns: ${layout.app.grid.columns}; grid-template-rows: ${layout.app.grid.rows}`">
+        <UISidebar :class="layout.sidebar.state" ref="sidebar"/>
+        <UIHandle view="sidebar"/>
 
-        <toolbar />
-        <article id="alerts">
-            <ErrorAlerts />
-        </article>
+        <UIToolbar v-if="!layout.app.mobile" @offcanvas="openOffcanvas"/>
 
-        <main id="main-view" class="d-flex flex-column overflow-auto">
-            <nuxt-page></nuxt-page>
+        <UIAlert/>
+
+        <main :class="`h-100 bg-dark overflow-hidden p-2 ${layout.main.state}`">
+            <div class="h-100 d-flex flex-column overflow-y-auto placeholder-glow">
+                <nuxt-page/>
+            </div>
         </main>
 
-
-        <template v-if="editor.shown">
-            <div v-if="layout.app.isMobile" class="offcanvas offcanvas-end bg-black d-sm-flex w-100"
-                tabindex="-1" id="edit">
-                <Edit id="edit-view" @open="layout.open('edit')" />
-            </div>
-            <template v-else>
-                <span class="resize-handle d-sm-flex d-none"
-                    @touchstart="layout.setResizing('edit', true)"
-                    @mousedown="layout.setResizing('edit', true)"><i class="rounded-5"></i></span>
-                <Edit id="edit-view" @open="layout.open('edit')" />
-            </template>
+        <template v-if="layout.editor.state !== 'none'">
+        <UIHandle view="editor"/>
+        <UIEditor ref="editor" :class="layout.editor.state"/>
         </template>
+
+        <UIToolbar v-if="layout.app.mobile" @offcanvas="openOffcanvas" class="small" style="grid-column: span 2"/>
     </div>
 </template>
 
 <script lang="ts">
-import { Offcanvas } from 'bootstrap';
-import { Vue } from 'vue-property-decorator';
-import BreadCrumbs from '~/stores/breadcrumbs';
-import Editor from '~/stores/editor';
-import Layout from '~/stores/layout';
-import NowPlaying from '~/stores/player';
-import Playlists from '~/stores/playlists';
-import User from '~/stores/user';
+import { Component, Vue, toNative } from 'vue-facing-decorator';
+import User from './stores/user';
+import Playlists from './stores/playlists';
+import Layout from './stores/layout';
+import Editor from './stores/editor';
 
-useHead({
-    meta: [
-        { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1' },
-    ],
-})
-export default class App extends Vue {
+@Component({})
+class App extends Vue {
     user: User = null as any;
     playlists: Playlists = null as any;
-    editor: Editor = null as any;
     layout: Layout = null as any;
-    nowplaying: NowPlaying = null as any;
-    offcanvas: Offcanvas[] = null as any;
+    editor: Editor = null as any;
 
-    beforeCreate() {
-        // If we (re)load the page, but the url contains 'unpublished', redirect
-        if (this.$route.fullPath.includes('unpublished'))
-            navigateTo('/')
-    }
-
+    /**
+     * Load everything once the app is created
+     */
     async created() {
-        if (!process.client) return;
-        this.user = new User()
-        this.user.loadCredentials();
+        this.user = new User();
         this.playlists = new Playlists();
-        this.editor = new Editor();
-        this.editor.playlists = this.playlists;
-        this.playlists.editor = this.editor;
         this.layout = new Layout();
-        this.nowplaying = new NowPlaying();
+        this.editor = new Editor();
 
-        // If the user is not logged in, don't load the playlists
-        if (!this.user.info)
-            return (new BreadCrumbs()).clear();
+        // Process the code grant if any
+        if (this.$route.query?.code)
+            await this.user.parseCodeGrant(this.$route.query.code as string);
 
-        this.playlists.setUser(this.user)
+        // If the user is logged in, load everything
+        // Load credentials from local storage
+        if (!this.user.loadCredentials()) {
+            if (this.$route.fullPath !== '/')
+                navigateTo('/');
+
+            return;
+        }
+
+        // Setup the playlists store
+        this.playlists.user = this.user;
+
+        // If the user is logged in, load their playlists
         await this.playlists.loadUserPlaylists();
-        this.nowplaying.update();
     }
 
-    beforeMount() {
-        // The layout needs access to the nextTick function
-        this.layout.nextTick = this.$nextTick;
+    async mounted() {
+        this.editor.playlists = this.playlists;
+        this.editor.layout = this.layout;
+
+        // Resolve conflicts on initial load and window resize
+        this.layout.resolveConflicts();
+        window.addEventListener('resize', () => {
+            this.layout.resolveConflicts();
+        });
+
+        // Make the app mobile if the layout is set to mobile
+        this.makeAppMobile(this.layout.app.mobile)
+        watch(() => this.layout.app.mobile, () => this.makeAppMobile(this.layout.app.mobile));
     }
 
-    mounted() {
-        // Initialize some variables
-        this.layout.appElement = this.$refs.app as HTMLElement;
-        this.layout.app.width = this.layout.appElement.clientWidth;
-        this.layout.mainElement = this.layout.appElement.getElementsByTagName('main')[0].firstElementChild as HTMLElement;
-        this.layout.editorShown = this.editor.shown;
+    makeAppMobile(state: boolean) {
+        if (state) {
+            this.$refs.sidebar!.createOffcanvas();
+            this.$refs.editor?.createOffcanvas();
+        } else {
+            this.$refs.sidebar!.unmountOffcanvas();
+            this.$refs.editor?.unmountOffcanvas();
+        }
+    }
 
-        const offcanvasElementList = document.querySelectorAll('.offcanvas')
-        this.offcanvas = [...offcanvasElementList].map(offcanvasEl => new this.$bootstrap.Offcanvas(offcanvasEl))
+    async openOffcanvas(kind: 'sidebar' | 'editor') {
+        // Don't open any offcanvasses while not on mobile
+        if (!this.layout.app.mobile)
+            return;
 
-        /** When the basic stuff is loaded */
-        watch(() => [this.user.info, this.playlists?.storage], () => {
-            this.layout.rerender()
-        })
-
-        /** Watch the url */
-        watch(() => this.$route.fullPath, async () => {
-            /** When the url changes, the info view changes. Update it */
-            await this.$nextTick();
-            this.layout.mainElement = this.layout.appElement.getElementsByTagName('main')[0].firstElementChild as HTMLElement;
-            this.layout.rerender();
-
-        })
-
-        /** When we start/stop editing */
-        watch(() => this.editor.shown, async () => {
-            this.layout.editorShown = this.editor.shown;
-            this.layout.rerender();
-        })
-
-        /** When the user resizes the window */
-        addEventListener("resize", () => {
-            this.layout.app.width = this.layout.appElement.clientWidth;
-            this.layout.setPadding();
-            this.layout.rerender();
-        })
-
-        this.layout.setPadding();
-        this.layout.rerender();
+        if (kind === 'sidebar') {
+            await this.$refs.sidebar!.openOffcanvas();
+        } else {
+            await this.$refs.editor?.openOffcanvas();
+        }
     }
 }
+
+export default toNative(App);
 </script>
+
+<style lang="scss" scoped>
+#app {
+    display: grid;
+    width: 100vw;
+    height: 100%;
+    position: fixed;
+
+    &:deep(#sidebar) {
+        grid-row: span 3;
+    }
+
+    &:deep(#alerts) {
+        grid-column: span 2;
+    }
+
+    &:deep(#toolbar) {
+        grid-row: span 1;
+        grid-column: span 3;
+    }
+
+    // This splits the app content into two columns if there are two components present
+    &:deep(#toolbar)+* {
+        grid-column: span 3;
+    }
+
+    & > :last-child:is(main) {
+        grid-column: span 3;
+    }
+
+    &.rounded > * {
+        border-radius: var(--bs-border-radius-lg);
+    }
+}
+
+.resize-handle {
+    padding: 0 4px;
+    align-items: center;
+    cursor: col-resize;
+    grid-row: span 3;
+    grid-column: span 1;
+
+    i {
+        display: block;
+        height: 6rem;
+        width: 100%;
+        background-color: $gray-600;
+    }
+}
+</style>
+
 <style lang="scss">
+main {
+    container-type: inline-size;
+    container-name: main;
+}
+
 * {
     scrollbar-color: grey transparent;
 
@@ -165,69 +190,6 @@ export default class App extends Vue {
 
     ::-webkit-scrollbar-track {
         background: rgba(0, 0, 0, 0);
-    }
-}
-</style>
-<style lang="scss" scoped>
-/** Width of the handle used to resize content. FIXED IN JAVASCRIPT ABOVE (layout.handle) */
-$handle: 12px;
-
-.resize-handle {
-    width: $handle;
-    padding: 0 4px;
-    align-items: center;
-    cursor: col-resize;
-    grid-row: span 3;
-    grid-column: span 1;
-
-    i {
-        display: block;
-        height: 6rem;
-        width: 100%;
-        background-color: $gray-600;
-    }
-}
-
-#app {
-    display: grid;
-    grid-template-columns: 20rem $handle 1fr 0px 0px;
-    grid-template-rows: 4rem min-content 1fr;
-    width: 100vw;
-    height: 100%;
-    position: fixed;
-
-    nav {
-        grid-row: span 3;
-    }
-
-    &:deep(#toolbar) {
-        grid-row: span 1;
-        grid-column: span 3 !important;
-    }
-
-    // This splits the app content into two columns if there are two components present
-    &:deep(#toolbar)+* {
-        grid-column: span 3;
-    }
-
-    &> :nth-last-child(5) {
-        grid-column: span 1 !important;
-    }
-}
-
-@include media-breakpoint-down(sm) {
-    #app {
-        grid-template-columns: 1fr;
-        grid-template-rows: 4rem min-content calc(100% - 4rem);
-
-        nav {
-            grid-row-start: 2;
-            grid-row-end: 3;
-        }
-
-        &:deep(#toolbar) {
-            grid-row: span 1;
-        }
     }
 }
 </style>

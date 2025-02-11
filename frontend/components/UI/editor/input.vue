@@ -15,27 +15,24 @@
             <url v-if="isValid"
                  :to="`/info/${kind}/${id}`"
                  @click="click(`/info/${kind}/${id}`, name)"
-                 class="link-primary text-decoration-underline source-input form-control bg-body-secondary"
+                 class="link-primary text-decoration-underline source-input form-control bg-body-secondary text-truncate"
             >{{ name }}</url>
             <input v-else ref="input" @focusout="updateInput" @paste="updateInput" @input="updateInput" type="text" class="source-input form-control" :placeholder="`Insert ${kind} ID`" :value="name"/>
             <button v-if="isValid" type="button" class="btn btn-primary" @click="edit">Edit</button>
             <button v-if="removable && (!isValid || name !== '')" class="btn btn-danger" @click="$emit('remove')"><fa-icon :icon="['fas', 'trash-can']"></fa-icon></button>
         </div>
-        <div v-if="!isValid && error != ''" class="form-text">{{ error }}</div>
+        <div v-if="!isValid && error != ''" class="ms-3 mt-0 form-text">{{ error }}</div>
     </div>
 </template>
 
 <script lang="ts">
-import { Vue, Prop, Emit } from 'vue-property-decorator';
-import Fetch from '~/stores/fetch';
-import { CTrack } from '../../../backend/src/shared/types/client';
-import BreadCrumbs from '~/stores/breadcrumbs';
-import { WatchStopHandle } from 'nuxt/dist/app/compat/capi';
+import { Vue, Component, toNative, Prop, Emit } from 'vue-facing-decorator';
+import type { CTrack } from '@/../backend/src/shared/types/client';
+import Fetch from '~/composables/fetch';
 
 
-@Emit('update')
-@Emit('remove')
-export default class EditInput extends Vue {
+@Component({})
+export class EditorInput extends Vue {
     @Prop({required: true}) kind!: "track" | "album" | "artist" | "playlist" | "genre";
     @Prop({required: false, default: ''}) value!: string;
     @Prop({required: false, default: false}) removable!: boolean;
@@ -44,15 +41,12 @@ export default class EditInput extends Vue {
     name: string = "";
     error: string = "";
     isValid: boolean = false;
-    breadcrumbs: BreadCrumbs = null as any;
 
-    EditInput = EditInput;
-    watcher: WatchStopHandle = null as any;
+    watcher = null as any;
     genres: string[] | null = null;
 
     async created() {
         this.id = this.value;
-        this.breadcrumbs = new BreadCrumbs();
 
         try {
             const request = await Fetch.get<{genres: string[]}>(`spotify:/recommendations/available-genre-seeds`);
@@ -138,11 +132,10 @@ export default class EditInput extends Vue {
     }
 
     async click(url: string, name: string) {
-        this.breadcrumbs.clear();
-        this.breadcrumbs.add(url, name);
-
         await this.$nextTick();
-        document.getElementById("toolbar")?.lastChild?.lastChild?.lastChild?.click();
+        (document.getElementById("toolbar")?.lastChild?.lastChild?.lastChild as HTMLButtonElement)?.click();
     }
 }
+
+export default toNative(EditorInput);
 </script>

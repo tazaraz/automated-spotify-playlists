@@ -1,7 +1,7 @@
 <template>
     <div class="tool-tip">
         <slot></slot>
-        <span ref="info" data-bs-toggle="InfoTooltip" data-bs-delay='{"show":750,"hide":0}' :data-bs-title="description"
+        <span ref="info" data-bs-toggle="ToolTip" data-bs-delay='{"show":750,"hide":0}' :data-bs-title="description"
             @click="clicked" v-click-outside="hide">
             <fa-icon :icon="['far', 'circle-question']"></fa-icon>
         </span>
@@ -9,42 +9,44 @@
 </template>
 
 <script lang="ts">
-import { icon } from '@fortawesome/fontawesome-svg-core';
 import { Tooltip } from 'bootstrap';
-import { Vue, Prop } from 'vue-property-decorator';
+import { Vue, Component, toNative, Prop } from 'vue-facing-decorator';
 
 /**
- * An easy wrapper for the bootstrap InfoTooltip
+ * An easy wrapper for the bootstrap ToolTip
  */
-export default class InfoTooltip extends Vue {
+@Component({})
+class ToolTip extends Vue {
     @Prop({ required: true }) description!: string
-    InfoTooltip: Tooltip = null as any;
+    ToolTip: Tooltip = null as any;
 
     mounted() {
-        this.InfoTooltip = new this.$bootstrap.Tooltip(this.$refs.info as HTMLElement);
+        this.ToolTip = new this.$bootstrap.Tooltip(this.$refs.info as HTMLElement);
     }
 
     updated() {
-        this.InfoTooltip.setContent({".InfoTooltip-inner": this.description});
+        this.ToolTip.setContent({".ToolTip-inner": this.description});
     }
 
     beforeUnmount() {
         this.hide();
-        this.InfoTooltip.dispose();
+        this.ToolTip.dispose();
     }
 
     hide() {
-        this.$refs.info.classList.remove('active');
-        this.InfoTooltip.hide();
+        (this.$refs.info as HTMLElement).classList.remove('active');
+        this.ToolTip.hide();
     }
 
     clicked() {
-        this.$refs.info.classList.contains('active') ?
-            this.InfoTooltip.hide() :
-            this.InfoTooltip.show();
-        this.$refs.info.classList.toggle('active');
+        (this.$refs.info as HTMLElement).classList.contains('active') ?
+            this.ToolTip.hide() :
+            this.ToolTip.show();
+        (this.$refs.info as HTMLElement).classList.toggle('active');
     }
 }
+
+export default toNative(ToolTip);
 </script>
 
 <style lang="scss" scoped>
@@ -64,7 +66,6 @@ export default class InfoTooltip extends Vue {
         color: $gray-500;
         cursor: pointer;
 
-        &.active,
         &:hover {
             color: $gray-300;
         }

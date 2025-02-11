@@ -11,7 +11,7 @@
                         :value="category"
                         :selected="condition.category == category">{{ category }}</option>
                 </select>
-                <InfoTooltip :description="SubFilters[condition.filter].description">
+                <ToolTip :description="SubFilters[condition.filter].description">
                     <select class="ms-2 form-select form-select-sm w-auto"
                             @change="filterChange($event, 'filter')">
                         <option
@@ -19,13 +19,13 @@
                             :value="filter"
                             :selected="condition.filter == filter">{{ filter }}</option>
                     </select>
-                </InfoTooltip>
+                </ToolTip>
                 <i></i>
             </span>
         </template>
 
-        <span class="center operation" data-edit-class="small-d-none">
-            <InfoTooltip :description="Operations[condition.operation]">
+        <span class="small-d-none center operation">
+            <ToolTip :description="Operations[condition.operation]">
                 <select class="form-select form-select-sm w-auto"
                         @change="filterChange($event, 'operation')">
                     <option
@@ -33,64 +33,64 @@
                         :value="op"
                         :selected="condition.operation == op">{{ op }}</option>
                 </select>
-            </InfoTooltip>
+            </ToolTip>
         </span>
-        <span data-edit-class="small-d-block normal-d-none large-d-none" style="grid-column: span 2;"></span>
 
-        <template v-if="layout && layout.edit.width >= layout.edit.large.min">
+        <span class="small-d-flex normal-d-none large-d-none" style="grid-column: span 2;"></span>
+
+        <template v-if="layout.editor.state == 'large'">
             <span v-if="inputType == inputTypes.value" class="center input input-group input-group-sm">
                 <input @input="filterValueChange"
                        type="text"
-                       class="source-input form-control"
+                       class="source-input form-control me-2"
                        :value="condition.value"/>
             </span>
             <span v-if="inputType == inputTypes.date" class="center input input-group input-group-sm">
                 <input @input="filterValueChange"
                        type="date"
-                       class="source-input form-control"
+                       class="source-input form-control me-2"
                        :value="condition.value"/>
             </span>
             <span v-if="inputType == inputTypes.time" class="center input duration">
                 <div class="input-group input-group-sm">
                     <input @input="durationInput('minutes', $event)"
                            type="number"
-                           class="source-input form-control"
+                           class="source-input form-control me-2"
                            min="0" max="60"
                            :value="duration[0]"/>
                     <span class="source-input form-control">:</span>
                     <input @input="durationInput('seconds', $event)"
                            type="number"
-                           class="source-input form-control"
+                           class="source-input form-control me-2"
                            min="0" max="60"
                            :value="duration[1]"/>
                 </div>
             </span>
-            <span v-if="inputType == inputTypes.slider" class="center input input-group flex-column input-group-sm gap-3">
+            <span v-if="inputType == inputTypes.slider" class="center input input-group flex-column input-group-sm">
                 <input @input="filterValueChange"
                        type="range"
-                       class="source-input form-range m-auto"
+                       class="source-input form-range w-auto my-auto"
                        :value="condition.value"/>
-                <span class="m-auto">{{ (parseInt(condition.value) / 10).toFixed(1) }} / 10</span>
+                <span class="my-auto">{{ (parseInt(condition.value) / 10).toFixed(1) }} / 10</span>
             </span>
 
             <span v-if="inputType == inputTypes.boolean" style="grid-column: span 2;"></span>
-            <span style="grid-column: span 2;"></span>
 
-            <button class="border-0 bg-transparent" @click="$emit('event', 'delete')">
+            <button class="btn px-0" @click="$emit('event', 'delete')">
                 <fa-icon style="color: rgb(155, 0, 0)" :icon="['fas', 'trash-can']"></fa-icon>
             </button>
         </template>
 
-        <span style="grid-column: span 4;" data-edit-class="normal-d-block small-d-block large-d-none"></span>
-        <button class="border-0 bg-transparent" data-edit-class="normal-d-block small-d-block large-d-none" @click="$emit('event', 'delete')">
+        <span class="d-flex large-d-none" style="grid-column: span 4;"></span>
+        <button class="btn large-d-none px-0" @click="$emit('event', 'delete')">
             <fa-icon style="color: rgb(155, 0, 0)" :icon="['fas', 'trash-can']"></fa-icon>
         </button>
 
-        <template v-for="i in indent" v-if="layout && layout.edit.width <= layout.edit.normal.min">
+        <template v-for="i in indent" v-if="layout.editor.state == 'small'">
             <span v-if="i < indent" class="tree indent"><i></i></span>
             <template v-else>
                 <span class="center stacked-operation">
-                    <InfoTooltip :description="Operations[condition.operation]">
+                    <ToolTip :description="Operations[condition.operation]">
                         <select class="form-select form-select-sm w-auto ms-4"
                             @change="filterChange($event, 'operation')">
                             <option
@@ -98,13 +98,12 @@
                                 :value="op"
                                 :selected="condition.operation == op">{{ op }}</option>
                         </select>
-                    </InfoTooltip>
+                    </ToolTip>
                 </span>
             </template>
         </template>
-        <template v-for="i in indent"
-            v-if="layout && layout.edit.width < layout.edit.large.min &&
-                inputType != inputTypes.boolean">
+
+        <template v-for="i in indent" v-if="(layout.editor.state == 'normal' || layout.editor.state == 'small') && inputType != inputTypes.boolean">
             <span v-if="i < indent" class="tree indent"><i></i></span>
             <template v-else>
                 <span v-if="inputType == inputTypes.value" class="center stacked-input input-group input-group-sm ps-4">
@@ -133,12 +132,12 @@
                                :value="duration[1]"/>
                     </div>
                 </span>
-                <span v-if="inputType == inputTypes.slider" class="center stacked-input input-group flex-column input-group-sm gap-3">
+                <span v-if="inputType == inputTypes.slider" class="center stacked-input input-group flex-column input-group-sm">
                     <input @input="filterValueChange"
-                           type="range"
-                           class="source-input form-range m-auto"
-                           :value="condition.value"/>
-                    <span class="m-auto">{{ (parseInt(condition.value) / 10).toFixed(1) }} / 10</span>
+                        type="range"
+                        class="source-input form-range w-auto my-auto"
+                        :value="condition.value"/>
+                    <span class="my-auto">{{ (parseInt(condition.value) / 10).toFixed(1) }} / 10</span>
                 </span>
             </template>
         </template>
@@ -146,11 +145,11 @@
 </template>
 
 <script lang="ts">
-import { Vue, Prop, Emit } from 'vue-property-decorator';
-import { PlaylistCondition } from '../../../backend/src/shared/types/playlist';
-import { FilterDescriptions as Filters } from '../../../backend/src/shared/types/descriptions';
+import { Vue, Component, toNative, Prop } from 'vue-facing-decorator';
+import { FilterDescriptions } from '@/../backend/src/shared/types/descriptions';
+import { FilterBoolean, FilterDate, FilterSlider } from '@/../backend/src/shared/matching';
+import type { PlaylistCondition } from '@/../backend/src/shared/types/playlist';
 import Layout from '~/stores/layout';
-import { FilterBoolean, FilterDate, FilterSlider } from '../../../backend/src/shared/matching';
 
 enum inputTypes {
     value,
@@ -160,33 +159,33 @@ enum inputTypes {
     boolean
 }
 
-@Emit('event')
-@Emit('change')
-export default class EditCondition extends Vue {
+@Component({
+    emits: ['event', 'change']
+})
+export class EditorCondition extends Vue {
     @Prop({required: true}) condition!: PlaylistCondition
     @Prop({required: true}) indent!: number
 
-    MainFilters!: typeof Filters;
-    SubFilters!: typeof Filters[keyof typeof Filters];
+    layout: Layout = null as any;
+
+    MainFilters!: typeof FilterDescriptions;
+    SubFilters!: typeof FilterDescriptions[keyof typeof FilterDescriptions];
     Operations!: { [operation: string]: string };
 
     inputTypes = inputTypes;
     inputType: inputTypes = inputTypes.value;
 
-    layout: Layout = null as any;
-
     /** Here we store values used for the GUI (such as timestamp to readable duration) */
     duration: [string, string] = ["0", "00"];
 
     created() {
-        this.MainFilters = Filters;
+        this.MainFilters = FilterDescriptions;
+        this.layout = new Layout();
         this.update();
     }
 
     mounted() {
         this.update();
-        this.layout = new Layout();
-        this.layout.rerender();
     }
 
     updated() {
@@ -194,26 +193,22 @@ export default class EditCondition extends Vue {
     }
 
     isValid() {
-        if (// Check the fields
-            this.condition.category !== undefined &&
-            this.condition.filter !== undefined &&
-            this.condition.operation !== undefined &&
-            // Check the filters
-            this.MainFilters &&
-            this.MainFilters[this.condition.category] !== undefined &&
-            this.MainFilters[this.condition.category][this.condition.filter] !== undefined &&
-            Object.keys(this.MainFilters[this.condition.category][this.condition.filter].type.operation).includes(this.condition.operation) &&
-            // Check if the value is not empty OR if it is a boolean (which can be empty)
-            (this.condition.value !== "" || (this.MainFilters[this.condition.category][this.condition.filter].type == FilterBoolean && this.condition.value == ""))
-        ) {
-            return true;
-        }
-
-        return false;
+               // Check the fields
+        return this.condition.category !== undefined &&
+               this.condition.filter !== undefined &&
+               this.condition.operation !== undefined &&
+               // Check the filters
+               this.MainFilters &&
+               this.MainFilters[this.condition.category] !== undefined &&
+               this.MainFilters[this.condition.category][this.condition.filter] !== undefined &&
+               Object.keys(this.MainFilters[this.condition.category][this.condition.filter].type.operation).includes(this.condition.operation) &&
+               // Check if the value is not empty OR if it is a boolean (which can be empty)
+               (this.condition.value !== "" || (this.MainFilters[this.condition.category][this.condition.filter].type == FilterBoolean && this.condition.value == ""))
     }
 
     async filterValueChange(event: Event) {
         this.condition.value = (event.target! as HTMLInputElement).value;
+        this.$emit('change', this.condition)
     }
 
     filterChange(event: Event, kind: "category" | "filter" | "operation") {
@@ -230,26 +225,25 @@ export default class EditCondition extends Vue {
 
         this.$emit('change', this.condition)
         this.update();
-        this.$forceUpdate();
     }
 
     update() {
-        this.SubFilters  = Filters[this.condition.category];
+        this.SubFilters  = FilterDescriptions[this.condition.category];
 
         // If we switch to a category that doesn't have the current filter, switch to the first filter
         if (this.SubFilters[this.condition.filter] == undefined) {
-            this.condition.filter = Object.keys(Filters[this.condition.category])[0];
+            this.condition.filter = Object.keys(FilterDescriptions[this.condition.category])[0];
         }
 
         // Update the available operations
-        this.Operations = Filters[this.condition.category][this.condition.filter].type.operation;
+        this.Operations = FilterDescriptions[this.condition.category][this.condition.filter].type.operation;
 
         // If we switch to a filter that doesn't have the current option, switch to the first option of the filters
         if (this.Operations[this.condition.operation] == undefined) {
-            this.condition.operation = Object.keys(Filters[this.condition.category][this.condition.filter].type.operation)[0];
+            this.condition.operation = Object.keys(FilterDescriptions[this.condition.category][this.condition.filter].type.operation)[0];
         }
 
-        switch (Filters[this.condition.category][this.condition.filter].type) {
+        switch (FilterDescriptions[this.condition.category][this.condition.filter].type) {
             case FilterDate:
                 this.inputType = inputTypes.date; break;
             case FilterSlider:
@@ -310,12 +304,15 @@ export default class EditCondition extends Vue {
 
         // Update the actual value
         this.condition.value = (parseInt(this.duration[0]) * 60 + parseInt(this.duration[1])).toString();
+
+        this.$emit('change', this.condition)
     }
 }
+
+export default toNative(EditorCondition);
 </script>
 
 <style lang="scss" scoped>
-
 .tree {
     margin: 0;
 
@@ -355,7 +352,7 @@ export default class EditCondition extends Vue {
 .operation { grid-column: 6 / 6; }
 .stacked-operation { grid-column: 4 / -1; }
 
-.input { grid-column: 8 / 8; }
+.input { grid-column: 8 / 11; }
 .stacked-input {
     width: 75%;
     grid-column: 4 / -1;

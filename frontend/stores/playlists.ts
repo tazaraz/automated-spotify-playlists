@@ -1,9 +1,8 @@
 import { Store, Pinia } from "pinia-class-component";
 
 import User from "./user";
-import Fetch from "./fetch";
-import { CTrack, CArtist, CPlaylist } from "~/../backend/src/shared/types/client";
-import FetchError from "./error";
+import Fetch from "@/composables/fetch";
+import type { CTrack, CArtist, CPlaylist } from "~/../backend/src/shared/types/client";
 import Editor from "./editor";
 
 export type { CPlaylist };
@@ -11,7 +10,7 @@ export type { CPlaylist };
 /**
  * Contains ids beloning to tracks (unloaded), or tracks themselves (loaded)
  */
-export type PartialTrackList = (CTrack | string)[];
+export type PartialTrackList = (CTrack | string | null)[];
 
 /**
  * The track kind is used to determine what tracks to load when loading a playlist
@@ -27,11 +26,12 @@ export type PartialTrackList = (CTrack | string)[];
  * - `unused` The tracks which are not in any playlist
  * - `unused-auto` The tracks which are not in any automated playlist
  */
-export type TrackKind = "all" | "matched" | "excluded" | "included" | "unused" | "unused-auto";
+export type TrackKind = "all" | "matched" | "excluded" | "included" | "unused" | "unused_auto";
 
 /**
  * This interface represents the data required for a playlist to be viewed in the main view
  */
+// @ts-ignore redefined fields between interfaces
 export interface LoadedPlaylist extends CPlaylist {
     /** The index of the playlist in the storage */
     index: number;
@@ -46,17 +46,10 @@ export interface LoadedPlaylist extends CPlaylist {
     excluded_tracks: PartialTrackList;
     /** Tracks which were manually included by the user */
     included_tracks: PartialTrackList;
-}
 
-/**
- * The library extends the Loaded Playlist interface, but does not use any of the following:
- * - `index` (it has its own special location)
- * - `ownership` (it is always the user's library)
- * - `matched_tracks`, `excluded_tracks`, `included_tracks` (it does not have a filter)
- * */
-export interface LibraryPlaylist extends LoadedPlaylist {
-    /** Contains all the tracks in the library */
-    all_tracks: PartialTrackList;
+    /**
+     * The library extends the Loaded Playlist interface even more by adding the following fields
+     */
     /** Contains tracks which do not appear in any playlist. Should be manually calculated and populated */
     unused_tracks: PartialTrackList;
     /** Contains tracks which do not appear in any automatic playlist. Should be manually calculated and populated */
@@ -72,18 +65,18 @@ export interface LibraryPlaylist extends LoadedPlaylist {
  * This store also handles the loading, saving and editing of the playlists and syncing them to the server
  */
 export default class Playlists extends Pinia {
-    user!: User;
+    user: User = null as any;
 
     /** Contains all the playlists from the user */
-    storage!: CPlaylist[];
+    storage: CPlaylist[] = null as any;
     /** The playlist which is currently in view. Different functionality from the editing variable */
-    loaded!: LoadedPlaylist;
+    loaded: LoadedPlaylist = null as any;
     /** The automated playlist the user is currently editing */
-    editor!: Editor;
+    editor: Editor = null as any;
     /** If the user already has an automated playlist which is not yet pushed. Stored here for components to access */
     unpublished: CPlaylist | null = null;
     /** Contains the library */
-    library: LibraryPlaylist = null as any;
+    library: LoadedPlaylist = null as any;
 
     // If there are any automated playlists
     hasAutomatedPlaylists: boolean = false;
@@ -102,12 +95,11 @@ export default class Playlists extends Pinia {
     async loadUserPlaylists(){
         await this.loadingUserPlaylists;
 
-        if (this.storage !== undefined)
+        if (Array.isArray(this.storage))
             return true;
 
         this.loadingUserPlaylists = new Promise(async resolve => {
             let playlists: CPlaylist[] = [];
-            this.storage = [];
 
             // Get the user playlists from Spotify
             const res_p = await Fetch.get<any[]>('spotify:/me/playlists', {pagination: true});
@@ -124,7 +116,7 @@ export default class Playlists extends Pinia {
                     description: playlist.description,
                     image:      Fetch.bestImage(playlist.images),
                     owner:      { id: playlist.owner.id, display_name: playlist.owner.display_name },
-                    all_tracks: Array(playlist.tracks.total).fill(""),
+                    all_tracks: Array(playlist.tracks.total).fill(null),
                 } as CPlaylist)
             });
 
@@ -137,7 +129,7 @@ export default class Playlists extends Pinia {
 
             if (res_s.data.length > 0) this.hasAutomatedPlaylists = true;
 
-            /**Overwrite the playlists with the automated playlists
+            /** Overwrite the playlists with the automated playlists
              * NOTE: Not all playlists are actually automated playlists, but for typing we treat them as if
              *       Hence we check everywhere there is a distinction */
             this.storage = playlists.map(playlist => {
@@ -147,7 +139,7 @@ export default class Playlists extends Pinia {
                     automatedPlaylist.image = playlist.image;
                     automatedPlaylist.owner = playlist.owner;
                     // Keep this one present as well
-                    automatedPlaylist.all_tracks = Array(playlist.all_tracks.length).fill("");
+                    automatedPlaylist.all_tracks = Array(playlist.all_tracks.length).fill(null);
                 }
 
                 return automatedPlaylist || playlist;
@@ -183,11 +175,11 @@ export default class Playlists extends Pinia {
             all_tracks: [],
             unused_playlist_tracks: [],
             unused_autoplaylist_tracks: [],
-        } as any as LibraryPlaylist;
+        } as any as LoadedPlaylist;
 
         // Load the library tracks
         const library = (await Fetch.get(`spotify:/me/tracks?limit=50`)).data
-        const all_tracks = Array(library.total).fill("")
+        const all_tracks = Array(library.total).fill(null)
               all_tracks.splice(0, 50, ...Fetch.format(library).map((track: any) => this.convertToCTrack(track)))
 
         // We load the rest of the content later
@@ -228,37 +220,33 @@ export default class Playlists extends Pinia {
      */
     async loadPlaylistTracks(kind: TrackKind = "all",
                              offset: number = 0,
-                             limit: number = 50): Promise<{
-                                all: PartialTrackList,
-                                matched: PartialTrackList,
-                                excluded: PartialTrackList,
-                                included: PartialTrackList,
-                                unused: PartialTrackList,
-                                unused_auto: PartialTrackList
-                             }> {
-        let all: PartialTrackList      = this.loaded.all_tracks || [];
-        let matched: PartialTrackList  = this.loaded.matched_tracks || [];
-        let excluded: PartialTrackList = this.loaded.excluded_tracks || [];
-        let included: PartialTrackList = this.loaded.included_tracks || [];
-        let unused: PartialTrackList    = this.library?.unused_tracks || [];
-        let unused_auto: PartialTrackList = this.library?.unused_auto_tracks || [];
+                             limit: number = 50): Promise<PartialTrackList> {
+        const t = {
+            all:         this.loaded.all_tracks || [],
+            matched:     this.loaded.matched_tracks || [],
+            excluded:    this.loaded.excluded_tracks || [],
+            included:    this.loaded.included_tracks || [],
+            unused:      this.library?.unused_tracks || [],
+            unused_auto: this.library?.unused_auto_tracks || [],
+        }
 
         if (this.loaded.id === "unpublished")
-            return { all, matched, included, excluded, unused, unused_auto };
+            return t[kind];
 
         /** If it is not an automated playlist, use the Spotify playlist endpoint */
         if (kind == 'all' || this.loaded.filters === undefined) {
             const url = this.loaded.id == 'library' ? '/me/tracks' : `/playlists/${this.loaded.id}/tracks`;
 
             // Check if the offset is already loaded
-            if ((all[offset] as CTrack)?.id === undefined || typeof (all[offset] as CTrack)?.id === "string") {
+            if ((t.all[offset] as CTrack)?.id === undefined) {
                 let tracks = (await Fetch.get<any[]>(`spotify:${url}`, { offset })).data
                              .map((track: any) => this.convertToCTrack(track))
 
                 /* Check if the Spotify result actually contains tracks
                  * or [] if either the offset is too high or the playlist does not contain any tracks */
-                if (all.length == 0 || all[offset] === undefined)
-                    return { all, matched, included, excluded, unused, unused_auto };
+                if (t.all.length == 0 || t.all[offset] === undefined)
+                    return t[kind];
+
                 /** Otherwise, we are missing tracks */
                 else if (tracks.length == 0) {
                     // Wait a moment
@@ -268,10 +256,10 @@ export default class Playlists extends Pinia {
                 }
 
                 // Insert the tracks into the all_tracks at the offset
-                all.splice(offset, limit, ...tracks);
+                t.all.splice(offset, limit, ...tracks);
 
                 // For all track lists, replace the ids with the tracks
-                for (const target of [all, matched, excluded, included, unused, unused_auto]) {
+                for (const target of Object.values(t)) {
                     for (const track of tracks) {
                         const index = target.findIndex(t => t === track.id);
                         if (index !== -1) target[index] = track;
@@ -281,10 +269,10 @@ export default class Playlists extends Pinia {
         } else {
             /** The all, matched, excluded and included tracks include either the ids or the tracks themselves
              * We do not need to load the already loaded tracks again */
-            let target = kind === "matched" ? matched :
-                         kind === "excluded" ? excluded :
-                         kind === "included" ? included :
-                         kind === "unused" ? unused : unused_auto;
+            let target = kind === "matched"  ? t.matched :
+                         kind === "excluded" ? t.excluded :
+                         kind === "included" ? t.included :
+                         kind === "unused"   ? t.unused : t.unused_auto;
 
             // Get all tracks from [offset: offset + limit] which are still a string (their id only and thus not loaded)
             const missing = target.slice(offset, offset + limit).filter(track => typeof track === "string") as string[];
@@ -294,7 +282,7 @@ export default class Playlists extends Pinia {
                              .map((track: any) => this.convertToCTrack(track))
 
                 // For all track lists, replace the ids with the tracks
-                for (target of [all, matched, excluded, included, unused, unused_auto]) {
+                for (target of Object.values(t)) {
                     for (const track of tracks) {
                         const index = target.findIndex(t => t === track.id);
                         if (index !== -1) target[index] = track;
@@ -304,29 +292,28 @@ export default class Playlists extends Pinia {
         }
 
         // Save the tracks
-        this.loaded.all_tracks      = all;
-        this.loaded.matched_tracks  = matched;
-        this.loaded.excluded_tracks = excluded;
-        this.loaded.included_tracks = included;
+        this.loaded.all_tracks              = t.all;
+        this.loaded.matched_tracks          = t.matched;
+        this.loaded.excluded_tracks         = t.excluded;
+        this.loaded.included_tracks         = t.included;
         if (this.loaded.id === "library") {
-            this.library.unused_tracks = unused;
-            this.library.unused_auto_tracks = unused_auto;
+            this.library.unused_tracks      = t.unused;
+            this.library.unused_auto_tracks = t.unused_auto;
         }
 
-        return { all, matched, excluded, included, unused, unused_auto };
+        return t[kind];
     }
-
 
     /**
      * Populates the placeholder ids of the `all_tracks` field in the storage with the actual values from Spotify
      */
-    async loadPlaylists_all_tracks() {
+    async loadPlaylists_allTrackIds() {
         await this.loadUserPlaylists();
 
         let playlists: CPlaylist[] = [];
-        /** Loop through all playlists and check if there is a playlist with an uninitialized ("") `all_track` track */
+        /** Loop through all playlists and check if there is a playlist with an uninitialized (null) `all_track` track */
         for (const playlist of this.storage) {
-            if (!playlist.all_tracks || playlist.all_tracks.some(t => t === "")) {
+            if (!playlist.all_tracks || playlist.all_tracks.some(t => t === null)) {
                 playlists.push(playlist);
             }
         }
@@ -353,6 +340,20 @@ export default class Playlists extends Pinia {
     }
 
     /**
+     * Loads all the tracks of the playlist (Use with care. EXENSIVE OPERATION)
+     */
+    async loadPlaylist_allTracks() {
+        const total = this.loaded.all_tracks.length;
+
+        const tasks: Promise<any>[] = [];
+        for (let offset = 0; offset < total; offset += 50) {
+            tasks.push(this.loadPlaylistTracks('all', offset, 50));
+        }
+
+        return Promise.all(tasks);
+    }
+
+    /**
      * Builds a new automated playlist
      */
     buildAutomatedPlaylist() {
@@ -361,7 +362,7 @@ export default class Playlists extends Pinia {
             user_id:        this.user?.info?.id || "unkown",
             name:           "Automated Playlist",
             description:    '',
-            image:          '',
+            image:          'none',
             sources:        [{origin: "Library", value: ""}],
             filters: {
                 mode: "all",
@@ -373,9 +374,9 @@ export default class Playlists extends Pinia {
             included_tracks:    [],
             logs:               [],
             owner: {
-                id: this.user.info!.id              || "unknown",
-                display_name: this.user.info!.name  || "you",
-                country: this.user.info!.country    || "unknown"
+                id: this.user?.info?.id              || "unknown",
+                display_name: this.user?.info?.name  || "you",
+                country: this.user?.info?.country    || "unknown"
             },
         } as CPlaylist;
     }
@@ -539,7 +540,7 @@ export default class Playlists extends Pinia {
      */
     async trackAppearsIn(trackId: string){
         await this.loadUserPlaylists();
-        await this.loadPlaylists_all_tracks();
+        await this.loadPlaylists_allTrackIds();
 
         // Return the playlists in which the track appears
         return this.storage.filter(playlist => {
@@ -638,7 +639,7 @@ export default class Playlists extends Pinia {
      */
     filterOut(tracks: PartialTrackList, remove: PartialTrackList) {
         // Filter out the tracks based on their ids
-        return tracks.filter(t => !remove.some(r => ((r as CTrack).id ?? r) === (t as CTrack).id ?? t))
+        return tracks.filter(t => !remove.some(r => ((r as CTrack).id || r) === (t as CTrack).id || t))
     }
 
     /**
@@ -646,7 +647,7 @@ export default class Playlists extends Pinia {
      * @param tracks Tracks to get the ids from
      */
     getTrackIds(tracks: PartialTrackList) {
-        return tracks.map(track => (track as CTrack).id || (track as string))
+        return tracks.map(track => (track as CTrack)?.id || (track as string))
     }
 
     /**

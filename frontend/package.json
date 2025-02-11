@@ -14,19 +14,17 @@
     "@fortawesome/free-regular-svg-icons": "^6.4.2",
     "@fortawesome/free-solid-svg-icons": "^6.4.2",
     "@fortawesome/vue-fontawesome": "^3.0.3",
-    "@nuxt/devtools": "latest",
     "@pinia/nuxt": "^0.4.11",
     "@types/bootstrap": "^5.2.6",
-    "@types/node": "^18.17.3",
-    "nuxt": "^3.6.5",
-    "nuxt-tsconfig-relative-paths": "^1.0.6",
     "pinia-class-component": "^0.9.4",
     "sass": "^1.65.1",
-    "v-click-outside": "^3.2.0",
-    "vue-class-component": "^8.0.0-rc.1",
-    "vue-property-decorator": "^10.0.0-rc.3"
+    "vue-facing-decorator": "^3.0.4"
   },
   "dependencies": {
-    "bootstrap": "^5.3.1"
+    "bootstrap": "^5.3.3",
+    "nuxt": "^3.14.1592",
+    "v-click-outside": "^3.2.0",
+    "vue": "latest",
+    "vue-router": "latest"
   }
 }

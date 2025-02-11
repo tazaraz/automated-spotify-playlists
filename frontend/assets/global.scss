@@ -1,0 +1,47 @@
+.multilayer {
+    display: grid;
+    grid-template-rows: repeat(2, max-content);
+    align-items: center;
+    gap: 0;
+    color: $white;
+
+    > a:hover {
+        color: $white;
+        text-decoration: underline;
+    }
+
+    > :not(:first-child),
+    > a {
+        color: $gray-500;
+    }
+}
+
+a {
+    text-decoration: none !important;
+}
+
+#sidebar.tiny,
+main.tiny,
+#editor.tiny {
+    .tiny-d-none { display: none !important; }
+    .tiny-d-flex { display: flex !important; }
+}
+
+main.small,
+#editor.small {
+    .small-d-none { display: none !important; }
+    .small-d-flex { display: flex !important; }
+}
+
+#sidebar.normal,
+main.normal,
+#editor.normal {
+    .normal-d-none { display: none !important; }
+    .normal-d-flex { display: flex !important; }
+}
+
+main.large,
+#editor.large {
+    .large-d-none { display: none !important; }
+    .large-d-flex { display: flex !important; }
+}

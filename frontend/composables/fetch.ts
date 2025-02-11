@@ -1,11 +1,10 @@
-import User from "./user";
-import FetchError from "./error";
+import User from "@/stores/user";
 
 interface FetchResponse<T> extends Response {
     data: T
 }
 
-export interface FetchOptions {
+interface FetchOptions {
     /** Whether to try to use a user. Defaults to true */
     user?: boolean;
     /** The maximum amount of retries */
@@ -32,9 +31,7 @@ export interface FetchOptions {
 }
 
 /**
- * The holy fetch handler.
- * This class handles all requests to the server and spotify.
- * It handles most (who knows what might happen?) of the errors that could occur
+ * The holy fetch wrapper. Stateless, but can be used to fetch data from the server or Spotify.
  */
 export default class Fetch {
     static user: User;

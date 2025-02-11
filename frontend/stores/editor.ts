@@ -1,10 +1,12 @@
 import { Store, Pinia } from "pinia-class-component";
-import Playlists, { LoadedPlaylist } from "./playlists";
-import { PlaylistCondition, PlaylistSource, PlaylistStatement } from "../../backend/src/shared/types/playlist";
-import { CPlaylist, CTrack } from "../../backend/src/shared/types/client";
-import { SourceDescription as Sources } from "../../backend/src/shared/types/descriptions";
-import Fetch from "./fetch";
-import FetchError from "./error";
+import Playlists, { type LoadedPlaylist } from "./playlists";
+import type { PlaylistCondition, PlaylistSource, PlaylistStatement } from "../../backend/src/shared/types/playlist";
+import type { CPlaylist, CTrack } from "../../backend/src/shared/types/client";
+import Fetch from "@/composables/fetch";
+import Layout from "./layout";
+import type { EditorCondition } from "~/components/UI/editor/condition.vue";
+import type { EditorSource } from "~/components/UI/editor/source.vue";
+import type { EditorStatement } from "~/components/UI/editor/statement.vue";
 
 /**
  * README
@@ -18,15 +20,22 @@ interface PlaylistFilterEntry {
     content: PlaylistStatement | PlaylistCondition;
 }
 
+export enum EditorError {
+    NONE        = 0b000,
+    NO_SOURCES  = 0b001,
+    SOURCE      = 0b010,
+    FILTER      = 0b100,
+}
+
 @Store
 export default class Editor extends Pinia {
-    playlists!: Playlists;
-
-    /** Whether the editor is shown */
-    shown: boolean = false;
+    /** Playlists reference */
+    playlists: Playlists = null as any;
+    /** Layout reference */
+    layout: Layout = null as any;
 
     /** The id of the currently editing playlist */
-    id!: string;
+    id: string = null as any;
     /** The index of the currently editing playlist */
     index!: number;
     /** Name of the current playlist */
@@ -41,15 +50,25 @@ export default class Editor extends Pinia {
     filters: PlaylistStatement = null as any;
 
     /** The playlist which is currently being edited */
-    get playlist() { return this.playlists.storage[this.index]; }
+    get playlist(): CPlaylist {
+        if (this.playlists.storage)
+            return this.playlists.storage[this.index];
 
-    refs: any = null;
+        // If there are no playlists, return nothing. Usefull when not logged in
+        return undefined as any;
+    }
 
-    saving: boolean = false
+    configChanged: boolean = false;
     executing: boolean = false
 
-    /** 0: no error, 1: Source error, 2: Filter error, 3: Source + Filter error */
-    error: number = 0
+    /** Errors */
+    error: EditorError = EditorError.NONE;
+    /** References to the Filter Editor */
+    refs: {
+        sources: (EditorSource)[],
+        filters: (EditorCondition | EditorStatement)[],
+    } = { sources: null as any, filters: null as any };
+
     /** Contains the playlist configuration on load if we'd want to restore it */
     oldPlaylist: CPlaylist = null as any;
     /** The playlist sources and filters, but flattened for the GUI to use */
@@ -65,7 +84,11 @@ export default class Editor extends Pinia {
      */
     loadConfig(playlist: LoadedPlaylist) {
         if (!playlist.filters) return false;
-        this.shown = true;
+        // Update the layout information
+        this.layout.showEditor(true);
+        // Update the references
+        this.playlists.editor = this;
+
         // Store a copy for reverting purposes
         this.oldPlaylist = this.playlists.convertToCPlaylist(playlist);
 
@@ -85,7 +108,7 @@ export default class Editor extends Pinia {
 
     /** Clears the editor */
     close() {
-        this.shown = false;
+        this.layout.showEditor(false);
         this.id = "";
         this.index = -1;
         this.name = "";
@@ -161,14 +184,26 @@ export default class Editor extends Pinia {
 
     /** Adds a new source */
     addSource() {
-        this.sources.push({ origin: "library" as any, value: '' })
+        this.sources.push({ origin: "Library" as any, value: '' })
+        this.configIsValid();
     }
+
+    /** Updates a source
+     * @param index Index of the source which should be updated
+     * @param entry New source entry
+     */
+    updateSource(index: number, entry: PlaylistSource) {
+        // Sources update inplace as they are passed by reference to the components
+        this.configIsValid();
+    }
+
 
     /** Deletes a source
      * @param index Index of the source which should be deleted
      */
     deleteSource(index: number) {
-        this.sources.splice(index, 1)
+        this.sources.splice(index, 1);
+        this.configIsValid();
     }
 
     /**
@@ -197,6 +232,8 @@ export default class Editor extends Pinia {
             location[indexes[0]] = entry
             this.flattened = this.flatten(this.filters);
         }
+
+        this.configIsValid();
     }
 
     /**
@@ -214,7 +251,7 @@ export default class Editor extends Pinia {
         location = location || this.filters.filters
 
         // If the entry is nested somewhere
-        if (index != "" && indexes.length > 0) {
+        if (index !== "" && indexes.length > 0) {
             // Remove the first entry from the indexes and recurse
             this.addFilter(kind, indexes.slice(1).join("-"), location[indexes[0]].filters)
         } else {
@@ -234,6 +271,7 @@ export default class Editor extends Pinia {
             }
 
             this.flattened = this.flatten(this.filters);
+            this.configIsValid();
         }
     }
 
@@ -263,55 +301,24 @@ export default class Editor extends Pinia {
         }
 
         this.flattened = this.flatten(this.filters);
+        this.configIsValid();
     }
 
     /**
      * Saves the playlist to the server
      */
     async save() {
-        if (this.error > 0) return;
-        this.saving = true;
-
-        // First we check if, if it is an automated playlist, the sources and filters are valid
-        if (this.filters) {
-            // We require at least one source
-            if (this.refs.sources == undefined) this.error += 1;
-            for (const source of this.refs.sources || []) {
-                if (!source.isValid()) {
-                    this.error += 1;
-                    break;
-                }
-            }
-
-            // Filters are optional
-            if (this.refs.filters == undefined) this.error += 0;
-            for (const filter of this.refs.filters || []) {
-                if (!filter.isValid()) {
-                    this.error += 2;
-                    break;
-                }
-            }
-
-            // Remove the error after 3 seconds
-            if (this.error > 0) {
-                setTimeout(() => {
-                    this.saving = false;
-                    this.error = 0;
-                }, 5000);
-                return;
-            }
-        }
+        /** First we check if the sources and filters are valid */
+        if (!this.filters || !(await this.configIsValid()))
+            return;
 
         // Update the playlist
-        if (this.filters &&
-                // If unpublished
-                (this.playlists.unpublished?.id == this.id ||
+        if (// If unpublished
+            (this.playlists.unpublished?.id == this.id ||
 
-                // If published, but the filters or track sources have changed
-                (!this.playlists.unpublished &&
-                    (JSON.stringify(this.filters) != JSON.stringify(this.playlist.filters) ||
-                     JSON.stringify(this.sources) != JSON.stringify(this.playlist.sources)
-        )))) {
+            // If published, but the filters or track sources have changed
+            (!this.playlists.unpublished && this.configChanged)
+        )) {
             const packet_playlist = this.playlists.copy(this.playlist as CPlaylist)
             packet_playlist.name        = this.name
             packet_playlist.description = this.description
@@ -336,8 +343,12 @@ export default class Editor extends Pinia {
             }
 
             // Updating succeeded, update the real playlist.
-            this.playlists.storage[this.index] = packet_playlist
             this.id = this.playlist.id = result.data
+            this.playlists.storage[this.index] = this.playlists.copy(packet_playlist)
+
+            // Reload the playlist and update the old version
+            await this.playlists.loadUserPlaylistByID(this.id);
+            this.oldPlaylist = this.playlists.convertToCPlaylist(this.playlists.loaded);
 
             // Reset the unpublished automated playlist boolean
             if (old_id === 'unpublished') {
@@ -347,8 +358,6 @@ export default class Editor extends Pinia {
             }
         }
 
-        // Sync with the server
-        this.saving = false;
         return true;
     }
 
@@ -378,17 +387,59 @@ export default class Editor extends Pinia {
                     this.logs = response.data.logs;
                     response.data.owner = this.playlist.owner
 
+                    // Save the url of the old playlist image
+                    const old_image = this.playlist.image
+
                     // Update the all_tracks
                     let all_tracks = response.data.matched_tracks.concat(response.data.included_tracks)
                         all_tracks = all_tracks.filter((track: string) => !response.data.excluded_tracks.includes(track));
 
                     // Update the container
+                    response.data.image = this.playlist.image;
                     response.data.all_tracks = all_tracks;
                     await this.playlists.save(response.data);
 
+
                     // If it is the loaded playlist, load the new tracks
-                    if (this.playlist.id === this.playlists.loaded.id || this.playlists.loaded.id == 'unpublished')
+                    if (this.playlist.id === this.playlists.loaded.id || this.playlists.loaded.id == 'unpublished') {
                         await this.playlists.loadUserPlaylistByID(this.playlist.id)
+
+                        /** Load the first 50 tracks manually, as the Spotify API might not yet up to date */
+                        const track_ids = this.playlists.loaded.all_tracks.slice(0, 50) as string[];
+                        // Fetch the tracks and convert
+                        const tracks = (await Fetch.get<any[]>('spotify:/tracks', { ids: track_ids })).data
+                                       .map((track: any) => this.playlists.convertToCTrack(track))
+                        // Replace the first 50 tracks
+                        this.playlists.loaded.all_tracks.splice(0, 50, ...tracks)
+
+                        /** Fetch new artwork */
+                        new Promise(async (resolve) => {
+                            let tries = 4;
+
+                            while (tries--) {
+                                const img_res = await Fetch.get(`spotify:/playlists/${this.playlist.id}`, {
+                                    query: { fields: 'images' }
+                                })
+
+                                // If the request was successful, update the image
+                                if (img_res.ok) {
+                                    const new_image = Fetch.bestImage(img_res.data.images)
+
+                                    // Check if the image has changed
+                                    if (new_image != old_image) {
+                                        this.playlists.storage[this.index].image = new_image;
+                                        this.playlists.loaded.image = new_image;
+                                        break;
+                                    }
+                                }
+
+                                // Wait before trying again
+                                await new Promise(resolve => setTimeout(resolve, 5000))
+                            }
+
+                            resolve(true);
+                        })
+                    }
 
                 default:
                     // Stop the execution
@@ -468,5 +519,44 @@ export default class Editor extends Pinia {
             sources: this.sources,
             filters: this.filters
         }))
+    }
+
+    /**
+     * Checks if the config has changed and whether it was valid or not
+     * @returns Whether the config is valid
+     */
+    async configIsValid() {
+        /** Check if the config has changed */
+        this.configChanged = JSON.stringify(this.sources) != JSON.stringify(this.oldPlaylist.sources) ||
+                             JSON.stringify(this.filters) != JSON.stringify(this.oldPlaylist.filters);
+
+        // Wait for the DOM to update
+        await this.layout.nextTick();
+
+        /** Check for any errors in the config */
+        let error = EditorError.NONE;
+
+        // We require at least one source
+        if (this.sources.length == 0)
+            error |= EditorError.NO_SOURCES;
+
+        // Sources
+        for (const source of this.refs.sources || []) {
+            if (!source.isValid()) {
+                error |= EditorError.SOURCE;
+                break;
+            }
+        }
+
+        // Filters
+        for (const filter of this.refs.filters || []) {
+            if (!filter.isValid()) {
+                error |= EditorError.FILTER;
+                break;
+            }
+        }
+
+        this.error = error;
+        return error == EditorError.NONE;
     }
 }

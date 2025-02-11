@@ -1,25 +1,20 @@
-import { defineNuxtConfig } from 'nuxt/config'
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-    // Disable console clearing
-    // https://nuxtjs.org/docs/2.x/configuration-glossary/configuration-cli#clearconsole
+    ssr: false,
     build: {
         transpile: ['@fortawesome/vue-fontawesome'],
     },
     css: [
-        "~/assets/scss/overrides.scss",
-        "@/assets/scss/global.scss",
+        "@/assets/global.scss",
+        "@/assets/bootstrap.scss",
         '@fortawesome/fontawesome-svg-core/styles.css',
     ],
     modules: [
         '@pinia/nuxt',
-        'nuxt-tsconfig-relative-paths',
     ],
-
     runtimeConfig: {
         public: {
-            AP_CLIENT_ID: process.env.AP_CLIENT_ID,
-            DOMAIN: process.env.DOMAIN
+            AP_CLIENT_ID: process.env.AP_CLIENT_ID
         }
     },
     vite: {
@@ -30,25 +25,13 @@ export default defineNuxtConfig({
                 }
             }
         },
+        esbuild: {
+            tsconfigRaw: {},
+        },
         server: {
             fs: {
-                allow: ["../backend/src/"]
+                allow: ["/backend/src/shared/"]
             },
-            hmr: {
-                port: 24672,
-                protocol: 'ws',
-            }
-        },
-        build: {
-            rollupOptions: {
-                output:{
-                    manualChunks(id) {
-                        if (id.includes('node_modules')) {
-                            return id.toString().split('node_modules/')[1].split('/')[0].toString();
-                        }
-                    }
-                }
-            }
         }
-    }
+    },
 })

@@ -89,12 +89,12 @@
     </div>
 </template>
 <script lang="ts">
-import { Vue, Prop } from 'vue-property-decorator';
-import { PlaylistCondition, PlaylistLog } from '../../../backend/src/shared/types/playlist';
-import Playlists from '~/stores/playlists';
+import { Vue, Component, toNative, Prop } from 'vue-facing-decorator';
+import type { PlaylistLog } from '@/../backend/src/shared/types/playlist';
 import Editor from '~/stores/editor';
 
-export default class EditLog extends Vue {
+@Component({})
+export class EditorLogs extends Vue {
     @Prop({ default: null }) infoLog!: PlaylistLog;
     editor: Editor = null as any;
 
@@ -184,6 +184,8 @@ export default class EditLog extends Vue {
         collapseIcon?.classList.toggle('rotated')
     }
 }
+
+export default toNative(EditorLogs);
 </script>
 
 <style lang="scss">

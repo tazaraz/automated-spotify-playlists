@@ -12,26 +12,28 @@
                 of the following are true:
             </span>
         </template>
-        <button class="border-0 bg-transparent p-2" @click="$emit('event', 'add')">
+        <button class="btn px-0" @click="$emit('event', 'add')">
             <fa-icon class="text-primary" :icon="['fas', 'plus']"></fa-icon>
         </button>
-        <button v-if="indent < 3" class="border-0 bg-transparent p-2" @click="$emit('event', 'branch')">
+        <button v-if="indent < 3" class="btn px-0" @click="$emit('event', 'branch')">
             <fa-icon class="text-primary" :icon="['fas', 'code-branch']"></fa-icon>
         </button>
-        <button class="border-0 bg-transparent p-2" @click="$emit('event', 'delete')">
+        <button class="btn px-0" @click="$emit('event', 'delete')">
             <fa-icon style="color: rgb(155, 0, 0)" :icon="['fas', 'trash-can']"></fa-icon>
         </button>
     </div>
 </template>
 
 <script lang="ts">
-import { Emit, Vue, Prop } from 'vue-property-decorator';
-import { PlaylistStatement } from '../../../backend/src/shared/types/playlist';
-import { FilterParserOptions } from '../../../backend/src/shared/types/descriptions';
+import { Vue, Component, toNative, Prop } from 'vue-facing-decorator';
+import { FilterParserOptions } from '@/../backend/src/shared/types/descriptions';
+import type { PlaylistStatement } from '@/../backend/src/shared/types/playlist';
 
-@Emit('change')
-@Emit('event')
-export default class EditStatement extends Vue {
+
+@Component({
+    emits: ['change', 'event']
+})
+export class EditorStatement extends Vue {
     @Prop({required: true}) statement!: PlaylistStatement
     @Prop({required: true}) indent!: number
 
@@ -49,6 +51,8 @@ export default class EditStatement extends Vue {
         this.$emit('change', this.statement)
     }
 }
+
+export default toNative(EditorStatement);
 </script>
 
 <style lang="scss" scoped>

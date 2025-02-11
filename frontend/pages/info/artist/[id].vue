@@ -1,99 +1,115 @@
 <template>
-    <article key="artist" class="rounded-2 p-2 bg-dark flex-grow-1 overflow-hidden">
-        <SmallHeader :item="artist"></SmallHeader>
-        <div class="h-100 pb-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow" data-edit-class="full-d-none">
-            <Title v-if="!artist">Loading artist...</Title>
-            <Title v-else>{{ artist.name }}</Title>
-            <header class="p-4 pt-5 d-flex gap-4" data-main-class="normal-flex-row normal-align-items-stretch tiny-flex-column tiny-align-items-center">
-                <Image :src="artist" />
-                <div class="flex-fill d-flex flex-column text-white">
-                    <template v-if="!artist">
-                        <span class="mt-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>
-                        <div class="mt-5 mb-3">
-                            <span class="placeholder rounded-2" style="width: 5rem"></span>
-                            &nbsp;&nbsp;━&nbsp;&nbsp;
-                            <span class="placeholder rounded-2" style="width: 10rem"></span>
-                        </div>
-                    </template>
-                    <template v-else>
-                        <h1 class="mt-auto rounded-2">{{ artist.name }}</h1>
-                        <Spotify :to="`https://open.spotify.com/artist/${artist.id}`" class="mt-2 mb-3">SHOW IN SPOTIFY</Spotify>
-                    </template>
-                </div>
-            </header>
-            <div class="m-lg-5 mt-lg-3 m-4 mt-3 row placeholder-glow">
-                <div class="col-12 mb-2 multilayer">
-                    <span>
-                        Artist ID
-                    </span>
-                    <span v-if="!artist" class="placeholder rounded-1"></span>
-                    <span v-else>{{ artist.id }} </span>
-                </div>
-                <div class="col-12 mb-2 col-4 mb-2 multilayer">
-                    <InfoTooltip :description="Filters.Artist.Genres.description">Genres</InfoTooltip>
-                    <span v-if="!artist" class="placeholder rounded-1"></span>
-                    <span v-else>{{ artist.genres.join(', ') || "No genres for this artist" }}</span>
-                </div>
-                <div class="d-flex">
-                    <div class="me-5 multilayer">
-                        <InfoTooltip :description="Filters.Artist.Popularity.description">Popularity</InfoTooltip>
-                        <span v-if="!artist" class="placeholder rounded-1"></span>
-                        <span v-else>{{ artist!.popularity / 10 }} / 10</span>
-                    </div>
-                    <div class="multilayer">
-                        <InfoTooltip :description="Filters.Artist.Followers.description">Followers</InfoTooltip>
-                        <span v-if="!artist" class="placeholder rounded-1"></span>
-                        <span v-else>{{ artist.followers.total.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="accordion accordion-flush">
-                <template v-for="store in [
-                    { name: 'Top Tracks', items: topTracks, kind: 'track' },
-                    { name: 'Albums', items: albums, kind: 'album' },
-                    { name: 'Related Artists', items: relatedArtists, kind: 'artist' }
-                ]" :key="store.name">
-                    <div class="accordion-item bg-transparent">
-                        <h2 class="accordion-header pt-2">
-                            <button class="accordion-button shadow-none bg-transparent text-white p-2 ps-4 collapsed" type="button" data-bs-toggle="collapse" :data-bs-target="`#artist-${store.kind}`">
-                                <h4>{{ store.name }}</h4>
-                            </button>
-                        </h2>
-                        <div :id="`artist-${store.kind}`" class="accordion-collapse collapse">
-                            <ol class="m-4 mt-0 d-flex nav row">
-                                <template v-if="!store.items">
-                                    <li v-for="i in new Array(Math.ceil(Math.random() * 10))" class="col-12 p-2">
-                                        <span class="placeholder rounded-5 bg-light" style="width: 3rem; height: 3rem"></span>
-                                        <span class="placeholder rounded-2 ms-3" style="width: 7rem;"></span>
-                                    </li>
-                                </template>
-
-                                <li v-else v-for="item of store.items" class="col-xxl-4 col-12 p-2 d-flex">
-                                    <Image :src="item" :class="store.kind == 'track' ? '' : 'rounded-5'" style="width: 3rem; height: 3rem"/>
-                                    <span class="multilayer ms-3">
-                                        <url :to="`/info/${store.kind}/${item.id}`" class="rounded-2 text-white">{{ item.name }}</url>
-                                    </span>
-                                </li>
-                            </ol>
-                        </div>
+    <article key="artist"  class="h-100 p-4 d-flex flex-column overflow-y-auto overflow-hidden placeholder-glow">
+        <Title v-if="!artist">Loading artist...</Title>
+        <Title v-else>{{ artist.name }}</Title>
+        <header class="small-header d-flex p-4 pt-5 gap-4 mb-3">
+            <Image id="header-artwork" class="ms-4" :src="artist?.image"/>
+            <div class="flex-fill d-flex flex-column text-white placeholder-glow my-auto">
+                <template v-if="!artist">
+                    <span class="mt-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>
+                    <div class="mt-5 mb-3">
+                        <span class="placeholder rounded-2" style="width: 5rem"></span>
+                        &nbsp;&nbsp;━&nbsp;&nbsp;
+                        <span class="placeholder rounded-2" style="width: 10rem"></span>
                     </div>
                 </template>
+                <template v-else>
+                    <h1 class="mt-auto rounded-2">{{ artist.name }}</h1>
+                    <SpotifyLink :to="`https://open.spotify.com/artist/${artist.id}`"
+                                 class="mt-2 mb-3">SHOW IN SPOTIFY</SpotifyLink>
+                </template>
+            </div>
+        </header>
+
+        <div class="row placeholder-glow mb-3 mx-4" style="max-width: 60rem;">
+            <div class="col-12 mb-2 multilayer">
+                <span>
+                    Artist ID
+                </span>
+                <span v-if="!artist" class="placeholder rounded-1"></span>
+                <span v-else>{{ artist.id }} </span>
+            </div>
+            <div class="col-12 mb-2 col-4 mb-2 multilayer">
+                <InfoTooltip :description="Filters.Artist.Genres.description">Genres</InfoTooltip>
+                <span v-if="!artist" class="placeholder rounded-1"></span>
+                <span v-else>{{ artist.genres.join(', ') || "No genres for this artist" }}</span>
+            </div>
+            <div class="d-flex">
+                <div class="me-5 multilayer">
+                    <InfoTooltip :description="Filters.Artist.Popularity.description">Popularity</InfoTooltip>
+                    <span v-if="!artist" class="placeholder rounded-1"></span>
+                    <span v-else>{{ artist!.popularity / 10 }} / 10</span>
+                </div>
+                <div class="multilayer">
+                    <InfoTooltip :description="Filters.Artist.Followers.description">Followers</InfoTooltip>
+                    <span v-if="!artist" class="placeholder rounded-1"></span>
+                    <span v-else>{{ artist.followers.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") }}</span>
+                </div>
             </div>
         </div>
+
+        <div class="row placeholder-glow mb-3 mx-4" style="max-width: 60rem;">
+            <h5 class="text-white mt-3 p-2 pb-0">Top Tracks</h5>
+            <template v-for="track in topTracks">
+                <!-- <div class="accordion">
+                    <Track :track="track" :id="track.id"/>
+                </div> -->
+                <div class="large-col-2 normal-col-5 small-col-6 mb-2 d-flex">
+                    <Image :src="track.image" class="mx-2 my-auto" style="width: 2.5rem; height: 2.5rem;"/>
+                    <div class="flex-grow-1 multilayer m-0">
+                        <div class="text-truncate">
+                            <url v-if="track.id"
+                                    class="text-white"
+                                    :to="`/info/track/${track.id}`">{{ track.name }}</url>
+                            <span v-else>{{ track.name }}</span>
+                        </div>
+                        <div class="text-truncate">
+                            <url v-if="track.album?.id"
+                                    :to="`/info/album/${track.album.id}`">{{ track.album.name }}</url>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div>
+            <template v-for="store in [
+                // { name: 'Top Tracks', items: topTracks, kind: 'track' },
+                { name: 'Albums', items: albums, kind: 'album' },
+                { name: 'Related Artists', items: relatedArtists, kind: 'artist' }
+            ]" :key="store.name">
+                <template v-if="store.items?.length > 0">
+                    <h5 class="text-white mt-3 p-2 pb-0">{{ store.name }}</h5>
+                    <ol class="nav flex-nowrap overflow-auto ps-2">
+                        <url v-for="item of store.items" :to="`/info/${store.kind}/${item.id}`"
+                             class="w-25 mb-3" style="min-width: 8rem;">
+                            <div class="card h-100 p-3 border-0">
+                                <Image :src="item.image" class="rounded-2" style="width: 7rem; height: 7rem;"/>
+                                <div class="card-body d-flex flex-column pt-3 p-0">
+                                    <h6 class="card-title d-block text-truncate">{{ item.name }}</h6>
+                                </div>
+                            </div>
+                        </url>
+                    </ol>
+                    <hr>
+                </template>
+            </template>
+        </div>
+
+        <ItemTest kind="artist" :id="$route.params.id"/>
     </article>
 </template>
 
 <script lang="ts">
-import { Vue } from 'vue-property-decorator';
-import { CAlbum, CArtist, CTrack } from "~/../backend/src/shared/types/client";
+import { Vue, Component, toNative } from 'vue-facing-decorator';
+import type { CAlbum, CArtist, CTrack } from "~/../backend/src/shared/types/client";
 import { FilterDescriptions as Filters } from '~/../backend/src/shared/types/descriptions';
-import BreadCrumbs from '~/stores/breadcrumbs';
-import Fetch from '~/stores/fetch';
+import Fetch from '~/composables/fetch';
 import Playlists from '~/stores/playlists';
 import User from '~/stores/user';
 
-export default class InfoAlbum extends Vue {
-    breadcrumbs: BreadCrumbs = null as any;
+@Component({})
+class InfoAlbum extends Vue {
     playlists: Playlists = null as any;
 
     artist: CArtist = null as any;
@@ -104,8 +120,6 @@ export default class InfoAlbum extends Vue {
     Filters = Filters;
 
     async created() {
-        if (!process.client) return;
-        this.breadcrumbs = new BreadCrumbs();
         this.playlists = new Playlists();
         this.playlists.setUser(new User())
         await this.playlists.loadUserPlaylists();
@@ -116,7 +130,8 @@ export default class InfoAlbum extends Vue {
             throw createError({ statusCode: 404, message: response.statusText, fatal: true })
 
         this.artist = response.data;
-        this.artist.image = Fetch.bestImage(this.artist.images);
+        this.artist.followers = (response.data as any).followers.total;
+        this.artist.image = Fetch.bestImage((response.data as any).images);
 
         // Get the top tracks
         Fetch.get<CTrack[]>(`spotify:/artists/${this.$route.params.id}/top-tracks`, {
@@ -124,13 +139,13 @@ export default class InfoAlbum extends Vue {
                 country: Fetch.user.info!.country
             }
         }).then(res => {
-            // Format the data
-            this.topTracks = Fetch.format(res.data);
+            this.topTracks = res.data;
+
             // Populate extra data
-            this.topTracks.forEach(track => {
+            for (const track of res.data as any) {
                 track.image = Fetch.bestImage(track.album!.images);
                 track.duration = this.playlists.formatDuration(track.duration_ms);
-            });
+            }
         });
 
         // Get the artist's albums
@@ -140,56 +155,64 @@ export default class InfoAlbum extends Vue {
                 limit: '50'
             }
         }).then(res => {
-            // Format the data
-            this.albums = Fetch.format(res.data);
+            this.albums = res.data;
+
             // Populate extra data
-            this.albums.forEach(album => {
+            for (const album of res.data as any) {
                 album.image = Fetch.bestImage(album.images);
                 album.release_date = (new Date(album.release_date)).getFullYear();
-            });
+            }
         });
 
         // Get the related artists
         Fetch.get<CArtist[]>(`spotify:/artists/${this.$route.params.id}/related-artists`).then(res => {
-            // Format the data
-            this.relatedArtists = Fetch.format(res.data);
             // Keep only the first 5
-            this.relatedArtists = this.relatedArtists.slice(0, 5);
-            // Populate extra data
-            this.relatedArtists.forEach(artist => {
-                artist.image = Fetch.bestImage(artist.images);
-            });
-        });
+            const data = res.data.slice(0, 5);
 
-        this.breadcrumbs.add(`/info/artist/${this.artist.id}`, this.artist.name)
+            // Set the related artists
+            this.relatedArtists = data;
+
+            // Populate extra data
+            for (const artist of data as any) {
+                artist.image = Fetch.bestImage(artist.images);
+            }
+        });
     }
 }
+
+export default toNative(InfoAlbum);
 </script>
 
-<style lang="scss" scoped>
-header {
-    .image {
-        width: 230px;
-        height: 230px;
-        box-shadow: 0 4px 60px rgba(0, 0, 0, .8);
-    }
+<style scoped lang="scss">
+main.small {
+    // col-6
+    .small-col-6 { flex: 0 0 auto; width: 50%; }
 }
 
-a {
-    color: $gray-500;
-
-    &:hover {
-        color: $white;
-        text-decoration: underline;
-    }
+main.normal {
+    // col-3
+    .normal-col-5 { flex: 0 0 auto; width: 41.66666667%; }
 }
 
-@include media-breakpoint-down(lg) {
-    header {
-        .image {
-            width: 190px;
-            height: 190px;
-        }
+main.large {
+    // col-2
+    .large-col-2 { flex: 0 0 auto; width: 33.33333333%; }
+}
+</style>
+
+<style scoped lang="scss">
+header #header-artwork {
+    box-shadow: 0 4px 60px #000c;
+    height: 230px;
+    width: 230px;
+}
+main.small {
+    .small-header {
+        align-items: center;
+        flex-direction: column;
+    }
+    .small-hide {
+        display: none;
     }
 }
 </style>

@@ -1,9 +1,9 @@
 <template>
-    <div class="accordion-item border-0">
-        <h2 v-if="(typeof track !== 'object')" class="accordion-header m-0">
-            <div :class="`accordion-button shadow-none collapsed py-2 ${layout?.main.state=='tiny'?'ps-2':''}`">
+    <div class="track accordion-item border-0">
+        <h2 v-if="track == null || typeof track === 'string'" class="accordion-header m-0">
+            <div class="accordion-button shadow-none collapsed py-2 small-ps-2">
                 <div class="container ms-0 d-flex gap-3 align-items-center ps-0">
-                    <span class="placeholder image flex-shrink-0"></span>
+                    <Image src="" class="image" />
                     <div class="flex-grow-1 multilayer m-0 d-grid gap-1">
                         <div class="text-truncate placeholder rounded-1" :style="`width: ${randomBetween(6, 14)}rem`"></div>
                         <div class="text-truncate">
@@ -13,7 +13,7 @@
                             </template>
                         </div>
                     </div>
-                    <div class="text-truncate flex-shrink-0 tiny-hidden" style="width: 40%;">
+                    <div class="text-truncate flex-shrink-0 small-d-none" style="width: 40%;">
                         <span class="placeholder rounded-1" :style="`width: ${randomBetween(3, 15)}rem`"></span>
                     </div>
                     <div class="text-truncate flex-shrink-0" style="width: 12%;">
@@ -24,12 +24,12 @@
         </h2>
         <template v-else>
             <h2 class="m-0">
-                <button :class="`accordion-button shadow-none collapsed py-2 ${layout?.main.state=='tiny'?'ps-2':''}`"
+                <button class="accordion-button shadow-none collapsed py-2 small-ps-2"
                         @click="getFeatures()"
                         data-bs-toggle="collapse"
                         :data-bs-target="`#track:${track.id}`">
                     <div class="container ms-0 d-flex gap-3 align-items-center ps-0">
-                        <Image :src="track" />
+                        <Image :src="track.image" />
                         <div class="flex-grow-1 multilayer m-0 gap-1">
                             <div class="text-truncate">
                                 <url v-if="track.id"
@@ -48,7 +48,7 @@
                                 </template>
                             </div>
                         </div>
-                        <div v-if="track.appearsIn" class="flex-grow-0 multilayer text-truncate gap-0 tiny-hidden" style="width: 40%;">
+                        <div v-if="track.appearsIn" class="small-d-none flex-grow-0 multilayer text-truncate gap-0" style="width: 40%;">
                             <template v-if="track.appearsIn.length > 0">
                                 <div class="text-truncate">
                                     Appears in
@@ -61,7 +61,7 @@
                                 </div>
                             </template>
                         </div>
-                        <div v-else-if="track.album" class="flex-shrink-0 text-truncate tiny-hidden" style="width: 40%;">
+                        <div v-else-if="track.album" class="small-d-none flex-shrink-0 text-truncate" style="width: 40%;">
                             <url v-if="track.album.id" @click="follow" class="text-truncate d-inline-block text-body" :to="`/info/album/${track.album.id}`">
                                 {{ track.album.name }}
                             </url>
@@ -72,18 +72,18 @@
                     </div>
                 </button>
             </h2>
-            <div v-if="!track.is_local && (typeof track != 'string')" :id="`track:${track.id}`" class="accordion-collapse collapse">
+            <div v-if="track && typeof track !== 'string' && !track.is_local" :id="`track:${track.id}`" class="accordion-collapse collapse">
                 <div class="accordion-body border-bottom">
                     <div class="row">
-                        <div class="col-12 mb-2 multilayer" data-main-class="normal-d-none">
+                        <div class="normal-d-none col-12 mb-2 multilayer">
                             <span>Album</span>
-                            <span v-if="!track.features" class="placeholder rounded-1"></span>
-                            <url v-else-if="track.album" :to="`/info/album/${track.album.id}`" class="text-decoration-underline">
+                            <span v-if="!track?.features" class="placeholder rounded-1"></span>
+                            <url v-else-if="track?.album" :to="`/info/album/${track.album.id}`" class="text-decoration-underline text-nowrap" style="width: min-content">
                                 {{ track.album!.name }}
                             </url>
                             <span v-else>{{ track.album }}</span>
                         </div>
-                        <div v-if="track.appearsIn" class="mb-2 multilayer" data-main-class="normal-d-none tiny-d-grid">
+                        <div v-if="track.appearsIn" class="normal-d-none mb-2 multilayer" data-main-class="small-d-grid">
                             <template v-if="track.appearsIn.length > 0">
                                 <span>Appears in</span>
                                 <span>
@@ -94,50 +94,50 @@
                                 </span>
                             </template>
                         </div>
-                        <div class="mb-2 multilayer" data-main-class="normal-col-6 tiny-col-9">
-                            <InfoTooltip :description="Filters.Album.Genres.description">Album Genres</InfoTooltip>
-                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                        <div class="mb-2 multilayer" data-main-class="normal-col-3-6 small-col-6-9">
+                            <ToolTip :description="Filters.Album.Genres.description">Album Genres</ToolTip>
+                            <span v-if="!track?.features" class="placeholder rounded-1"></span>
                             <span v-else>{{ albumGenres }} </span>
                         </div>
-                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                            <InfoTooltip :description="Filters.Track.BPM.description">BPM</InfoTooltip>
-                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                        <div class="large-col-2 normal-col-3 small-col-6 mb-2 multilayer">
+                            <ToolTip :description="Filters.Track.BPM.description">BPM</ToolTip>
+                            <span v-if="!track?.features" class="placeholder rounded-1"></span>
                             <span v-else>{{ Math.round(track.features.tempo) }}</span>
                         </div>
-                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                            <InfoTooltip :description="Filters.Track.Popularity.description">Popularity</InfoTooltip>
-                            <span v-if="!track.album" class="placeholder rounded-1"></span>
+                        <div class="large-col-2 normal-col-3 small-col-6 mb-2 multilayer">
+                            <ToolTip :description="Filters.Track.Popularity.description">Popularity</ToolTip>
+                            <span v-if="!track?.album" class="placeholder rounded-1"></span>
                             <span v-else>{{ (track.popularity || track.album.popularity) / 10 || '?' }} / 10</span>
                         </div>
-                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                            <InfoTooltip :description="Filters.Track.Danceability.description">Danceability</InfoTooltip>
-                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                        <div class="large-col-2 normal-col-3 small-col-6 mb-2 multilayer">
+                            <ToolTip :description="Filters.Track.Danceability.description">Danceability</ToolTip>
+                            <span v-if="!track?.features" class="placeholder rounded-1"></span>
                             <span v-else>{{ Math.round(track.features.danceability * 100) / 10 }} / 10</span>
                         </div>
-                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                            <InfoTooltip :description="Filters.Track.Positivity.description">Positivity</InfoTooltip>
-                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                        <div class="large-col-2 normal-col-3 small-col-6 mb-2 multilayer">
+                            <ToolTip :description="Filters.Track.Positivity.description">Positivity</ToolTip>
+                            <span v-if="!track?.features" class="placeholder rounded-1"></span>
                             <span v-else>{{ Math.round(track.features.valence * 100) / 10 }} / 10</span>
                         </div>
-                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                            <InfoTooltip :description="Filters.Track.Energy.description">Energy</InfoTooltip>
-                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                        <div class="large-col-2 normal-col-3 small-col-6 mb-2 multilayer">
+                            <ToolTip :description="Filters.Track.Energy.description">Energy</ToolTip>
+                            <span v-if="!track?.features" class="placeholder rounded-1"></span>
                             <span v-else>{{ Math.round(track.features.energy * 100) / 10 }} / 10</span>
                         </div>
-                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                            <InfoTooltip :description="Filters.Track.Accousticness.description">Acoustic</InfoTooltip>
-                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                        <div class="large-col-2 normal-col-3 small-col-6 mb-2 multilayer">
+                            <ToolTip :description="Filters.Track.Accousticness.description">Acoustic</ToolTip>
+                            <span v-if="!track?.features" class="placeholder rounded-1"></span>
                             <span v-else>{{ Math.round(track.features.acousticness * 100) / 10 }} / 10</span>
                         </div>
-                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                            <InfoTooltip :description="Filters.Track.Vocality.description">Vocals</InfoTooltip>
-                            <span v-if="!track.features" class="placeholder rounded-1"></span>
+                        <div class="large-col-2 normal-col-3 small-col-6 mb-2 multilayer">
+                            <ToolTip :description="Filters.Track.Vocality.description">Vocals</ToolTip>
+                            <span v-if="!track?.features" class="placeholder rounded-1"></span>
                             <span v-else>{{ Math.round((1 - track.features.instrumentalness) * 100) / 10 }} / 10</span>
                         </div>
-                        <div class="mb-2 multilayer" data-main-class="large-col-2 normal-col-3 tiny-col-6">
-                            <InfoTooltip :description="Filters.Track.Liveness.description">Live</InfoTooltip>
-                            <span v-if="!track.features" class="placeholder rounded-1"></span>
-                        <span v-else>{{ Math.round(track.features.liveness * 100) / 10 }} / 10</span>
+                        <div class="large-col-2 normal-col-3 small-col-6 mb-2 multilayer">
+                            <ToolTip :description="Filters.Track.Liveness.description">Live</ToolTip>
+                            <span v-if="!track?.features" class="placeholder rounded-1"></span>
+                            <span v-else>{{ Math.round(track.features.liveness * 100) / 10 }} / 10</span>
                         </div>
                     </div>
                 </div>
@@ -147,15 +147,15 @@
 </template>
 
 <script lang="ts">
-import { Emit, Prop, Vue } from 'vue-property-decorator';
-import { CArtist, CTrack, CTrackFeatures } from '~/../backend/src/shared/types/client';
+import { Vue, Component, toNative, Prop, Emit } from 'vue-facing-decorator';
+import type { CArtist, CTrack, CTrackFeatures } from '~/../backend/src/shared/types/client';
 import { FilterDescriptions as Filters } from '~/../backend/src/shared/types/descriptions';
-import Fetch from '~/stores/fetch';
-import Layout from '~/stores/layout';
+import Fetch from '~/composables/fetch';
 
 @Emit('delete')
-export default class Track extends Vue {
-    @Prop({ required: true }) track!: CTrack | string;
+@Component({})
+class Track extends Vue {
+    @Prop({ required: true }) track!: CTrack | string | null;
     @Prop({ default: false }) deleteable!: boolean;
 
     expanded = false;
@@ -163,19 +163,13 @@ export default class Track extends Vue {
 
     Filters = Filters;
 
-    layout: Layout = null as any;
-
-    mounted() {
-        this.layout = new Layout();
-    }
-
     /**
      * Gets the features of the track and toggles the accordion
      * @param state State of the accordion. If undefined, it will be toggled
      */
     async getFeatures(state: boolean | undefined = undefined) {
         // This wont work if it is a local track
-        if (this.track.is_local) return;
+        if ((this.track as CTrack).is_local) return;
 
         Fetch.get<CArtist[]>(`spotify:/artists`, { ids: (this.track as CTrack).artists!.map(artist => artist.id) })
         .then(response => {
@@ -186,7 +180,6 @@ export default class Track extends Vue {
 
         if (!(this.track as CTrack).features) {
             (this.track as CTrack).features = (await Fetch.get<CTrackFeatures>(`spotify:/audio-features/${(this.track as CTrack).id}`)).data;
-            this.layout.rerender();
         }
 
         this.expanded = state ?? !this.expanded;
@@ -204,10 +197,31 @@ export default class Track extends Vue {
         return Math.floor(Math.random() * (max - min + 1) + min);
     }
 }
+
+export default toNative(Track);
 </script>
+
 <style scoped lang="scss">
-.accordion-item.tiny {
-    .tiny-hidden {
+main.small {
+    .small-ps-2 { padding-left: 0.5rem; }
+    // col-6
+    .small-col-6 { flex: 0 0 auto; width: 50%; }
+}
+
+main.normal {
+    // col-3
+    .normal-col-3 { flex: 0 0 auto; width: 25%; }
+}
+
+main.large {
+    // col-2
+    .large-col-2 { flex: 0 0 auto; width: 16.66666667%; }
+}
+</style>
+
+<style scoped lang="scss">
+.accordion-item.small {
+    .small-d-none {
         display: none;
     }
 }
