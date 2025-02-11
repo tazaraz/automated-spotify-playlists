@@ -29,34 +29,34 @@ export interface SUser extends DBUser {
 /**
  * This track contains all data possibly required by any of the filters to do their job
  */
-// @ts-ignore
+/** @ts-ignore */
 export interface STrack extends CTrack {
-    // How long the song plays for in ms
+    /** How long the song plays for in ms */
     duration_ms: number
-    // Whether the track is a local file
+    /** Whether the track is a local file */
     is_local: boolean
-    // Album the track belongs to
+    /** Album the track belongs to */
     album: () => Promise<FilterItem<SAlbum>>
-    // Artists who made the song
+    /** Artists who made the song */
     artists: () => Promise<FilterItem<SArtist>[]>
-    // The track's features
+    /** The track's features */
     features: () => Promise<STrackFeatures>;
 }
 
-// @ts-ignore
+/** @ts-ignore */
 export interface SAlbum extends CAlbum {
-    // Tracks in this album
+    /** Tracks in this album */
     tracks: () => Promise<FilterItem<STrack>[]>
-    // Artists who created this album
+    /** Artists who created this album */
     artists: () => Promise<FilterItem<SArtist>[]>
 }
 
 export interface SArtist extends CArtist {
-    // Album the track belongs to
+    /** Album the track belongs to */
     albums: () => Promise<FilterItem<SAlbum>[]>
-    // The top tracks of the artist
+    /** The top tracks of the artist */
     top_tracks: () => Promise<FilterItem<STrack>[]>
-    // Related artists:
+    /** Related artists */
     related_artists: () => Promise<FilterItem<SArtist>[]>
 }
 

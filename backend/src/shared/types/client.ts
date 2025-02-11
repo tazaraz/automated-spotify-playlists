@@ -12,7 +12,7 @@ export interface CUser {
 }
 
 export interface CPlaylist extends Playlist {
-    // Contains the tracks of the playlist in the order spotify returns them
+    /** Contains the tracks of the playlist in the order spotify returns them */
     all_tracks: string[];
 
     owner: {
@@ -23,89 +23,89 @@ export interface CPlaylist extends Playlist {
 }
 
 export interface CTrack {
-    // Disc number, default 1
+    /** Disc number, default 1 */
     disc_number: number
-    // Track number
+    /** Track number in the album */
     track_number: number
-    // Url to the track in spotify
+    /** Url to the track in spotify */
     url: string
-    // ID of the track
+    /** ID of the track */
     id: string
-    // Name of the track
+    /** Name of the track */
     name: string
-    // A value ranging from 0 - 100
+    /** A value ranging from 0 - 100 */
     popularity: number
-    // Length of the track
+    /** Duration of the track in ms */
     duration?: string
-    // Url of the artwork
+    /** Url of the artwork */
     image?: string
-    // Album of the track
+    /** Album of the track */
     album?: CAlbum
-    // Artists of the track
+    /** Artists of the track */
     artists?: CArtist[]
-    // The track's features
+    /** The track's features */
     features?: CTrackFeatures
-    // If the track is a local track
+    /** If the track is a local track */
     is_local?: boolean
 }
 
 export interface CAlbum {
     type: "album" | "single" | "compilation"
     total_tracks: number
-    // Url to the album in spotify
+    /** Url to the album in spotify */
     url: string
-    // Name of the album
+    /** Name of the album */
     name: string
-    // Release date
+    /** Release date */
     release_date: string
-    // ID of the album
+    /** ID of the album */
     id: string
-    // Popularity of the album
+    /** Popularity of the album */
     popularity: number
-    // Genres associated with this album. Might be empty
+    /** Genres associated with this album. Might be empty */
     genres: string[]
-    // Url of the artwork
+    /** Url of the artwork */
     image?: string
-    // Artists of the album
+    /** Artists of the album */
     artists?: CArtist[]
-    // Tracks of the album
+    /** Tracks of the album */
     tracks?: CTrack[]
 }
 
 export interface CArtist {
-    // amount of people following this artist
+    /** amount of people following this artist */
     followers: number
-    // Genres associated with this artist
+    /** Genres associated with this artist */
     genres: string[]
-    // ID of the artist
+    /** ID of the artist */
     id: string
-    // Name of the artist
+    /** Name of the artist */
     name: string
-    // Url to the artist in spotify
+    /** Url to the artist in spotify */
     url: string
-    // A value ranging from 0 - 100
+    /** A value ranging from 0 - 100 */
     popularity: number
-    // Url of the artwork
+    /** Url of the artwork */
     image?: string
 }
 
 export interface CTrackFeatures {
-    // The acousticness of the track
+    /** The acousticness of the track */
     acousticness: number
-    // The danceability of the track
+    /** The danceability of the track */
     danceability: number
-    // The energy of the track
+    /** The energy of the track */
     energy: number
-    // The instrumentalness of the track
+    /** The instrumentalness of the track */
     instrumentalness: number
-    // The liveness of the track
+    /** The liveness of the track */
     liveness: number
-    // The loudness of the track
+    /** The loudness of the track */
     loudness: number
-    // The speechiness of the track
+    /** The speechiness of the track */
     speechiness: number
-    // The tempo of the track in bpm
+    /** The tempo of the track in bpm */
     tempo: number
-    // The valence of the track
+    /** The valence of the track */
     valence: number
 }
