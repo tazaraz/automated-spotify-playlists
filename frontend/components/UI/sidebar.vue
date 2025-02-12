@@ -60,13 +60,13 @@
         </div>
         <div class="rounded-3 bg-dark h-100 overflow-hidden py-3 px-2">
             <ol v-if="playlists?.storage" class="nav nav-pills d-block overflow-y-auto h-100">
-                <div class="sidebar-header d-flex flex-row align-items-center gap-3 p-2 mb-2">
-                    <span class="tiny-d-none d-flex lh-base flex-grow-1">
+                <div class="sidebar-header d-flex flex-row align-items-center gap-3 fs-6 p-2">
+                    <h6 class="tiny-d-none d-flex lh-base flex-grow-1 mb-0">
                         Automated playlists
-                    </span>
-                    <span class="tiny-d-flex d-none lh-base flex-grow-1">
+                    </h6>
+                    <h6 class="tiny-d-flex d-none lh-base flex-grow-1 mb-0">
                         Auto playlists
-                    </span>
+                    </h6>
                     <button @click="addAutomatedPlaylist" class="btn tiny-d-none d-block rounded-3 text-white p-0 fs-5">
                         <i class="d-flex p-1" style="aspect-ratio: 1;">
                             <fa-icon class="my-auto" :icon="['fas', 'plus']" style="width:1.75rem"></fa-icon>
