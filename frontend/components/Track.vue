@@ -1,9 +1,16 @@
 <template>
     <div class="track accordion-item border-0">
-        <h2 v-if="track == null || typeof track === 'string'" class="accordion-header m-0">
+        <div v-if="track === null" class="d-flex py-2 small-ps-2">
+            <!-- <div class="image"></div> -->
+            <div class="image d-flex justify-content-center align-items-center mx-auto">
+                <div class="spinner-border spinner-border-sm" role="status" style=""></div>
+            </div>
+
+        </div>
+        <h2 v-else-if="typeof track === 'string'" class="accordion-header m-0">
             <div class="accordion-button shadow-none collapsed py-2 small-ps-2">
                 <div class="container ms-0 d-flex gap-3 align-items-center ps-0">
-                    <Image src="" class="image" />
+                    <Image :src="null" class="image" />
                     <div class="flex-grow-1 multilayer m-0 d-grid gap-1">
                         <div class="text-truncate placeholder rounded-1" :style="`width: ${randomBetween(6, 14)}rem`"></div>
                         <div class="text-truncate">
@@ -225,15 +232,14 @@ main.large {
         display: none;
     }
 }
-.accordion-button {
-    a {
-        text-decoration: none;
-    }
 
-    .image {
-        width: 2.5rem;
-        height: 2.5rem;
-    }
+.accordion-button a {
+    text-decoration: none;
+}
+
+.image {
+    width: 2.5rem;
+    height: 2.5rem;
 }
 
 .accordion-button a:hover,

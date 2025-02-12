@@ -264,7 +264,7 @@ class Playlist extends Vue {
         loading: boolean;
         /** The observer instance */
         observer: IntersectionObserver;
-    } = { kind: 'all', items: [], visible: [], loading: false, observer: null as any };
+    } = { kind: 'all', items: [], visible: [], loading: true, observer: null as any };
 
     rendered: {
         /** Min height of the track list. Is a lower bound estimation of the total required height */
@@ -276,7 +276,7 @@ class Playlist extends Vue {
         threshold: number;
         /** The amount to increase the `rendered.total` by */
         increase: number;
-    } = { min_height: 0, total: 100, threshold: 100, increase: 100 };
+    } = { min_height: 0, total: 50, threshold: 25, increase: 50 };
 
     /** The search query */
     search = {
@@ -334,7 +334,6 @@ class Playlist extends Vue {
         /** Start watching */
         this.registerTriggers();
         await this.showTracks('all');
-
     }
 
     /**
@@ -353,7 +352,7 @@ class Playlist extends Vue {
      * Shows either all tracks, matched tracks, excluded tracks or included tracks
      * @param kind What kind of tracks to show
      */
-     async showTracks(kind: TrackKind) {
+    async showTracks(kind: TrackKind) {
         // Make sure we have a playlist and that we can select the requested tracks
         if (!this.playlists.loaded || (!this.playlists.loaded.filters && (kind == 'excluded' || kind == 'included')))
             return false;
@@ -372,7 +371,7 @@ class Playlist extends Vue {
         this.tracks.items = await this.playlists.loadPlaylistTracks(kind, 0);
 
         // Set the min height of the track list
-        this.rendered.min_height = (document.getElementsByClassName("track")[0].clientHeight || 0)
+        this.rendered.min_height = (document.getElementsByClassName("track")[0]?.clientHeight || 0)
                                    * this.tracks.items.length;
 
         // Check if the number of tracks loaded is enough to satisfy the threshold or total. If not, still loading
@@ -395,64 +394,31 @@ class Playlist extends Vue {
         return true;
     }
 
-    /**
-     * Removes one or more tracks from the shown list
-     * @param tracks Tracks to remove from the shown list. If not provided, all currently shown tracks will be removed
-     */
-    removeTracks(tracks: CTrack[] | PartialTrackList | undefined = undefined) {
-        switch (this.tracks.kind) {
-            case "all": break;
-            case "matched":
-                tracks = tracks || this.playlists.loaded.matched_tracks;
-                this.playlists.removeMatched(tracks)
-                break;
-            case "excluded":
-                tracks = tracks || this.playlists.loaded.excluded_tracks;
-                this.playlists.removeExcluded(tracks)
-                break;
-            case "included":
-                tracks = tracks || this.playlists.loaded.included_tracks;
-                this.playlists.removeIncluded(tracks)
-                break;
-        }
-
-        this.$nextTick(() => this.showTracks(this.tracks.kind))
-    }
-
     /** Stores requests waiting to be completed by `loadPlaylistTracks` to prevent duplicate requests */
-    loadingQueue: {[key: string]: boolean } = {};
+    loadingQueue: { [offset: string]: boolean } = {};
     /**
      * Loads the tracks which are intersecting with the viewport
      * @param elements List of elements which are intersecting
      */
-    loadVisibleTracks(elements: IntersectionObserverEntry[]) {
-        // If for some reason there are no elements, stop
+    async loadVisibleTracks(elements: IntersectionObserverEntry[], margin=20) {
+        // If for some reason there are no elements
         if (elements.length == 0) return;
-
-        // If there are no tracks, stop
-        if (this.tracks.items.length == 0) return;
 
         // If there are as much elements as there are tracks, load only those who are intersecting
         if (elements.length == this.tracks.items.length) {
             // Get the indexes of the visible elements
             this.tracks.visible = elements.filter(e => e.isIntersecting).map(e => parseInt(e.target.id));
+            return;
         }
 
-        // For each element, if intersecting, add, else remove
-        else {
-            for (const element of elements) {
-                const index = parseInt(element.target.id);
-                if (element.isIntersecting && !this.tracks.visible.includes(index))
-                    this.tracks.visible.push(index);
-                else if (!element.isIntersecting && this.tracks.visible.includes(index)) {
-                    this.tracks.visible.splice(this.tracks.visible.indexOf(index), 1);
-                }
-            }
-        }
+        const added = elements.filter(e => e.isIntersecting).map(e => parseInt(e.target.id));
+        const removed = elements.filter(e => !e.isIntersecting).map(e => parseInt(e.target.id));
+
+        this.tracks.visible = this.tracks.visible.concat(added).filter(e => !removed.includes(e));
 
         // We load tracks in batches of batchLoadingSize. Calculate if the next and previous 5 tracks are loaded
-        const prev = Math.max(Math.min(...this.tracks.visible) - 10, 0);
-        const next = Math.min(Math.max(...this.tracks.visible) + 10, this.tracks.items.length - 1);
+        const prev = Math.max(Math.min(...this.tracks.visible) - margin, 0);
+        const next = Math.min(Math.max(...this.tracks.visible) + margin, this.tracks.items.length - 1);
 
         /* If next is -Infinity, the position of the scrollbar is outside that of the rendered tracks threshold.
          * Increase the threshold and retry */
@@ -472,13 +438,14 @@ class Playlist extends Vue {
         // Yeah that's not a valid offset
         if (prev == Infinity || next == -Infinity) return;
 
-        const batchLoadingSize = 50;
-
         // If the previous or next tracks are not loaded, load them
         for (const location of [prev, next]) {
             const item = this.tracks.items[location];
+
             if (item == null || typeof item === 'string') {
-                const offset = Math.floor(location / batchLoadingSize) * batchLoadingSize;
+                // Offset based on the batch loading size
+                const offset = Math.floor(location / 50) * 50;
+
                 // If the tracks are not already loading, load them
                 if (!(`${this.tracks.kind}-${offset}` in this.loadingQueue)) {
                     this.loadingQueue[`${this.tracks.kind}-${offset}`] = true;
@@ -500,6 +467,30 @@ class Playlist extends Vue {
         return this.tracks.visible.includes(index) ||
                  (index > Math.min(...this.tracks.visible) - margin &&
                   index < Math.max(...this.tracks.visible) + margin);
+     }
+
+    /**
+     * Removes one or more tracks from the shown list
+     * @param tracks Tracks to remove from the shown list. If not provided, all currently shown tracks will be removed
+     */
+     removeTracks(tracks: CTrack[] | PartialTrackList | undefined = undefined) {
+        switch (this.tracks.kind) {
+            case "all": break;
+            case "matched":
+                tracks = tracks || this.playlists.loaded.matched_tracks;
+                this.playlists.removeMatched(tracks)
+                break;
+            case "excluded":
+                tracks = tracks || this.playlists.loaded.excluded_tracks;
+                this.playlists.removeExcluded(tracks)
+                break;
+            case "included":
+                tracks = tracks || this.playlists.loaded.included_tracks;
+                this.playlists.removeIncluded(tracks)
+                break;
+        }
+
+        this.$nextTick(() => this.showTracks(this.tracks.kind))
     }
 
     /** Registers triggers */

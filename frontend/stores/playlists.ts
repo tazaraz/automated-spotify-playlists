@@ -247,7 +247,7 @@ export default class Playlists extends Pinia {
             const url = this.loaded.id == 'library' ? '/me/tracks' : `/playlists/${this.loaded.id}/tracks`;
 
             // Check if the offset is already loaded
-            if ((t.all[offset] as CTrack)?.id === undefined) {
+            if ((t.all[offset] as CTrack)?.id === undefined || (t.all[offset] as CTrack)?.is_local) {
                 let tracks = (await Fetch.get<any[]>(`spotify:${url}`, { offset })).data
                              .map((track: any) => this.convertToCTrack(track))
 
@@ -284,7 +284,9 @@ export default class Playlists extends Pinia {
                          kind === "unused"   ? t.unused : t.unused_auto;
 
             // Get all tracks from [offset: offset + limit] which are still a string (their id only and thus not loaded)
-            const missing = target.slice(offset, offset + limit).filter(track => typeof track === "string") as string[];
+            let missing = target.slice(offset, offset + limit).filter(track => typeof track === "string") as string[];
+                missing = missing.filter(id => !id.startsWith("local:"))
+
             if (missing.length > 0) {
                 // Get the missing tracks from spotify
                 let tracks = (await Fetch.get<any[]>('spotify:/tracks', { ids: missing })).data
