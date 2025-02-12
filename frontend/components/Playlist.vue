@@ -377,7 +377,7 @@ class Playlist extends Vue {
 
         // Check if the number of tracks loaded is enough to satisfy the threshold or total. If not, still loading
         this.tracks.loading = !(
-            this.rendered.total > this.rendered.threshold ||
+            this.rendered.total >= this.rendered.threshold ||
             this.tracks.items.length < this.rendered.total
         );
 
