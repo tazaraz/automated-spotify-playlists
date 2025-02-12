@@ -3,7 +3,7 @@
         <Title v-if="!artist">Loading artist...</Title>
         <Title v-else>{{ artist.name }}</Title>
         <header class="small-header d-flex p-4 pt-5 gap-4 mb-3">
-            <Image id="header-artwork" class="ms-4" :src="artist?.image"/>
+            <Image id="header-artwork" class="ms-sm-4" :src="artist?.image"/>
             <div class="flex-fill d-flex flex-column text-white placeholder-glow my-auto">
                 <template v-if="!artist">
                     <span class="mt-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>

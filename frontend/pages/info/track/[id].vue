@@ -3,7 +3,7 @@
         <Title v-if="!track">Loading track...</Title>
         <Title v-else>{{ track.name }}</Title>
         <header class="small-header d-flex p-4 pt-5 gap-4 mb-3">
-            <Image id="header-artwork" class="ms-4" :src="track?.image"/>
+            <Image id="header-artwork" class="ms-sm-4" :src="track?.image"/>
             <div class="flex-fill d-flex flex-column text-white placeholder-glow my-auto">
                 <span v-if="!track"
                         class="mt-auto mb-auto placeholder rounded-2"

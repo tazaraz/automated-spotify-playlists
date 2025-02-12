@@ -3,7 +3,7 @@
         <Title v-if="!loadedUser">Loading user...</Title>
         <Title v-else>{{ loadedUser.name }}</Title>
         <header class="small-header d-flex p-4 pt-5 gap-4 mb-3">
-            <Image id="header-artwork" class="ms-4" :src="loadedUser?.image"/>
+            <Image id="header-artwork" class="ms-sm-4" :src="loadedUser?.image"/>
             <div class="flex-fill d-flex flex-column text-white placeholder-glow my-auto">
                 <template v-if="!loadedUser">
                     <span class="mt-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>
