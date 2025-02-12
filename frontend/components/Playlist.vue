@@ -452,6 +452,7 @@ class Playlist extends Vue {
                     // Load the tracks and remove the from the loading queue on finish
                     this.playlists.loadPlaylistTracks(this.tracks.kind, offset).then(() => {
                         delete this.loadingQueue[`${this.tracks.kind}-${offset}`];
+                        this.showTracks(this.tracks.kind);
                     });
                 }
             }
