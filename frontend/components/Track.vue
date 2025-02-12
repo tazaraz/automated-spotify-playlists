@@ -1,13 +1,6 @@
 <template>
     <div class="track accordion-item border-0">
-        <div v-if="track === null" class="d-flex py-2 small-ps-2">
-            <!-- <div class="image"></div> -->
-            <div class="image d-flex justify-content-center align-items-center mx-auto">
-                <div class="spinner-border spinner-border-sm" role="status" style=""></div>
-            </div>
-
-        </div>
-        <h2 v-else-if="typeof track === 'string'" class="accordion-header m-0">
+        <h2 v-if="!track || typeof track === 'string'" class="accordion-header m-0">
             <div class="accordion-button shadow-none collapsed py-2 small-ps-2">
                 <div class="container ms-0 d-flex gap-3 align-items-center ps-0">
                     <Image :src="null" class="image" />

@@ -214,10 +214,8 @@
             </template>
         </section>
         <section class="accordion rounded-5" :style="`min-height: ${rendered.min_height}px`">
-            <Track v-if="tracks.loading || !playlists.loaded?.all_tracks || (editor.executing && playlists.loaded.id == editor.id)"
-                   v-for="index in 20"
-                   track=""
-                   :id="index"/>
+            <Image v-if="tracks.loading || !playlists.loaded?.all_tracks || (editor.executing && playlists.loaded.id == editor.id)"
+                   src="" style="width: 100%; height: 5rem"/>
             <template v-else-if="tracks.items.length > 0"
                       v-for="track, index of tracks.items.slice(0, rendered.total)">
                 <Track :track="isVisibleTrack(index) ? track : `${index}`"
