@@ -41,9 +41,9 @@
                             </span>
                         </div>
                         <ul class="dropdown-menu dropdown-menu-end py-1" style="z-index: 1030;">
-                            <li>
+                            <li @click="hideOffcanvas()">
                                 <url :to="`/info/user/${user.info.id}`" class="dropdown-item">Profile</url>
-                            </li>
+                            </li @click="hideOffcanvas()">
                             <li>
                                 <button class="dropdown-item" @click="logout">Log out</button>
                             </li>
