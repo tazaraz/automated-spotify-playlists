@@ -29,7 +29,7 @@
                         data-bs-toggle="collapse"
                         :data-bs-target="`#track:${track.id}`">
                     <div class="container ms-0 d-flex gap-3 align-items-center ps-0">
-                        <Image :src="track.image" />
+                        <Image :src="track.image ?? (track.is_local?'none':'')" />
                         <div class="flex-grow-1 multilayer m-0 gap-1">
                             <div class="text-truncate">
                                 <url v-if="track.id"
