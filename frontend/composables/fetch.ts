@@ -1,4 +1,5 @@
 import User from "@/stores/user";
+import type { LayoutError } from "~/stores/layout";
 
 interface FetchResponse<T> extends Response {
     data: T
@@ -35,6 +36,8 @@ interface FetchOptions {
  */
 export default class Fetch {
     static user: User;
+    static createError: (error: LayoutError) => void;
+
     static refreshingToken: Promise<boolean> | null;
 
     constructor(user: User) {
@@ -70,6 +73,7 @@ export default class Fetch {
         const user       = options?.user ?? true;
         const server     = url.startsWith("server:")
         options.headers  = options.headers ?? {}
+        options.retries  = options.retries ?? 2;
 
         // If a user is provided, make sure the access token is valid
         if (user)
@@ -189,7 +193,6 @@ export default class Fetch {
     protected static async parseRequest<T>(url: string, parameters: any, options: FetchOptions): Promise<FetchResponse<T>> {
         // Fetch the data
         const response = await fetch(url, parameters);
-
         switch (response.status) {
             /**Use a retry limit for these codes */
             case 401:
@@ -209,20 +212,19 @@ export default class Fetch {
 
             /**Spotify had a hiccough, give it some time */
             case 429:
-                if ((!options.retries || options.retries-- <= 0) && !response.headers.has("Retry-After")) {
-                    FetchError.create({
+                if (!options.retries || options.retries-- <= 0) {
+                    Fetch.createError({
                         status: 429,
-                        message: "Too many requests",
+                        title: "Rate limited",
+                        message: "Asked Spotify too many questions recently. Please wait a moment",
                         priority: 1
                     });
-
-                    break;
                 }
             case 500:
             case 502:
             case 504:
                 // Set the default timeout to 5 seconds. If "Retry-After" is set, use that instead
-                let retry_after = 5000;
+                let retry_after = 3000;
                 if (response.headers.has("Retry-After"))
                     retry_after = parseInt(response.headers.get("Retry-After")!) * 1000;
 

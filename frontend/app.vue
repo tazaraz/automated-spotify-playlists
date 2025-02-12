@@ -18,7 +18,7 @@
 
         <UIToolbar v-if="!layout.app.mobile" @offcanvas="openOffcanvas"/>
 
-        <UIAlert/>
+        <UIAlert />
 
         <main :class="`h-100 bg-dark overflow-hidden p-2 ${layout.main.state}`">
             <div class="h-100 d-flex flex-column overflow-y-auto placeholder-glow">
@@ -41,6 +41,7 @@ import User from './stores/user';
 import Playlists from './stores/playlists';
 import Layout from './stores/layout';
 import Editor from './stores/editor';
+import Fetch from './composables/fetch';
 
 @Component({})
 class App extends Vue {
@@ -57,6 +58,9 @@ class App extends Vue {
         this.playlists = new Playlists();
         this.layout = new Layout();
         this.editor = new Editor();
+
+        // Allow Fetch to create errors as well
+        Fetch.createError = this.layout.createError;
 
         // Process the code grant if any
         if (this.$route.query?.code)

@@ -83,8 +83,9 @@ class ItemTest extends Vue {
                 this.log = response.data;
                 break;
             } else {
-                FetchError.create({
+                Fetch.createError({
                     status: response.status,
+                    title: "Failed to run the test",
                     message: await response.json(),
                 });
                 break;

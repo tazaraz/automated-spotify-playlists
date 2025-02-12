@@ -30,7 +30,7 @@
                         <h4 class="tiny-d-none flex-grow-1">Search</h4>
                     </url>
                 </li>
-                <li class="nav-item cursor-pointer">
+                <li class="nav-item cursor-pointer d-block d-sm-none">
                     <div v-if="user && user.info" class="d-flex nav-link nav-item cursor-pointer dropdown px-0">
                         <div class="btn w-100 px-3" data-bs-toggle="dropdown">
                             <span class="d-flex">

@@ -87,7 +87,11 @@ class InfoUser extends Vue {
         // Get the user
         let response = await Fetch.get(`spotify:/users/${this.$route.params.id}`);
         if (response.status !== 200)
-            throw createError({ statusCode: 404, message: response.statusText, fatal: true })
+            Fetch.createError({
+                status: response.status,
+                title: `Loading user ${this.$route.params.id}`,
+                message: response.statusText,
+            })
 
         // Format the response
         this.loadedUser = this.formatUser(response.data);
@@ -96,7 +100,11 @@ class InfoUser extends Vue {
         Fetch.get(`spotify:/users/${this.$route.params.id}/playlists`)
         .then(response => {
             if (response.status !== 200)
-                return FetchError.create({ status: response.status, message: response.statusText })
+                return Fetch.createError({
+                    status: response.status,
+                    title: `Loading '${this.loadedUser.name}' playlists`,
+                    message: response.statusText
+                })
 
             this.playlists = response.data.items.map((playlist: any) => ({
                 id: playlist.id,
@@ -110,7 +118,10 @@ class InfoUser extends Vue {
          * Hacky method which gets a tiny bit more priviliged Spotify token */
         response = await Fetch.get('server:/spclient-tokens')
         if (response.status != 200) {
-            return FetchError.create({ status: response.status, message: `Failed to get permission keys from Spotify to load public data for user ${this.loadedUser.name}` })
+            return Fetch.createError({
+                    status: response.status,
+                    message: `Failed to load public data for user ${this.loadedUser.name}`
+                })
         }
 
         Fetch.get(`https://spclient.wg.spotify.com/user-profile-view/v3/profile/${this.$route.params.id}/playlists`, {

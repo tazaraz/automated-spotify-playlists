@@ -21,6 +21,22 @@ interface LayoutView<T> {
     }};
 }
 
+/**
+ * Represents an error that will be displayed to the user
+ */
+export interface LayoutError {
+    /** HTTP status code */
+    status: number;
+    /** Title */
+    title?: string;
+    /** custom description */
+    message?: string;
+    /** Time (ms) the error will be present on screen. 0 means indefinately */
+    duration?: number;
+    /** Level of importance. Less important errors will not be stored */
+    priority?: number;
+}
+
 
 @Store
 export default class Layout extends Pinia {
@@ -73,6 +89,9 @@ export default class Layout extends Pinia {
             rows: ''
         }
     }
+
+    /** Stores errors. Sorted on priority */
+    error: LayoutError[] = [];
 
     constructor() {
         super();
@@ -221,5 +240,40 @@ export default class Layout extends Pinia {
             this.app.grid.rows = '4rem min-content 1fr';
         }
 
+    }
+
+    /**
+     * Creates an error notification in the layout. Should also be exported to
+     * `Fetch.createError` for static access
+     * @param error The error to display
+     */
+    createError(error: LayoutError) {
+        const currentError = this.error[0]
+        error.priority = error.priority ?? 0;
+
+        // If such an error already exists, replace it
+        if (currentError &&
+            currentError.status === error.status &&
+            currentError.title == error.title) {
+            // Overwrite the error
+            this.error[0] = error;
+            this.error[0].duration = setTimeout(() => {
+                this.error.shift();
+            }, error.duration || 7000) as any;
+            // Stop the old timeout
+            clearTimeout(currentError.duration!);
+        }
+
+        // Add the error to the list
+        else {
+            // Add the error to the list and get index
+            const index = this.error.push(error) - 1;
+            error.duration = setTimeout(() => {
+                this.error.splice(index, 1);
+            }, error.duration || 5000) as any;
+
+            // Sort the array based on priority
+            this.error.sort((a, b) => a.priority! - b.priority!);
+        }
     }
 }

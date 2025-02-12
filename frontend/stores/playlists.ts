@@ -104,7 +104,12 @@ export default class Playlists extends Pinia {
             // Get the user playlists from Spotify
             const res_p = await Fetch.get<any[]>('spotify:/me/playlists', {pagination: true});
             if (res_p.status !== 200) {
-                FetchError.create({ status: res_p.status, message: "Asked Spotify too often for your (or someone else's) playlists. The playlists will be loaded once Spotify again allows the request. Please wait a little to before reloading the page.", duration: 0 });
+                Fetch.createError({
+                    status: res_p.status,
+                    title: "Failed getting your playlists",
+                    message: "Asked Spotify too many questions recently. Please wait a moment",
+                    duration: 0
+                });
                 return resolve(false);
             }
 
@@ -123,7 +128,11 @@ export default class Playlists extends Pinia {
             // Get automated playlists
             const res_s = await Fetch.get<CPlaylist[]>('server:/playlists');
             if (res_s.status !== 200) {
-                FetchError.create({ status: res_s.status, message: 'The server did not respond accordingly when retrieving your automated playlists' });
+                Fetch.createError({
+                    status: res_s.status,
+                    title: 'Server Communication',
+                    message: 'The server did not respond accordingly when retrieving your automated playlists'
+                });
                 return resolve(false);
             }
 

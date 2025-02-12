@@ -338,7 +338,11 @@ export default class Editor extends Pinia {
             const result = await this.syncPlaylist(packet_playlist)
 
             if (result.status > 300) {
-                FetchError.create({status: result.status, message: result.data.error, duration: 5000})
+                Fetch.createError({
+                    status: result.status,
+                    title: "Failed to save playlist",
+                    message: result.data.error,
+                })
                 return false;
             }
 

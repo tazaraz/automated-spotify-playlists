@@ -64,6 +64,16 @@ class NowPlaying extends Vue {
     private getCurrentlyPlaying() {
         Fetch.get('spotify:/me/player/currently-playing')
         .then(response => {
+            if (response.status == 429) {
+                Fetch.createError({
+                    status: 429,
+                    title: "Rate limited",
+                    message: "Asked too often what you're playing",
+                    priority: -1,
+                    duration: 1000,
+                })
+            }
+
             // Do preparations
             if (response.status !== 200) return;
             else if (!response.data?.item) return;

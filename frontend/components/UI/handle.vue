@@ -9,7 +9,7 @@ import { Component, Vue, toNative, Prop } from 'vue-facing-decorator';
 import Layout from '@/stores/layout';
 
 @Component({})
-class Handle extends Vue {
+class UIHandle extends Vue {
     @Prop({required: true})
     view!: 'editor' | 'sidebar';
 
@@ -30,7 +30,7 @@ class Handle extends Vue {
     }
 }
 
-export default toNative(Handle);
+export default toNative(UIHandle);
 </script>
 
 <style lang="scss" scoped>
