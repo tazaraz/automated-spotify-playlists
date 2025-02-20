@@ -56,17 +56,17 @@
 
 
             <div class="large-col-2 normal-col-3 small-col-6 mb-2 multilayer">
-                <InfoTooltip :description="Filters.Album['Release date'].description">Release date</InfoTooltip>
+                <ToolTip :description="Filters.Album['Release date'].description">Release date</ToolTip>
                 <span v-if="!album" class="placeholder rounded-1"></span>
                 <span v-else>{{ (new Date(album?.release_date)).getFullYear() }} </span>
             </div>
             <div class="large-col-2 normal-col-3 small-col-6 mb-2 multilayer">
-                <InfoTooltip :description="Filters.Album.Popularity.description">Popularity</InfoTooltip>
+                <ToolTip :description="Filters.Album.Popularity.description">Popularity</ToolTip>
                 <span v-if="!album" class="placeholder rounded-1"></span>
                 <span v-else>{{ album.popularity / 10 }} / 10</span>
             </div>
             <div class="large-col-2 normal-col-3 small-col-6 mb-2 multilayer">
-                <InfoTooltip :description="Filters.Album['Track count'].description">Total tracks</InfoTooltip>
+                <ToolTip :description="Filters.Album['Track count'].description">Total tracks</ToolTip>
                 <span v-if="!album" class="placeholder rounded-1"></span>
                 <span v-else>{{ album.total_tracks }}</span>
             </div>
