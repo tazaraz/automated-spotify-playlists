@@ -139,6 +139,7 @@ class InfoAlbum extends Vue {
                 country: Fetch.user.info!.country
             }
         }).then(res => {
+            res.data = Fetch.format(res.data);
             this.topTracks = res.data;
 
             // Populate extra data
@@ -155,6 +156,7 @@ class InfoAlbum extends Vue {
                 limit: '50'
             }
         }).then(res => {
+            res.data = Fetch.format(res.data);
             this.albums = res.data;
 
             // Populate extra data
@@ -166,6 +168,7 @@ class InfoAlbum extends Vue {
 
         // Get the related artists
         Fetch.get<CArtist[]>(`spotify:/artists/${this.$route.params.id}/related-artists`).then(res => {
+            res.data = Fetch.format(res.data);
             // Keep only the first 5
             const data = res.data.slice(0, 5);
 
