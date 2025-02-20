@@ -12,7 +12,7 @@
                 <template v-else-if="executeState === 2">Ran</template>
             </button>
             this {{ kind }} against the filters in the currently open editor
-            <EditLog v-if="log" :infoLog="log"/>
+            <UIEditorLogs v-if="log" :infoLog="log"/>
         </template>
     </div>
 </template>
