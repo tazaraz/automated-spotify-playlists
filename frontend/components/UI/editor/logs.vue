@@ -75,9 +75,9 @@
                                 </thead>
                                 <tbody class="text-secondary">
                                     <tr v-for="data of getDataAttributes(index)">
-                                        <td>{{ data.value[1] }}</td>
-                                        <td>{{ Math.round(Number(data.value[2])) / 10 }}</td>
-                                        <td>{{ Math.round(Number(data.value[3])) / 10 }}</td>
+                                        <td>{{ data.name }}</td>
+                                        <td>{{ data.value }}</td>
+                                        <td>{{ data.filter }}</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -168,11 +168,19 @@ export class EditorLogs extends Vue {
     }
 
     getDataAttributes(index: number) {
-        const info: {indent: number, value: string[]}[] = [];
+        const info: {
+            indent: number
+            name: string
+            value: number | string
+            filter: number | string
+        }[] = [];
         while (this.statements[--index]?.value.startsWith('Info:')) {
+            const values = this.statements[index].value.split(':') as any[];
             info.push({
                 indent: this.statements[index].indent,
-                value: this.statements[index].value.split(':')
+                name: values[1],
+                value: isNaN(values[2]) ? values[2] : Math.round(Number(values[2])) / 10,
+                filter: isNaN(values[3]) ? values[3] : Math.round(Number(values[3])) / 10,
             });
         }
 
