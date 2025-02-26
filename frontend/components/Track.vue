@@ -29,7 +29,7 @@
                         data-bs-toggle="collapse"
                         :data-bs-target="`#track:${track.id}`">
                     <div class="container ms-0 d-flex gap-3 align-items-center ps-0">
-                        <Image :src="track.image ?? (track.is_local?'none':'')" />
+                        <Image :src="track.image ?? (track.is_local?'none':'')" class="image"/>
                         <div class="flex-grow-1 multilayer m-0 gap-1">
                             <div class="text-truncate">
                                 <url v-if="track.id"
@@ -233,6 +233,7 @@ main.large {
 .image {
     width: 2.5rem;
     height: 2.5rem;
+    :deep(svg) { scale: 80%; }
 }
 
 .accordion-button a:hover,

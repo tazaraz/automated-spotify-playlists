@@ -147,10 +147,10 @@ class InfoTrack extends Vue {
             throw createError({ statusCode: 404, message: response.statusText, fatal: true })
 
         this.track = response.data;
-        this.track.image = Fetch.bestImage((response.data as any).album.images);
+        this.track.image = Fetch.bestImage((response.data as any).album.images, "track");
 
         // Get the album image
-        this.track.album!.image = Fetch.bestImage((response.data as any).album.images);
+        this.track.album!.image = Fetch.bestImage((response.data as any).album.images, "album")
 
         // Get the artists, their images, and calculate the genres
         Fetch.get<CArtist[]>(`spotify:/artists`, { ids: this.track.artists!.map(artist => artist.id) })
@@ -160,7 +160,7 @@ class InfoTrack extends Vue {
                                          this.track!.artists!.findIndex(artist => artist.id === b.id))
             this.track.artists = response.data;
             for (const artist of response.data as any)
-                artist.image = Fetch.bestImage(artist.images)
+                artist.image = Fetch.bestImage(artist.images, "artist")
 
             const genres = response.data.map(a => a.genres).flat().filter((v, i, a) => a.indexOf(v) === i);
             this.albumGenres = genres.join(', ') || "No genres have been found";
@@ -200,6 +200,7 @@ header #header-artwork {
     box-shadow: 0 4px 60px #000c;
     height: 230px;
     width: 230px;
+    :deep(svg) { scale: 50%; }
 }
 main.small {
     .small-header {

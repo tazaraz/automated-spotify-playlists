@@ -3,7 +3,7 @@
         <Title v-if="!album">Loading album...</Title>
         <Title v-else>{{ album.name }}</Title>
         <header class="small-header d-flex p-4 pt-5 gap-4 mb-3">
-            <Image id="header-artwork" class="ms-sm-4" :src="album?.image"/>
+            <Image id="header-artwork" class="ms-sm-4 p-5" :src="album?.image"/>
             <div class="flex-fill d-flex flex-column text-white placeholder-glow my-auto">
                 <template v-if="!album">
                     <span class="mt-auto placeholder rounded-2" style="width: 15rem; height:2rem"></span>
@@ -113,14 +113,14 @@ class InfoAlbum extends Vue {
 
         this.album = response.data;
         this.tracks = Array(this.album.total_tracks).fill("");
-        this.album.image = Fetch.bestImage((this.album as any).images);
+        this.album.image = Fetch.bestImage((this.album as any).images, "album");
 
         // Get the artists and their images
         Fetch.get<CArtist[]>(`spotify:/artists`, { ids: this.album.artists!.map(artist => artist.id) })
         .then(response => {
             this.album!.artists = response.data;
             for (const artist of response.data as any)
-                artist.image = Fetch.bestImage(artist.images);
+                artist.image = Fetch.bestImage(artist.images, "artist");
 
             const genres = response.data.map(a => a.genres).flat().filter((v, i, a) => a.indexOf(v) === i);
             this.albumGenres = genres.join(', ') || "No genres. Try an artist."
@@ -164,6 +164,7 @@ header #header-artwork {
     box-shadow: 0 4px 60px #000c;
     height: 230px;
     width: 230px;
+    :deep(svg) { scale: 50%; }
 }
 main.small {
     .small-header {

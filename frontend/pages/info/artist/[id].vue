@@ -51,9 +51,6 @@
         <div class="row placeholder-glow mb-3 mx-4" style="max-width: 60rem;">
             <h5 class="text-white mt-3 p-2 pb-0">Top Tracks</h5>
             <template v-for="track in topTracks">
-                <!-- <div class="accordion">
-                    <Track :track="track" :id="track.id"/>
-                </div> -->
                 <div class="large-col-2 normal-col-5 small-col-6 mb-2 d-flex">
                     <Image :src="track.image" class="mx-2 my-auto" style="width: 2.5rem; height: 2.5rem;"/>
                     <div class="flex-grow-1 multilayer m-0">
@@ -131,7 +128,8 @@ class InfoAlbum extends Vue {
 
         this.artist = response.data;
         this.artist.followers = (response.data as any).followers.total;
-        this.artist.image = Fetch.bestImage((response.data as any).images);
+        // Get the best image or set default
+        this.artist.image = Fetch.bestImage((response.data as any).images, "artist");
 
         // Get the top tracks
         Fetch.get<CTrack[]>(`spotify:/artists/${this.$route.params.id}/top-tracks`, {
@@ -144,7 +142,8 @@ class InfoAlbum extends Vue {
 
             // Populate extra data
             for (const track of res.data as any) {
-                track.image = Fetch.bestImage(track.album!.images);
+                // Get the best image or set default
+                track.image = Fetch.bestImage(track.album!.images, "track");
                 track.duration = this.playlists.formatDuration(track.duration_ms);
             }
         });
@@ -161,7 +160,8 @@ class InfoAlbum extends Vue {
 
             // Populate extra data
             for (const album of res.data as any) {
-                album.image = Fetch.bestImage(album.images);
+                // Get the best image or set default
+                album.image = Fetch.bestImage(album.images, "album");
                 album.release_date = (new Date(album.release_date)).getFullYear();
             }
         });
@@ -177,7 +177,7 @@ class InfoAlbum extends Vue {
 
             // Populate extra data
             for (const artist of data as any) {
-                artist.image = Fetch.bestImage(artist.images);
+                artist.image = Fetch.bestImage(artist.images, "artist");
             }
         });
     }
@@ -208,6 +208,7 @@ header #header-artwork {
     box-shadow: 0 4px 60px #000c;
     height: 230px;
     width: 230px;
+    :deep(svg) { scale: 50%; }
 }
 main.small {
     .small-header {

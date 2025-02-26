@@ -321,7 +321,7 @@ class Playlist extends Vue {
                 id: response.id,
                 name: response.name,
                 description: response.description,
-                image: Fetch.bestImage(response.images),
+                image: Fetch.bestImage(response.images, "playlist"),
                 owner: response.owner,
                 ownership: this.playlists.playlistOwnership(response),
                 all_tracks: Array(response.tracks.total).fill(""),
@@ -472,7 +472,7 @@ class Playlist extends Vue {
      * Removes one or more tracks from the shown list
      * @param tracks Tracks to remove from the shown list. If not provided, all currently shown tracks will be removed
      */
-     removeTracks(tracks: CTrack[] | PartialTrackList | undefined = undefined) {
+    removeTracks(tracks: CTrack[] | PartialTrackList | undefined = undefined) {
         switch (this.tracks.kind) {
             case "all": break;
             case "matched":
@@ -603,6 +603,7 @@ header #header-artwork {
     box-shadow: 0 4px 60px #000c;
     height: 230px;
     width: 230px;
+    :deep(svg) { scale: 50%; }
 }
 main.small {
     .small-header {

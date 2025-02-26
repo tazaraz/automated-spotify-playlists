@@ -10,12 +10,14 @@ import {
     faCodeBranch as fasCodeBranch,
     faCircleXmark as fasCircleXmark,
     faEraser as fasEraser,
-    faHeart as fasHeart,
     faGear as fasGear,
     faGripVertical as fasGripVertical,
+    faHeart as fasHeart,
+    faMusic as fasMusic,
     faPlus as fasPlus,
     faQuestion as fasQuestion,
     faRotateLeft as fasRotateLeft,
+    faRecordVinyl as fasRecordVinyl,
     faSearch as fasSearch,
     faSlidersH as fasSliders,
     faTrashCan as fasTrashCan,
@@ -24,7 +26,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import {
     faCircleQuestion as farCircleQuestion,
-    faHeart as farHeart,
     faUser as farUser,
 } from '@fortawesome/free-regular-svg-icons'
 
@@ -42,11 +43,13 @@ library.add(
     farCircleQuestion,
     fasCircleXmark,
     fasEraser,
-    fasHeart,
     fasGear,
     fasGripVertical,
+    fasHeart,
+    fasMusic,
     fasPlus,
     fasQuestion,
+    fasRecordVinyl,
     fasRotateLeft,
     fasSliders,
     fasSearch,

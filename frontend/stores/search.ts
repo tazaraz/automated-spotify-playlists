@@ -88,7 +88,7 @@ export default class Searcher extends Pinia {
                 return {
                     id: item.id,
                     name: item.name,
-                    image: Fetch.bestImage(item.album!.images),
+                    image: Fetch.bestImage(item.album!.images, "track"),
                     description: item.artists.map((artist: any) => ({
                         id: artist.id,
                         name: artist.name
@@ -98,7 +98,7 @@ export default class Searcher extends Pinia {
                 return {
                     id: item.id,
                     name: item.name,
-                    image: Fetch.bestImage(item.images),
+                    image: Fetch.bestImage(item.images, "album"),
                     description: item.artists.map((artist: any) => ({
                         id: artist.id,
                         name: artist.name
@@ -108,7 +108,7 @@ export default class Searcher extends Pinia {
                 return {
                     id: item.id,
                     name: item.name,
-                    image: Fetch.bestImage(item.images),
+                    image: Fetch.bestImage(item.images, "artist"),
                     description: [{
                         id: '',
                         name: item.genres.join(', ')
@@ -118,7 +118,7 @@ export default class Searcher extends Pinia {
                 return {
                     id: item.id,
                     name: item.name,
-                    image: Fetch.bestImage(item.images),
+                    image: Fetch.bestImage(item.images, "playlist"),
                     description: [{
                         id: item.owner.id,
                         name: item.owner.display_name,

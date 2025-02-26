@@ -326,9 +326,26 @@ export default class Fetch {
         options.headers!['Authorization'] = token;
     }
 
-    static bestImage(images: any): string {
-        return images ? (images as any[]).reduce((a, b) => {
+    /**
+     * Selects the best image from a list of images
+     * @param images A list of images
+     * @param fallbackKind The kind of image to return if no image is found
+     */
+    static bestImage(images: any, fallbackKind: "artist" | "album" | "track" | "playlist" | "user"): string {
+        const bestImage = images ? (images as any[]).reduce((a, b) => {
             return Math.abs(500 - a.width) < Math.abs(500 - b.width) ? a : b;
-        }, "").url : "/no-artwork.png";
+        }, "").url : undefined;
+
+        // If there is an image, return it
+        if (bestImage !== undefined) return bestImage;
+
+        // If there is no image, return the fallbackKind
+        switch (fallbackKind) {
+            case "user":
+            case "artist": return ['far', 'user'];
+            case "track": return ['fas', 'music'];
+            case "album":
+            case "playlist": return ['fas', 'record-vinyl'];
+        }
     }
 }

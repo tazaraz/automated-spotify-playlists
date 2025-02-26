@@ -119,7 +119,7 @@ export default class Playlists extends Pinia {
                     user_id:    playlist.owner.id,
                     name:       playlist.name,
                     description: playlist.description,
-                    image:      Fetch.bestImage(playlist.images),
+                    image:      Fetch.bestImage(playlist.images, "playlist"),
                     owner:      { id: playlist.owner.id, display_name: playlist.owner.display_name },
                     all_tracks: Array(playlist.tracks.total).fill(null),
                 } as CPlaylist)
@@ -608,7 +608,7 @@ export default class Playlists extends Pinia {
             duration:       this.formatDuration(track.duration_ms),
             disc_number:    track.disc_number,
             track_number:   track.track_number,
-            image:          Fetch.bestImage(track.album.images),
+            image:          Fetch.bestImage(track.album.images, "track"),
             is_local:       track.is_local,
             artists:        track.artists.map((artist: CArtist) => { return {
                 name: artist.name,

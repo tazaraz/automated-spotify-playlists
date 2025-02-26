@@ -5,7 +5,7 @@
         </span>
     </div>
     <span v-else-if="Array.isArray(src)" class="image d-flex align-items-center justify-content-center">
-        <fa-icon :icon="src"></fa-icon>
+        <fa-icon :icon="src" style="height: 65%; width: 65%;"></fa-icon>
     </span>
     <img v-else-if="!error" class="image object-fit-cover" :src="src" @error="error = true"/>
     <span v-else-if="error" class="image d-flex align-items-center justify-content-center">

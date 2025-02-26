@@ -427,7 +427,7 @@ export default class Editor extends Pinia {
 
                                 // If the request was successful, update the image
                                 if (img_res.ok) {
-                                    const new_image = Fetch.bestImage(img_res.data.images)
+                                    const new_image = Fetch.bestImage(img_res.data.images, "playlist")
 
                                     // Check if the image has changed
                                     if (new_image != old_image) {

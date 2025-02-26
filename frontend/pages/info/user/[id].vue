@@ -109,7 +109,7 @@ class InfoUser extends Vue {
             this.playlists = response.data.items.map((playlist: any) => ({
                 id: playlist.id,
                 name: playlist.name,
-                image: Fetch.bestImage(playlist.images),
+                image: Fetch.bestImage(playlist.images, "playlist"),
                 url: playlist.external_urls.spotify,
             }));
         })
@@ -170,7 +170,7 @@ class InfoUser extends Vue {
             id: user.id || user.uri?.replace('spotify:user:', ''),
             name: user.display_name || user.name,
             url: user.external_urls?.spotify || (user.uri?.replace('spotify:user:', 'https://open.spotify.com/user/')),
-            image: user.image_url || (user.images?.length > 0 ? Fetch.bestImage(user.images) : ['far', 'user']),
+            image: user.image_url || Fetch.bestImage(user.images, "user"),
             followers: this.prettyCount(user.followers?.total),
         }
     }

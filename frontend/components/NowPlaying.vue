@@ -82,7 +82,7 @@ class NowPlaying extends Vue {
             else if (this.playing.track.id === response.data.item.id) return;
 
             const track = response.data.item;
-            this.playing!.image = Fetch.bestImage(track.album.images);
+            this.playing!.image = Fetch.bestImage(track.album.images, "album")
             this.playing!.track = {
                 name: track.name,
                 id: track.id
