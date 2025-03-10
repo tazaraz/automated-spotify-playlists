@@ -652,7 +652,7 @@ export default class Playlists extends Pinia {
      */
     filterOut(tracks: PartialTrackList, remove: PartialTrackList) {
         // Filter out the tracks based on their ids
-        return tracks.filter(t => !remove.some(r => ((r as CTrack).id || r) === ((t as CTrack).id || t)))
+        return tracks.filter(t => !remove.some(r => ((r as CTrack)?.id || r) === ((t as CTrack)?.id || t)))
     }
 
     /**
