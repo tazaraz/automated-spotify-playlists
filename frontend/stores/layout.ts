@@ -116,27 +116,30 @@ export default class Layout extends Pinia {
         if (this.editor.state !== 'none')
             this.editor.width = this.updateView('editor', document.getElementById('editor')!.clientWidth);
 
-        // If there is not enough space for the editor view, resize the main view
-        if ((this.editor.width < this.editor.min || this.editor.width < this.editor.user)
-            && view !== 'editor'
-            && this.editor.state !== 'none') {
-            await this.calculateGridFor(
-                'editor',
-                { clientX: window.innerWidth - this.editor.user } as MouseEvent,
-                false
-            );
-        }
+        // None of the bars / views logic applies to mobile
+        if (!this.app.mobile) {
+            // If there is not enough space for the editor view, resize the main view
+            if ((this.editor.width < this.editor.min || this.editor.width < this.editor.user)
+                && view !== 'editor'
+                && this.editor.state !== 'none') {
+                await this.calculateGridFor(
+                    'editor',
+                    { clientX: window.innerWidth - this.editor.user } as MouseEvent,
+                    false
+                );
+            }
 
-        // If there is not enough space for the main view, resize the sidebar
-        if ((this.main.width < this.main.min || this.sidebar.width < this.sidebar.user)
-            && view !== 'sidebar') {
-            await this.calculateGridFor(
-                'sidebar',
-                { clientX: this.sidebar.width - (this.main.min - this.main.user)
-                                              + (this.app.padding + 3) * 2         // Weird offset shenanigans
-                } as MouseEvent,
-                false
-            );
+            // If there is not enough space for the main view, resize the sidebar
+            if ((this.main.width < this.main.min || this.sidebar.width < this.sidebar.user)
+                && view !== 'sidebar') {
+                await this.calculateGridFor(
+                    'sidebar',
+                    { clientX: this.sidebar.width - (this.main.min - this.main.user)
+                                                  + (this.app.padding + 3) * 2         // Weird offset shenanigans
+                    } as MouseEvent,
+                    false
+                );
+            }
         }
 
         this.updateLayout();
@@ -148,7 +151,6 @@ export default class Layout extends Pinia {
 
         const rect = document.getElementById(view)!.getBoundingClientRect();
         const elStart = view === 'sidebar' ? rect.left : rect.right;
-
 
         // Get the clientX
         let clientX: string | number = 'touches' in event ? event.touches[0].clientX : event.clientX;
@@ -239,7 +241,6 @@ export default class Layout extends Pinia {
             this.app.grid.columns = `${this.sidebar.width}px ${this.app.handleWidth}px 1fr ${this.app.handleWidth}px ${this.editor.width}px`;
             this.app.grid.rows = '4rem min-content 1fr';
         }
-
     }
 
     /**
