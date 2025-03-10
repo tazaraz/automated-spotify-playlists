@@ -227,7 +227,14 @@
             <h4 v-else class="m-5">No tracks matched the search</h4>
         </section>
         <div class="d-flex mt-4 mb-3">
-            <span class="rounded-1 bg-light-subtle fs-5 mx-auto px-2" style="padding: 0.1rem 0.3rem">Showing {{ tracks.items.length }} track{{ tracks.items.length == 1 ? '' : 's' }}</span>
+            <span class="rounded-1 bg-light-subtle fs-5 mx-auto px-2" style="padding: 0.1rem 0.3rem">
+                <template v-if="tracks.loading">
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>loading tracks
+                </template>
+                <template v-else>
+                    Showing {{ tracks.items.length }} track{{ tracks.items.length == 1 ? '' : 's' }}
+                </template>
+            </span>
         </div>
     </article>
 </template>
