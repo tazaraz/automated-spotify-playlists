@@ -147,13 +147,14 @@
 </template>
 
 <script lang="ts">
-import { Vue, Component, toNative, Prop, Emit } from 'vue-facing-decorator';
+import { Vue, Component, toNative, Prop } from 'vue-facing-decorator';
 import type { CArtist, CTrack, CTrackFeatures } from '~/../backend/src/shared/types/client';
 import { FilterDescriptions as Filters } from '~/../backend/src/shared/types/descriptions';
 import Fetch from '~/composables/fetch';
 
-@Emit('delete')
-@Component({})
+@Component({
+    emits: ['delete']
+})
 class Track extends Vue {
     @Prop({ required: true }) track!: CTrack | string | null;
     @Prop({ default: false }) deleteable!: boolean;
