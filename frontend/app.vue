@@ -12,6 +12,8 @@
     <Meta name="apple-mobile-web-app-capable" content="yes"></Meta>
     <Meta name="theme-color" content="#0d6efd"></Meta>
 
+    <Meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"></Meta>
+
     <div v-if="layout" id="app" :class="`bg-black overflow-hidden${layout.app.mobile ? '':' rounded'}`" ref="app" :style="`padding: ${layout.app.padding}px; grid-template-columns: ${layout.app.grid.columns}; grid-template-rows: ${layout.app.grid.rows}`">
         <UISidebar :class="layout.sidebar.state" ref="sidebar"/>
         <UIHandle view="sidebar"/>
