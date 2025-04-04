@@ -89,12 +89,11 @@ export default class Updater {
             }).then(r => r.data);
 
             if (users[playlist.user_id] === undefined) {
-                // If the user does not exist, we can remove the playlist
-                if (await Users.get(playlist.user_id) === undefined) {
-                    remove.push(sp_playlist);
+                // If the user does not exist (it should have at some point), skip
+                if (await Users.get(playlist.user_id) === undefined)
                     continue
-                }
 
+                // Get info about the
                 users[playlist.user_id] = await Fetch.get<{id: string}[]>(`/users/${playlist.user_id}/playlists`, {
                     user: await Users.get(playlist.user_id),
                     pagination: true,
