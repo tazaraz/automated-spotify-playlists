@@ -33,7 +33,11 @@ export default class Updater {
             try {
                 /* Get the user and their playlists */
                 const playlists = await Database.getUserPlaylists(dbuser.id);
-                const user      = await Users.get(dbuser.id)
+                const user      = await Users.get(dbuser.id);
+
+                // If the user does not exist (anymore), skip
+                if (user === undefined)
+                    continue;
 
                 /* Sequentially update all playlists. Don't spam Spotify */
                 for (const playlist of playlists) {
