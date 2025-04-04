@@ -85,14 +85,20 @@ export default class Updater {
         for (const playlist of db_playlists) {
             const sp_playlist = await Fetch.get<UPlaylist>(`/playlists/${playlist.id}`, {
                 user: await Users.get(playlist.user_id),
-                query: { fields: 'id, name, owner.id, owner.display_name, followers.total' }
+                query: { fields: 'id,name,owner.id,owner.display_name,followers.total' }
             }).then(r => r.data);
 
             if (users[playlist.user_id] === undefined) {
+                // If the user does not exist, we can remove the playlist
+                if (await Users.get(playlist.user_id) === undefined) {
+                    remove.push(sp_playlist);
+                    continue
+                }
+
                 users[playlist.user_id] = await Fetch.get<{id: string}[]>(`/users/${playlist.user_id}/playlists`, {
                     user: await Users.get(playlist.user_id),
                     pagination: true,
-                    query: { fields: 'items(id)' }
+                    query: { fields: 'total,items(id)' }
                 }).then(r => r.data.map(p => p.id));
             }
 
