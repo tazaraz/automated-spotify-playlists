@@ -1,8 +1,7 @@
 services:
   automated-playlists-nginx:
     ports:
-      - 8080:8080
-      - 24672:24672
+      - 8000:8000
 
   automated-playlists-frontend:
     command: npm run dev

@@ -2,7 +2,7 @@ services:
   automated-playlists-nginx:
     image: nginx:alpine
     container_name: automated-playlists-nginx
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./nginx/site.conf:/etc/nginx/sites-enabled/site.conf
@@ -16,13 +16,13 @@ services:
     image: node:alpine
     container_name: automated-playlists-frontend
     command: npm run deploy
-    restart: always
+    restart: unless-stopped
     working_dir: /frontend
     volumes:
       - ./frontend:/frontend
       - ./backend:/backend
     environment:
-      PORT: 8080
+      PORT: 8000
       NODE_ENV: production
       AP_CLIENT_ID: ${AP_CLIENT_ID}
 
@@ -32,7 +32,7 @@ services:
     container_name: automated-playlists-backend
     command: npm run deploy
     working_dir: /backend
-    restart: always
+    restart: unless-stopped
     volumes:
       - ./backend:/backend
     environment:
@@ -54,6 +54,7 @@ services:
     user: 1000:1000
     image: redis:7.0-alpine
     container_name: automated-playlists-cache
+    restart: unless-stopped
     command: redis-server --save 20 1 --loglevel warning --requirepass ${REDIS_PASSWORD}
     volumes:
       - ./cache:/data
@@ -62,7 +63,7 @@ services:
     user: 1000:1000
     image: postgres:15.3-alpine
     container_name: automated-playlists-database
-    restart: always
+    restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     volumes:
