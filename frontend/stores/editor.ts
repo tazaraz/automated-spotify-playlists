@@ -513,6 +513,7 @@ export default class Editor extends Pinia {
         }
 
         this.flattened = this.flatten(this.filters);
+        this.configIsValid();
     }
 
     /**
