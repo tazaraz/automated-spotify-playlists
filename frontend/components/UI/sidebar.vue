@@ -100,7 +100,7 @@
                     <Image class="btn border rounded-3 p-2 mx-auto" :src="['fas', 'plus']"/>
                 </li>
 
-                <h6 class="lh-base p-1 ps-2 pb-0 mt-4 mb-2">Normal playlists</h6>
+                <h6 class="lh-base p-1 ps-2 pb-0 mt-4 mb-2">Other playlists</h6>
                 <li v-for="(playlist, index) in playlists.storage.filter(p => !p.filters)" :key="index"
                     class="nav-item cursor-pointer">
                     <url :to="`/playlist/${playlist.id}`" @click="hideOffcanvas"
