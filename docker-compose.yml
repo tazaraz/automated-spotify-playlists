@@ -37,7 +37,7 @@ services:
     volumes:
       - ./backend:/backend
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       PGHOST: automated-playlists-database
       PGUSER: postgres
       AP_CLIENT_ID: ${AP_CLIENT_ID}
