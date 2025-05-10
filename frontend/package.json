@@ -2,7 +2,7 @@
   "name": "automated-playlists",
   "private": true,
   "scripts": {
-    "deploy": "NODE_ENV=production nuxt generate && nuxt start",
+    "deploy": "nuxt build && nuxt start",
     "build": "nuxt build",
     "dev": "nuxi dev --no-clear",
     "generate": "nuxt generate",
