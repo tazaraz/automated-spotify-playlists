@@ -4,11 +4,9 @@ services:
       - 8000:8000
 
   automated-playlists-frontend:
-    command: npm run dev
-    environment:
-      NODE_ENV: development
+    command: npm run deploy
 
   automated-playlists-backend:
-    command: npm run dev
+    command: npm run deploy
     environment:
-      NODE_ENV: development
+      NODE_ENV: production

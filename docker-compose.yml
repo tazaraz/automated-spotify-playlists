@@ -10,12 +10,14 @@ services:
     depends_on:
       - automated-playlists-frontend
       - automated-playlists-backend
+    ports:
+      - 8010:8000
 
   automated-playlists-frontend:
     user: 1000:1000
     image: node:alpine
     container_name: automated-playlists-frontend
-    command: npm run deploy
+    command: npm run dev
     restart: unless-stopped
     working_dir: /frontend
     volumes:
@@ -23,14 +25,13 @@ services:
       - ./backend:/backend
     environment:
       PORT: 8000
-      NODE_ENV: production
       AP_CLIENT_ID: ${AP_CLIENT_ID}
 
   automated-playlists-backend:
     user: 1000:1000
     image: node:alpine
     container_name: automated-playlists-backend
-    command: npm run deploy
+    command: npm run dev
     working_dir: /backend
     restart: unless-stopped
     volumes:
