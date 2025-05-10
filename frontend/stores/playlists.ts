@@ -414,7 +414,6 @@ export default class Playlists extends Pinia {
     removeMatched(tracks: PartialTrackList){
         // Remove the tracks from the from the origin
         this.loaded.all_tracks = this.filterOut(this.loaded.all_tracks, tracks);
-        this.loaded.matched_tracks = this.filterOut(this.loaded.matched_tracks, tracks);
 
         // Add the tracks to the destination
         this.loaded.excluded_tracks.push(...tracks);
@@ -433,7 +432,6 @@ export default class Playlists extends Pinia {
 
         // Add the tracks to the destination
         this.loaded.all_tracks.push(...tracks);
-        this.loaded.matched_tracks.push(...tracks);
 
         // Let the server know the change
         this.removeTracks(this.loaded, 'excluded', tracks.map(t => (t as CTrack).id || (t as string)))
@@ -590,7 +588,7 @@ export default class Playlists extends Pinia {
         if (!this.unpublished) {
             // Do a call for every 500 tracks
             for (let i = 0; i < removed.length; i += 500) {
-                await Fetch.delete(`server:/playlist/${playlist!.id}/${what}-tracks`, {
+                Fetch.delete(`server:/playlist/${playlist!.id}/${what}-tracks`, {
                     data: { removed: removed.slice(i, i + 500) }
                 })
             }
