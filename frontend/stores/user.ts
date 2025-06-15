@@ -8,6 +8,7 @@ import Fetch from "~/composables/fetch";
  */
 export default class User extends Pinia {
     info: CUser | undefined;
+    static triedRefreshingToken = false;
 
     getCodeGrant(client_id: string){
         /**
@@ -34,21 +35,25 @@ export default class User extends Pinia {
     }
 
     async parseCodeGrant(code: string) {
-        // If there is a code in the url, ask our server for tokens
-        if (code){
-            window.history.pushState({}, document.title, "/");
+        window.history.pushState({}, document.title, "/");
 
-            // Request tokens
-            const error = await this.getTokens(
-                useRuntimeConfig().public.AP_CLIENT_ID,
-                code as string
-            );
+        // Request tokens
+        const error = await this.getTokens(
+            useRuntimeConfig().public.AP_CLIENT_ID,
+            code as string
+        );
 
-            if (!error) {
-                navigateTo(localStorage.getItem("o") || "/");
-                localStorage.removeItem("o");
-            }
+        if (!error) {
+            navigateTo(localStorage.getItem("o") || "/");
+
+            localStorage.removeItem("o");
+            // Successfully logged in, so we set the flag that we have not tried to refresh the token
+            localStorage.setItem("rs", "0");
+            User.triedRefreshingToken = localStorage.getItem("rs") === "1";
+            return true;
         }
+
+        return false;
     }
 
     async getTokens(client_id: string, code: string){
@@ -77,19 +82,13 @@ export default class User extends Pinia {
             localStorage.setItem("e", JSON.stringify({t: user.server_token, e: user.server_token_expiry}))
             localStorage.setItem("p", JSON.stringify({p: user.spotify_token, e: user.spotify_token_expiry}))
 
+            // Store the info that we have not successfully tried relogging in
+            localStorage.setItem("rs", "0");
+
             // Load the credentials
             this.loadCredentials();
-            return ;
+            return;
         }
-    }
-
-    login() {
-        localStorage.setItem("o", window.location.pathname);
-        this.getCodeGrant(useRuntimeConfig().public.AP_CLIENT_ID)
-    }
-
-    dataExists() {
-        return localStorage.getItem("u") !== null;
     }
 
     /**
@@ -103,6 +102,9 @@ export default class User extends Pinia {
         // If the user is logged in
         if (this.info)
             return true;
+
+        // Get whether we have tried to refresh the token
+        User.triedRefreshingToken = localStorage.getItem("rs") === "1";
 
         // Store the user in the store
         const u = JSON.parse(localStorage.getItem("u")!);
@@ -126,6 +128,33 @@ export default class User extends Pinia {
     }
 
     /**
+     * Redirects the user to the spotify authorization page. Stores the current path in local storage
+     * so that we can redirect the user back to it after they have logged in.
+     */
+    login() {
+        localStorage.setItem("o", window.location.pathname);
+        this.getCodeGrant(useRuntimeConfig().public.AP_CLIENT_ID)
+    }
+
+    /**
+     * If the server token is expired, automatically retry to log in
+     */
+    relogin() {
+        // If we have already tried to refresh the token, do not try again
+        if (User.triedRefreshingToken)
+            return false;
+
+        // Set the flag that we have tried to refresh the token
+        localStorage.setItem("rs", "1");
+        User.triedRefreshingToken = localStorage.getItem("rs") === "1";
+
+        this.logout();
+        this.login()
+
+        return true;
+    }
+
+    /**
      * Logs the user out by clearing the local storage
      */
     logout() {
@@ -133,9 +162,15 @@ export default class User extends Pinia {
         localStorage.removeItem("u")
         localStorage.removeItem("e")
         localStorage.removeItem("p")
+        localStorage.removeItem("rs");
+        localStorage.removeItem("o");
         this.info = undefined;
 
         return true;
+    }
+
+    dataExists() {
+        return localStorage.getItem("u") !== null;
     }
 
     setSpotifyToken(token: string, expiry: number) {

@@ -38,7 +38,7 @@ export default class Fetch {
     static user: User;
     static createError: (error: LayoutError) => void;
 
-    static refreshingToken: Promise<boolean> | null;
+    static refreshingToken: Promise<void> | null;
 
     constructor(user: User) {
         if (!Fetch.user) Fetch.user = user;
@@ -198,6 +198,12 @@ export default class Fetch {
             case 401:
             case 403:
             case 404:
+            /** If the result was from the server */
+            case 406:
+                if (!url.includes("spotify.com")) {
+                    Fetch.user.relogin();
+                    break;
+                }
             case 503:
                 if (options.retries-- > 0) {
                     return await new Promise(resolve => {
@@ -208,6 +214,25 @@ export default class Fetch {
                     });
                 }
 
+                // Still not working, refresh the spotify token
+                if (options.retries-- == 0) {
+                    await Fetch.refreshSpotifyToken();
+                    return Fetch.parseRequest(url, parameters, options);
+                }
+
+                // Try to relogin the user. If not already tried, this results in a redirect, stopping code execution
+                Fetch.user.relogin();
+
+                // Reloging in was already tried.
+                Fetch.user.logout();
+                navigateTo("/");
+
+                Fetch.createError({
+                    status: response.status,
+                    title: "Could not get a valid Spotify login",
+                    message: `Spotify returned a ${response.status} error. Please try to log in again`,
+                    priority: 1
+                });
                 break;
 
             /**Spotify had a hiccough, give it some time */
@@ -293,29 +318,7 @@ export default class Fetch {
             }
 
             // Refresh the token
-            Fetch.refreshingToken = new Promise(async resolve => {
-                const response = await Fetch.post(`server:/user/refresh`);
-
-                // If the token is invalid, log out
-                if (response.status === 401 || response.status === 406) {
-                    Fetch.user.logout();
-
-                    // Throw the appropriate error
-                    if (response.status === 401)
-                        throw new Error("No server token");
-                    if (response.status === 406)
-                        throw new Error("Invalid server token");
-                }
-
-                // Parse the response
-                const { spotify_token, spotify_token_expiry } = response.data;
-
-                // Store the new server token
-                Fetch.user.setSpotifyToken(spotify_token, spotify_token_expiry);
-
-                // Resolve the promise
-                resolve(true);
-            })
+            Fetch.refreshingToken = Fetch.refreshSpotifyToken();
 
             // Wait for the token to be refreshed
             await Fetch.refreshingToken;
@@ -324,6 +327,27 @@ export default class Fetch {
         // Set the correct access token
         const token = `Bearer ${url.startsWith("server:") ? Fetch.user.info.server_token : Fetch.user.info.spotify_token}`
         options.headers!['Authorization'] = token;
+    }
+
+    protected static async refreshSpotifyToken() {
+        const response = await Fetch.post(`server:/user/refresh`);
+
+        // If the token is invalid, log out
+        if (response.status === 401 || response.status === 406) {
+            Fetch.user.logout();
+
+            // Throw the appropriate error
+            if (response.status === 401)
+                throw new Error("No server token");
+            if (response.status === 406)
+                throw new Error("Invalid server token");
+        }
+
+        // Parse the response
+        const { spotify_token, spotify_token_expiry } = response.data;
+
+        // Store the new server token
+        Fetch.user.setSpotifyToken(spotify_token, spotify_token_expiry);
     }
 
     /**
