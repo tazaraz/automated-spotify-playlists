@@ -171,7 +171,7 @@ export default class Fetch {
             // If the api.spotify.com lookup fails
             switch (error.cause.code) {
                 default:
-                    THROW_DEBUG_ERROR(JSON.stringify(error));
+                    THROW_DEBUG_ERROR(error, error.cause.code, JSON.stringify(error));
                 case "EAI_AGAIN":
                 /* Random timeout */
                 case "UND_ERR_CONNECT_TIMEOUT":
