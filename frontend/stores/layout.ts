@@ -271,7 +271,7 @@ export default class Layout extends Pinia {
             const index = this.error.push(error) - 1;
             error.duration = setTimeout(() => {
                 this.error.splice(index, 1);
-            }, error.duration || 5000) as any;
+            }, error.duration || 10000) as any;
 
             // Sort the array based on priority
             this.error.sort((a, b) => a.priority! - b.priority!);
