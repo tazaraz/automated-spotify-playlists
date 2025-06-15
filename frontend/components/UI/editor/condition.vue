@@ -193,7 +193,7 @@ export class EditorCondition extends Vue {
     }
 
     isValid() {
-               // Check the fields
+        // Check the fields
         return this.condition.category !== undefined &&
                this.condition.filter !== undefined &&
                this.condition.operation !== undefined &&
@@ -202,8 +202,13 @@ export class EditorCondition extends Vue {
                this.MainFilters[this.condition.category] !== undefined &&
                this.MainFilters[this.condition.category][this.condition.filter] !== undefined &&
                Object.keys(this.MainFilters[this.condition.category][this.condition.filter].type.operation).includes(this.condition.operation) &&
-               // Check if the value is not empty OR if it is a boolean (which can be empty)
-               (this.condition.value !== "" || (this.MainFilters[this.condition.category][this.condition.filter].type == FilterBoolean && this.condition.value == ""))
+               // Check if the value is not empty OR
+               //   - if it is a boolean (which can be empty)
+               //   - if it is a genre filter (which can be empty)
+               (this.condition.value !== "" || (
+                    (this.MainFilters[this.condition.category][this.condition.filter].type == FilterBoolean && this.condition.value == "") ||
+                    (this.condition.filter.toLowerCase() == "genres" && this.condition.value == "")
+               ))
     }
 
     async filterValueChange(event: Event) {
