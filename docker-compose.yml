@@ -11,13 +11,12 @@ services:
       - automated-playlists-frontend
       - automated-playlists-backend
     ports:
-      - 8010:8000
+      - 8000:8000
 
   automated-playlists-frontend:
     user: 1000:1000
     image: node:alpine
     container_name: automated-playlists-frontend
-    command: npm run dev
     restart: unless-stopped
     working_dir: /frontend
     volumes:
@@ -31,13 +30,11 @@ services:
     user: 1000:1000
     image: node:alpine
     container_name: automated-playlists-backend
-    command: npm run dev
     working_dir: /backend
     restart: unless-stopped
     volumes:
       - ./backend:/backend
     environment:
-      NODE_ENV: development
       PGHOST: automated-playlists-database
       PGUSER: postgres
       AP_CLIENT_ID: ${AP_CLIENT_ID}
