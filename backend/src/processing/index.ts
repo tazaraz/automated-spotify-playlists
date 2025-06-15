@@ -198,6 +198,7 @@ export default class Filters {
             new_playlist_tracks   = Filters.subtract(new_playlist_tracks, excluded_tracks)
         let to_be_added           = Filters.subtract(new_playlist_tracks, spotify_tracks)
         let to_be_removed         = Filters.subtract(spotify_tracks, new_playlist_tracks)
+        task.log.filters.push(`Tracks prior to update: ${spotify_tracks.length}, tracks after update: ${new_playlist_tracks.length}`)
         LOG_DEBUG(`4: added: ${to_be_added.length}, removed: ${to_be_removed.length}`)
 
         // 5. Get unique tracks and remove those from the spotify tracks. These are duplicates
@@ -207,6 +208,7 @@ export default class Filters {
         // The Spotify API removes all duplicates given only one track id, so we must add them back
         to_be_added   = Filters.merge(to_be_added, duplicates)
         to_be_removed = Filters.merge(to_be_removed, duplicates)
+        task.log.filters.push(`Added: ${to_be_added.length} tracjs, removed: ${to_be_removed.length} tracks`)
         LOG_DEBUG(`5: duplicates: ${duplicates.length}, removed: ${to_be_removed.length} (+${duplicates.length})`)
 
         playlist.matched_tracks     = matched_tracks.map(item => item.id)
