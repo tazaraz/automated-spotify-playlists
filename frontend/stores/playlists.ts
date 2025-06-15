@@ -101,6 +101,20 @@ export default class Playlists extends Pinia {
         this.loadingUserPlaylists = new Promise(async resolve => {
             let playlists: CPlaylist[] = [];
 
+            // Get automated playlists
+            const res_s = await Fetch.get<CPlaylist[]>('server:/playlists');
+            if (res_s.status !== 200) {
+                Fetch.createError({
+                    status: res_s.status,
+                    title: 'Server Communication',
+                    message: 'The server did not respond accordingly when retrieving your automated playlists'
+                });
+
+                return resolve(false);
+            }
+
+            if (res_s.data.length > 0) this.hasAutomatedPlaylists = true;
+
             // Get the user playlists from Spotify
             const res_p = await Fetch.get<any[]>('spotify:/me/playlists', {pagination: true});
             if (res_p.status !== 200) {
@@ -124,19 +138,6 @@ export default class Playlists extends Pinia {
                     all_tracks: Array(playlist.tracks.total).fill(null),
                 } as CPlaylist)
             });
-
-            // Get automated playlists
-            const res_s = await Fetch.get<CPlaylist[]>('server:/playlists');
-            if (res_s.status !== 200) {
-                Fetch.createError({
-                    status: res_s.status,
-                    title: 'Server Communication',
-                    message: 'The server did not respond accordingly when retrieving your automated playlists'
-                });
-                return resolve(false);
-            }
-
-            if (res_s.data.length > 0) this.hasAutomatedPlaylists = true;
 
             /** Overwrite the playlists with the automated playlists
              * NOTE: Not all playlists are actually automated playlists, but for typing we treat them as if
