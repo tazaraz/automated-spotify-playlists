@@ -108,7 +108,7 @@ export default class Users {
             } else {
                 /* The user has revoked access. Remove the user from the database
                  * This will keep the playlists in the database, but will not update them anymore */
-                if (response.data.error === 'invalid_grant') {
+                if (response.data?.error === 'invalid_grant') {
                     await Database.deleteUser(user);
                     return null;
                 } else {
